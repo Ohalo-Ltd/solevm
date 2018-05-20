@@ -10,7 +10,7 @@
   "nonce": "0x0",
   "timestamp": "0x00",
   "parentHash": "0x0000000000000000000000000000000000000000000000000000000000000000",
-  "gasLimit": "0xffffffffffffffff",
+  "gasLimit": "0x1111111111111111",
   "difficulty": "0x00",
   "coinbase": "0x0000000000000000000000000000000000000000",
   "alloc": {

@@ -1,4 +1,4 @@
-import {EVM_EXECUTE_SIG, SOL_ETH_BIN, SOL_ETH_RUNNER_BIN} from "./constants";
+import {EVM_EXECUTE_SIG, SOL_ETH_BIN} from "./constants";
 const Web3EthAbi = require('web3-eth-abi');
 import {BigNumber} from "bignumber.js";
 import {run} from "./evm";
@@ -44,7 +44,7 @@ export const decode = (res) => {
 
     res = res.substr(64);
     const dec = Web3EthAbi.decodeParameters(['uint256', 'uint256', 'bytes', 'uint256[]', 'bytes', 'uint256[]', 'bytes[]'], '0x' + res);
-    console.log(dec);
+    //console.log(dec);
     let returnData = '';
     if (dec['2'] && dec['2'].length >= 2) {
         returnData = dec['2'].substr(2);
@@ -157,17 +157,6 @@ export const executeWithTxInput = async (txInput) => {
                 '0x' + txInput.target, txInput.targetBalance, txInput.targetNonce, '0x' + txInput.targetCode, '0x' + txInput.data]).substr(2);
     //console.log(calldata);
     const res = run(SOL_ETH_BIN, calldata);
-    //console.log(res);
-    if (res === '0') {
-        throw new Error("Error when executing - no return data.");
-    }
-    return decode(res);
-};
-
-export const executeInItself = async (code, data) => {
-    let calldata = EVM_EXECUTE_SIG + Web3EthAbi.encodeParameters(['bytes', 'bytes'], ['0x' + code, '0x' + data]).substr(2);
-    //console.log(calldata);
-    const res = run(SOL_ETH_RUNNER_BIN, calldata);
     //console.log(res);
     if (res === '0') {
         throw new Error("Error when executing - no return data.");

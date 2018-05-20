@@ -10,8 +10,6 @@ exports.CHAIN_FILE = path.join(exports.ROOT_PATH, "genesis.json");
 exports.CONTRACT_FILE = path.join(exports.ROOT_PATH, "contracts.json");
 exports.SOL_ETH_SRC = path.join(exports.SRC_PATH, "EthereumRuntime.sol");
 exports.SOL_ETH_BIN = path.join(exports.BIN_OUTPUT_PATH, "EthereumRuntime.bin-runtime");
-exports.SOL_ETH_RUNNER_SRC = path.join(exports.SRC_PATH, "EthereumRuntimeRuntime.sol");
-exports.SOL_ETH_RUNNER_BIN = path.join(exports.BIN_OUTPUT_PATH, "EthereumRuntimeRuntime.bin-runtime");
 exports.EVM_EXECUTE_SIG = '1f6a1eb9';
 exports.EVM_EXECUTE_TXINPUT_SIG = 'fb9cc4af';
 exports.CONTRACT_TEST_SIG = 'f8a8fd6d';
@@ -26,6 +24,7 @@ exports.ERROR_INVALID_OPCODE = 0x04;
 exports.ERROR_INVALID_JUMP_DESTINATION = 0x05;
 exports.ERROR_INSTRUCTION_NOT_SUPPORTED = 0x06;
 exports.ERROR_STATE_REVERTED = 0x07;
+exports.ERROR_INSUFFICIENT_FUNDS = 0x08;
 // Ethereum opcodes
 // Stop and arithmetic ops
 exports.STOP = '00';

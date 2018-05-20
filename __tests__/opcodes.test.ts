@@ -34,7 +34,7 @@ import {
     ROOT_PATH,
     SDIV, SGT, SLT,
     SMOD,
-    SRC_PATH, SSTORE,
+    SRC_PATH, SSTORE, STOP,
     SUB,
     SWAP1,
     SWAP10,
@@ -59,7 +59,7 @@ import {readText} from "../script/io";
 
 const runTest = async (code, data, resExpected) => {
     const result = await execute(code, data);
-    console.log(result);
+    //console.log(result);
     //console.log(result.stack[0].toNumber());
     expect(result.errno).toEqual(resExpected.errno);
     expect(result.errpc).toEqual(resExpected.errpc);
@@ -74,8 +74,22 @@ const runTest = async (code, data, resExpected) => {
     }
     return result;
 };
-/*
-describe('arithmetic ops', () => {
+
+describe('stop and arithmetic ops', () => {
+
+    it('should STOP successfully', async () => {
+        const code = STOP;
+        const data = "";
+        const resExpected = {
+            errno: 0,
+            errpc: 0,
+            returnData: "",
+            memSize: 0,
+            mem: "",
+            stack: [],
+        };
+        await runTest(code, data, resExpected);
+    });
 
     it('should add two numbers successfully', async () => {
         const stack_0 = '0000000000000000000000000000000000000000000000000000000000000003';
@@ -1088,10 +1102,10 @@ describe('block information', () => {
     });
 
 });
-*/
+
 
 describe('stack, memory, storage and flow ops', () => {
-/*
+
     it('should run push32 three times in a row then pop all three successfully', async () => {
         const stack_0 = '0101010101010101010101010101010101010101010101010101010101010101';
         const stack_1 = '0101010101010101010101010101010101010101010101010101010101010102';
@@ -1138,7 +1152,7 @@ describe('stack, memory, storage and flow ops', () => {
         };
         await runTest(code, data, resExpected);
     });
-*/
+
     it('should use SSTORE successfully', async () => {
         const code = PUSH1 + '02' + PUSH1 + '01' + SSTORE;
         const data = "";
@@ -1158,7 +1172,7 @@ describe('stack, memory, storage and flow ops', () => {
 
 });
 
-/*
+
 describe('push ops', () => {
 
     it('should run push32 successfully', async () => {
@@ -1411,4 +1425,4 @@ describe('swap ops', () => {
     });
 
 });
-*/
+

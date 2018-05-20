@@ -76,7 +76,7 @@ exports.bytesHexToABI = function (btsHex) {
 exports.decode = function (res) {
     res = res.substr(64);
     var dec = Web3EthAbi.decodeParameters(['uint256', 'uint256', 'bytes', 'uint256[]', 'bytes', 'uint256[]', 'bytes[]'], '0x' + res);
-    console.log(dec);
+    //console.log(dec);
     var returnData = '';
     if (dec['2'] && dec['2'].length >= 2) {
         returnData = dec['2'].substr(2);
@@ -181,18 +181,6 @@ exports.executeWithTxInput = function (txInput) { return __awaiter(_this, void 0
             Web3EthAbi.encodeParameters(['uint256', 'uint256', 'address', 'uint256', 'uint256', 'uint256', 'uint256', 'address', 'uint256', 'uint256', 'bytes', 'bytes'], [txInput.gas, txInput.gasPrice, '0x' + txInput.caller, txInput.callerBalance, txInput.callerNonce, txInput.value,
                 '0x' + txInput.target, txInput.targetBalance, txInput.targetNonce, '0x' + txInput.targetCode, '0x' + txInput.data]).substr(2);
         res = evm_1.run(constants_1.SOL_ETH_BIN, calldata);
-        //console.log(res);
-        if (res === '0') {
-            throw new Error("Error when executing - no return data.");
-        }
-        return [2 /*return*/, exports.decode(res)];
-    });
-}); };
-exports.executeInItself = function (code, data) { return __awaiter(_this, void 0, void 0, function () {
-    var calldata, res;
-    return __generator(this, function (_a) {
-        calldata = constants_1.EVM_EXECUTE_SIG + Web3EthAbi.encodeParameters(['bytes', 'bytes'], ['0x' + code, '0x' + data]).substr(2);
-        res = evm_1.run(constants_1.SOL_ETH_RUNNER_BIN, calldata);
         //console.log(res);
         if (res === '0') {
             throw new Error("Error when executing - no return data.");

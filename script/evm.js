@@ -4,9 +4,9 @@ var child = require("child_process");
 var constants_1 = require("./constants");
 var execSync = child.execSync;
 exports.run = function (file, input) {
-    var cmd = "evm --prestate " + constants_1.CHAIN_FILE + " --codefile " + file + " --input " + input + " --gas 100000000000000 run";
+    var cmd = "evm --prestate " + constants_1.CHAIN_FILE + " --codefile " + file + " --input " + input + " --gas 1000000000000 run";
     var ret = execSync(cmd);
-    console.log(ret.toString());
+    //console.log(ret.toString());
     if (ret === null) {
         throw new Error("Failed when running command: " + cmd);
     }

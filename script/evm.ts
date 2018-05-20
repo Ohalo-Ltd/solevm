@@ -3,9 +3,9 @@ import {CHAIN_FILE} from "./constants";
 const execSync = child.execSync;
 
 export const run = (file, input) => {
-    const cmd = `evm --prestate ${CHAIN_FILE} --codefile ${file} --input ${input} --gas 100000000000000 run`;
+    const cmd = `evm --prestate ${CHAIN_FILE} --codefile ${file} --input ${input} --gas 1000000000000 run`;
     const ret = execSync(cmd);
-    console.log(ret.toString());
+    //console.log(ret.toString());
     if (ret === null) {
         throw new Error(`Failed when running command: ${cmd}`);
     }

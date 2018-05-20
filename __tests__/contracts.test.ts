@@ -9,7 +9,7 @@ import {
 import {compile} from "../script/solc";
 import path = require("path");
 import {readText} from "../script/io";
-/*
+
 describe('solidity contracts', () => {
 
     it('should call test function on TestContractNoop', async () => {
@@ -31,7 +31,7 @@ describe('solidity contracts', () => {
         await compile(path.join(ROOT_PATH, '__tests__', 'testcontract_reverts.sol'), BIN_OUTPUT_PATH, true);
         const code = readText(path.join(BIN_OUTPUT_PATH, 'TestContractReverts.bin-runtime'));
         const result = await execute(code, CONTRACT_TEST_SIG);
-        console.log(result);
+        //console.log(result);
         expect(result.errno).toBe(ERROR_STATE_REVERTED);
         expect(result.returnData).toBe('');
     });
@@ -40,10 +40,9 @@ describe('solidity contracts', () => {
         await compile(path.join(ROOT_PATH, '__tests__', 'testcontract_revertswitharg.sol'), BIN_OUTPUT_PATH, true);
         const code = readText(path.join(BIN_OUTPUT_PATH, 'TestContractRevertsWithArgument.bin-runtime'));
         const result = await execute(code, CONTRACT_TEST_SIG);
-        console.log(result);
+        //console.log(result);
         expect(result.errno).toBe(ERROR_STATE_REVERTED);
         //expect(result.returnData).toBe('');
     });
 
 });
-*/
