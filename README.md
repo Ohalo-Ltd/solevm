@@ -85,11 +85,12 @@ The runtime is a regular Solidity contract that can be compiled by `solc`, and c
 
 In order to build and run this code, you need go-ethereum's `evm` as well as `solc` on your path. The code is tested using the solidity `0.4.24` release version and the evm `1.8.7` version.
 
-`bin/compile.js` can be executed to create `bin`, `bin-runtime`, `abi` and `signatures` files for the runtime contract. The files are put in the `bin_output` folder. The compile executable must be run before the jest tests can be run.
+`bin/compile.js` can be executed to create `bin`, `bin-runtime`, `abi` and `signatures` files for the runtime contract. The files are put in the `bin_output` folder. The compile executable must be run before the jest tests can be run. 
 
-`bin/test.js` can be run to test some of the supporting contracts and libraries. These require
+After creating these files, `npm run test` can be run to test the runtime contract. It has a number of tests for the different (available) opcodes. There will be more tests and available opcodes with time.
 
-`npm run test` can be run to test the runtime contract. It has a number of tests for the different (available) opcodes. There will be more tests and available opcodes with time.
+`bin/test.js` can be run to test some of the supporting contracts and libraries. Note that this command overwrites the `bin_output` folder contents, so if you want to run `npm run test` again, you will need to recompile using `bin/compile.js` again.
+
 
 ### The runtime
 
