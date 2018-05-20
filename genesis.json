@@ -1,0 +1,18 @@
+{
+  "config": {
+    "chainId": 77777,
+    "homesteadBlock": 0,
+    "eip150Block": 0,
+    "eip155Block": 0,
+    "eip158Block": 0,
+    "constantinopleBlock": 0
+  },
+  "nonce": "0x0",
+  "timestamp": "0x00",
+  "parentHash": "0x0000000000000000000000000000000000000000000000000000000000000000",
+  "gasLimit": "0xffffffffffffffff",
+  "difficulty": "0x00",
+  "coinbase": "0x0000000000000000000000000000000000000000",
+  "alloc": {
+  }
+}
