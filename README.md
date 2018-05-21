@@ -81,9 +81,9 @@ There is a javascript (typescript) adapter at `script/adapter.ts` which allow yo
 
 ### Building and Testing
 
-The runtime is a regular Solidity contract that can be compiled by `solc`, and can therefore be used with libraries such as `web3js` or just executed by the various different stand-alone evm implementations. The one limitation is that a lot of gas is required in order to run the code.
+The runtime is a regular Solidity contract that can be compiled by `solc`, and can therefore be used with libraries such as `web3js` or just executed by the various different stand-alone evm implementations. The limitations is that a lot of gas is required in order to run the code, and that web3js does not have support for Solidity structs (ABI tuples). Additionally, this code is designed to run on a constantinople net, with all constantinople features.
 
-In order to build and run this code, you need go-ethereum's `evm` as well as `solc` on your path. The code is tested using the solidity `0.4.24` release version and the evm `1.8.7` version.
+In order to build and run this code, you need go-ethereum's `evm` as well as `solc` on your path. The code is tested using the solidity `0.4.24` release version and the evm `1.8.7` version - both with the constantinople settings.
 
 `bin/compile.js` can be executed to create `bin`, `bin-runtime`, `abi` and `signatures` files for the runtime contract. The files are put in the `bin_output` folder. The compile executable must be run before the jest tests can be run.
 
@@ -93,9 +93,9 @@ In order to build and run this code, you need go-ethereum's `evm` as well as `so
 
 ### The runtime
 
-Accounts are modeled according to the yellow paper, and are kept in memory while transactions are processed.
+Accounts are regular ethereum accounts, and are kept in memory while transactions are processed.
 
-Two accounts are always created - the caller account, and the contract account used for the provided code. In the simple "code + data" call, the caller and contract account are assigned default addresses.
+Two accounts are always created - the caller account, and the contract account used for the provided code. In the simple "code + data" call, the caller and contract account are assigned default addresses. This means that every execution is essentially a `CREATE` but with no constructor.
 
 In contract code, accounts and account storage are both arrays instead of maps. Technically they are implemented as (singly) linked lists. This will be improved later.
 
@@ -131,7 +131,7 @@ Log and call instructions have not yet been added.
 
 ### Plans
 
-The plan for `0.2.0`, is to support all instructions, and to have a full test suite done.
+The plan for `0.2.0`, is to support all instructions, and to have a full test suite done. Additionally, the runtime should be verified to meet the yellow paper specification.
 
 The plan for `0.3.0` is to extend the capacities of the runtime and add some performance optimization.
 

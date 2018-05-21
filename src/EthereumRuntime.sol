@@ -30,15 +30,15 @@ contract IEthereumRuntime is EVMConstants {
     }
 
     struct TxInput {
-        uint gas;
+        uint64 gas;
         uint gasPrice;
         address caller;
         uint callerBalance;
-        uint callerNonce;
+        uint8 callerNonce;
         uint value;
         address target;
         uint targetBalance;
-        uint targetNonce;
+        uint8 targetNonce;
         bytes targetCode;
         bytes data;
     }
@@ -46,9 +46,9 @@ contract IEthereumRuntime is EVMConstants {
     struct State {
         EVMAccounts.Account caller;
         EVMAccounts.Account target;
-        uint gasProvided;
+        uint64 gasProvided;
         uint value;
-        uint gas;
+        uint64 gas;
         bytes data;
 
         bytes lastRet;
@@ -75,7 +75,7 @@ contract IEthereumRuntime is EVMConstants {
     }
 
     struct Handlers {
-        function(State memory) internal returns(uint)[256] f;
+        function(State memory) internal pure returns(uint)[256] f;
     }
 
     struct EVM {
@@ -85,13 +85,13 @@ contract IEthereumRuntime is EVMConstants {
     }
 
     // Execute the given code and call-data.
-    function execute(bytes memory code, bytes memory data) public returns (Result memory state);
+    function execute(bytes memory code, bytes memory data) public pure returns (Result memory state);
 
     // Execute the given transaction.
-    function execute(TxInput memory input) public returns (Result memory result);
+    function execute(TxInput memory input) public pure returns (Result memory result);
 
     // Execute the given transaction in the given context.
-    function execute(TxInput memory input, Context memory context) public returns (Result memory result);
+    function execute(TxInput memory input, Context memory context) public pure returns (Result memory result);
 
 }
 
@@ -99,8 +99,72 @@ contract EthereumRuntime is IEthereumRuntime {
 
     constructor() public {}
 
-    function _run(EVM memory evm) internal {
+    function _newContext(address origin) internal pure returns (Context memory ctxt) {
+        ctxt.origin = origin;
+        return ctxt;
+    }
 
+    function _newState(TxInput memory input, Context memory ctxt) internal pure returns (State memory ste) {
+        ste.gas = input.gas;
+        ste.gasProvided = input.gas;
+        ste.value = input.value;
+        ste.stack = EVMStack.newStack();
+        ste.mem = EVMMemory.newMemory();
+        ste.data = input.data;
+        ste.context = ctxt;
+
+        ste.caller = ste.accs.get(input.caller);
+        ste.caller.balance = input.callerBalance;
+        ste.caller.nonce = input.callerNonce;
+
+        ste.target = ste.accs.get(input.target);
+        ste.target.balance = input.targetBalance;
+
+        ste.target.nonce = input.targetNonce;
+        ste.target.code = input.targetCode;
+        return ste;
+    }
+
+    function _newEVM(State memory state, Handlers memory handlers) internal pure returns (EVM memory evm) {
+        evm.state = state;
+        evm.handlers = handlers;
+    }
+
+    function _toUint(bytes memory bts, uint addr, uint numBytes) internal pure returns (uint data) {
+        assembly {
+            data := mload(add(add(bts, 0x20), addr))
+        }
+        data = data >> 8*(32 - numBytes);
+    }
+
+    function _newContract() public pure returns (uint errno) {
+
+    }
+
+    function _newAddress(address addr, uint8 nonce) internal pure returns (address) {
+        assert(nonce > 0);
+        uint nonceM1 = nonce - 1;
+        // TODO look into addresses with highest order bytes that are zero.
+        if (nonceM1 < 0x80) {
+            return address(keccak256(abi.encodePacked(
+                uint8(0xd6),
+                uint8(0x94),
+                addr,
+                uint8(nonceM1)
+            )));
+        } else {
+            return address(keccak256(abi.encodePacked(
+                uint8(0xd7),
+                uint8(0x94),
+                addr,
+                uint8(0x81),
+                uint8(nonceM1)
+            )));
+        }
+
+    }
+
+    function _call(EVM memory evm) internal pure {
         if(evm.state.value > 0) {
             if(evm.state.caller.balance < evm.state.value) {
                 evm.result.errno = ERROR_INSUFFICIENT_FUNDS;
@@ -113,6 +177,10 @@ contract EthereumRuntime is IEthereumRuntime {
         if (evm.state.target.code.length == 0) {
             return;
         }
+        _run(evm);
+    }
+
+    function _run(EVM memory evm) internal pure {
 
         uint pc = 0;
         uint errno = NO_ERROR;
@@ -163,7 +231,7 @@ contract EthereumRuntime is IEthereumRuntime {
         (evm.result.accounts, evm.result.accountsCode) = evm.state.accs.toArray();
     }
 
-    function execute(bytes memory code, bytes memory data) public returns (Result memory result) {
+    function execute(bytes memory code, bytes memory data) public pure returns (Result memory result) {
 
         TxInput memory input = TxInput(
             0,
@@ -191,7 +259,7 @@ contract EthereumRuntime is IEthereumRuntime {
         return execute(input, context);
     }
 
-    function execute(TxInput memory input) public returns (Result memory result) {
+    function execute(TxInput memory input) public pure returns (Result memory result) {
         Context memory context = Context(
             input.caller,
             0,
@@ -204,20 +272,23 @@ contract EthereumRuntime is IEthereumRuntime {
         return execute(input, context);
     }
 
-    function execute(TxInput memory input, Context memory context) public returns (Result memory result) {
+    function execute(TxInput memory input, Context memory context) public pure returns (Result memory result) {
         State memory state = _newState(input, context);
+        state.caller.nonce++;
         Handlers memory handlers = _newHandlers();
         EVM memory evm = _newEVM(state, handlers);
-        _run(evm);
+        _call(evm);
         return evm.result;
     }
 
+    // ************************* Handlers ***************************
+
     // 0x0X
 
-    function handleSTOP(State memory state) internal returns (uint errno) {
+    function handleSTOP(State memory state) internal pure returns (uint errno) {
     }
-    
-    function handleADD(State memory state) internal returns (uint errno) {
+
+    function handleADD(State memory state) internal pure returns (uint errno) {
         if (state.stack.size < 2) {
             return ERROR_STACK_UNDERFLOW;
         }
@@ -230,7 +301,7 @@ contract EthereumRuntime is IEthereumRuntime {
         state.stack.push(c);
     }
 
-    function handleMUL(State memory state) internal returns (uint errno) {
+    function handleMUL(State memory state) internal pure returns (uint errno) {
         if (state.stack.size < 2) {
             return ERROR_STACK_UNDERFLOW;
         }
@@ -243,7 +314,7 @@ contract EthereumRuntime is IEthereumRuntime {
         state.stack.push(c);
     }
 
-    function handleSUB(State memory state) internal returns (uint errno) {
+    function handleSUB(State memory state) internal pure returns (uint errno) {
         if (state.stack.size < 2) {
             return ERROR_STACK_UNDERFLOW;
         }
@@ -256,7 +327,7 @@ contract EthereumRuntime is IEthereumRuntime {
         state.stack.push(c);
     }
 
-    function handleDIV(State memory state) internal returns (uint errno) {
+    function handleDIV(State memory state) internal pure returns (uint errno) {
         if (state.stack.size < 2) {
             return ERROR_STACK_UNDERFLOW;
         }
@@ -269,7 +340,7 @@ contract EthereumRuntime is IEthereumRuntime {
         state.stack.push(c);
     }
 
-    function handleSDIV(State memory state) internal returns (uint errno) {
+    function handleSDIV(State memory state) internal pure returns (uint errno) {
         if (state.stack.size < 2) {
             return ERROR_STACK_UNDERFLOW;
         }
@@ -282,7 +353,7 @@ contract EthereumRuntime is IEthereumRuntime {
         state.stack.push(c);
     }
 
-    function handleMOD(State memory state) internal returns (uint errno) {
+    function handleMOD(State memory state) internal pure returns (uint errno) {
         if (state.stack.size < 2) {
             return ERROR_STACK_UNDERFLOW;
         }
@@ -295,7 +366,7 @@ contract EthereumRuntime is IEthereumRuntime {
         state.stack.push(c);
     }
 
-    function handleSMOD(State memory state) internal returns (uint errno) {
+    function handleSMOD(State memory state) internal pure returns (uint errno) {
         if (state.stack.size < 2) {
             return ERROR_STACK_UNDERFLOW;
         }
@@ -308,7 +379,7 @@ contract EthereumRuntime is IEthereumRuntime {
         state.stack.push(c);
     }
 
-    function handleADDMOD(State memory state) internal returns (uint errno) {
+    function handleADDMOD(State memory state) internal pure returns (uint errno) {
         if (state.stack.size < 3) {
             return ERROR_STACK_UNDERFLOW;
         }
@@ -322,7 +393,7 @@ contract EthereumRuntime is IEthereumRuntime {
         state.stack.push(c);
     }
 
-    function handleMULMOD(State memory state) internal returns (uint errno) {
+    function handleMULMOD(State memory state) internal pure returns (uint errno) {
         if (state.stack.size < 3) {
             return ERROR_STACK_UNDERFLOW;
         }
@@ -336,7 +407,7 @@ contract EthereumRuntime is IEthereumRuntime {
         state.stack.push(c);
     }
 
-    function handleEXP(State memory state) internal returns (uint errno) {
+    function handleEXP(State memory state) internal pure returns (uint errno) {
         if (state.stack.size < 2) {
             return ERROR_STACK_UNDERFLOW;
         }
@@ -349,7 +420,7 @@ contract EthereumRuntime is IEthereumRuntime {
         state.stack.push(c);
     }
 
-    function handleSIGNEXTEND(State memory state) internal returns (uint errno) {
+    function handleSIGNEXTEND(State memory state) internal pure returns (uint errno) {
         if (state.stack.size < 2) {
             return ERROR_STACK_UNDERFLOW;
         }
@@ -362,7 +433,7 @@ contract EthereumRuntime is IEthereumRuntime {
         state.stack.push(c);
     }
 
-    function handleSHL(State memory state) internal returns (uint errno) {
+    function handleSHL(State memory state) internal pure returns (uint errno) {
         if (state.stack.size < 2) {
             return ERROR_STACK_UNDERFLOW;
         }
@@ -375,7 +446,7 @@ contract EthereumRuntime is IEthereumRuntime {
         state.stack.push(c);
     }
 
-    function handleSHR(State memory state) internal returns (uint errno) {
+    function handleSHR(State memory state) internal pure returns (uint errno) {
         if (state.stack.size < 2) {
             return ERROR_STACK_UNDERFLOW;
         }
@@ -388,7 +459,7 @@ contract EthereumRuntime is IEthereumRuntime {
         state.stack.push(c);
     }
 
-    function handleSAR(State memory state) internal returns (uint errno) {
+    function handleSAR(State memory state) internal pure returns (uint errno) {
         if (state.stack.size < 2) {
             return ERROR_STACK_UNDERFLOW;
         }
@@ -403,7 +474,7 @@ contract EthereumRuntime is IEthereumRuntime {
 
     // 0x1X
 
-    function handleLT(State memory state) internal returns (uint errno) {
+    function handleLT(State memory state) internal pure returns (uint errno) {
         if (state.stack.size < 2) {
             return ERROR_STACK_UNDERFLOW;
         }
@@ -416,7 +487,7 @@ contract EthereumRuntime is IEthereumRuntime {
         state.stack.push(c);
     }
 
-    function handleGT(State memory state) internal returns (uint errno) {
+    function handleGT(State memory state) internal pure returns (uint errno) {
         if (state.stack.size < 2) {
             return ERROR_STACK_UNDERFLOW;
         }
@@ -429,7 +500,7 @@ contract EthereumRuntime is IEthereumRuntime {
         state.stack.push(c);
     }
 
-    function handleSLT(State memory state) internal returns (uint errno) {
+    function handleSLT(State memory state) internal pure returns (uint errno) {
         if (state.stack.size < 2) {
             return ERROR_STACK_UNDERFLOW;
         }
@@ -442,7 +513,7 @@ contract EthereumRuntime is IEthereumRuntime {
         state.stack.push(c);
     }
 
-    function handleSGT(State memory state) internal returns (uint errno) {
+    function handleSGT(State memory state) internal pure returns (uint errno) {
         if (state.stack.size < 2) {
             return ERROR_STACK_UNDERFLOW;
         }
@@ -455,7 +526,7 @@ contract EthereumRuntime is IEthereumRuntime {
         state.stack.push(c);
     }
 
-    function handleEQ(State memory state) internal returns (uint errno) {
+    function handleEQ(State memory state) internal pure returns (uint errno) {
         if (state.stack.size < 2) {
             return ERROR_STACK_UNDERFLOW;
         }
@@ -468,7 +539,7 @@ contract EthereumRuntime is IEthereumRuntime {
         state.stack.push(c);
     }
 
-    function handleISZERO(State memory state) internal returns (uint errno) {
+    function handleISZERO(State memory state) internal pure returns (uint errno) {
         if (state.stack.size < 1) {
             return ERROR_STACK_UNDERFLOW;
         }
@@ -480,7 +551,7 @@ contract EthereumRuntime is IEthereumRuntime {
         state.stack.push(res);
     }
 
-    function handleAND(State memory state) internal returns (uint errno) {
+    function handleAND(State memory state) internal pure returns (uint errno) {
         if (state.stack.size < 2) {
             return ERROR_STACK_UNDERFLOW;
         }
@@ -493,7 +564,7 @@ contract EthereumRuntime is IEthereumRuntime {
         state.stack.push(c);
     }
 
-    function handleOR(State memory state) internal returns (uint errno) {
+    function handleOR(State memory state) internal pure returns (uint errno) {
         if (state.stack.size < 2) {
             return ERROR_STACK_UNDERFLOW;
         }
@@ -506,7 +577,7 @@ contract EthereumRuntime is IEthereumRuntime {
         state.stack.push(c);
     }
 
-    function handleXOR(State memory state) internal returns (uint errno) {
+    function handleXOR(State memory state) internal pure returns (uint errno) {
         if (state.stack.size < 2) {
             return ERROR_STACK_UNDERFLOW;
         }
@@ -519,7 +590,7 @@ contract EthereumRuntime is IEthereumRuntime {
         state.stack.push(c);
     }
 
-    function handleNOT(State memory state) internal returns (uint errno) {
+    function handleNOT(State memory state) internal pure returns (uint errno) {
         if (state.stack.size < 1) {
             return ERROR_STACK_UNDERFLOW;
         }
@@ -531,7 +602,7 @@ contract EthereumRuntime is IEthereumRuntime {
         state.stack.push(res);
     }
 
-    function handleBYTE(State memory state) internal returns (uint errno) {
+    function handleBYTE(State memory state) internal pure returns (uint errno) {
         if (state.stack.size < 2) {
             return ERROR_STACK_UNDERFLOW;
         }
@@ -546,7 +617,7 @@ contract EthereumRuntime is IEthereumRuntime {
 
     // 0x2X
 
-    function handleSHA3(State memory state) internal returns (uint errno) {
+    function handleSHA3(State memory state) internal pure returns (uint errno) {
         if (state.stack.size < 2) {
             return ERROR_STACK_UNDERFLOW;
         }
@@ -562,14 +633,14 @@ contract EthereumRuntime is IEthereumRuntime {
 
     // 0x3X
 
-    function handleADDRESS(State memory state) internal returns (uint errno) {
+    function handleADDRESS(State memory state) internal pure returns (uint errno) {
         if (state.stack.size == MAX_STACK_SIZE) {
             return ERROR_STACK_OVERFLOW;
         }
         state.stack.push(uint(state.target.addr));
     }
 
-    function handleBALANCE(State memory state) internal returns (uint errno) {
+    function handleBALANCE(State memory state) internal pure returns (uint errno) {
         if (state.stack.size < 1) {
             return ERROR_STACK_UNDERFLOW;
         }
@@ -577,28 +648,28 @@ contract EthereumRuntime is IEthereumRuntime {
         state.stack.push(state.accs.get(address(addr)).balance);
     }
 
-    function handleORIGIN(State memory state) internal returns (uint errno) {
+    function handleORIGIN(State memory state) internal pure returns (uint errno) {
         if (state.stack.size == MAX_STACK_SIZE) {
             return ERROR_STACK_OVERFLOW;
         }
         state.stack.push(uint(state.context.origin));
     }
 
-    function handleCALLER(State memory state) internal returns (uint errno) {
+    function handleCALLER(State memory state) internal pure returns (uint errno) {
         if (state.stack.size == MAX_STACK_SIZE) {
             return ERROR_STACK_OVERFLOW;
         }
         state.stack.push(uint(state.caller.addr));
     }
 
-    function handleCALLVALUE(State memory state) internal returns (uint errno) {
+    function handleCALLVALUE(State memory state) internal pure returns (uint errno) {
         if (state.stack.size == MAX_STACK_SIZE) {
             return ERROR_STACK_OVERFLOW;
         }
         state.stack.push(state.value);
     }
 
-    function handleCALLDATALOAD(State memory state) internal returns (uint errno) {
+    function handleCALLDATALOAD(State memory state) internal pure returns (uint errno) {
         if (state.stack.size < 1) {
             return ERROR_STACK_UNDERFLOW;
         }
@@ -620,14 +691,14 @@ contract EthereumRuntime is IEthereumRuntime {
         state.stack.push(val);
     }
 
-    function handleCALLDATASIZE(State memory state) internal returns (uint errno) {
+    function handleCALLDATASIZE(State memory state) internal pure returns (uint errno) {
         if (state.stack.size == MAX_STACK_SIZE) {
             return ERROR_STACK_OVERFLOW;
         }
         state.stack.push(state.data.length);
     }
 
-    function handleCALLDATACOPY(State memory state) internal returns (uint errno) {
+    function handleCALLDATACOPY(State memory state) internal pure returns (uint errno) {
         if (state.stack.size < 3) {
             return ERROR_STACK_UNDERFLOW;
         }
@@ -637,14 +708,14 @@ contract EthereumRuntime is IEthereumRuntime {
         state.mem.storeBytesAndPadWithZeroes(state.data, dAddr, mAddr, len);
     }
 
-    function handleCODESIZE(State memory state) internal returns (uint errno) {
+    function handleCODESIZE(State memory state) internal pure returns (uint errno) {
         if (state.stack.size == MAX_STACK_SIZE) {
             return ERROR_STACK_OVERFLOW;
         }
         state.stack.push(state.target.code.length);
     }
 
-    function handleCODECOPY(State memory state) internal returns (uint errno) {
+    function handleCODECOPY(State memory state) internal pure returns (uint errno) {
         if (state.stack.size < 3) {
             return ERROR_STACK_UNDERFLOW;
         }
@@ -657,14 +728,14 @@ contract EthereumRuntime is IEthereumRuntime {
         state.mem.storeBytes(state.target.code, cAddr, mAddr, len);
     }
 
-    function handleGASPRICE(State memory state) internal returns (uint errno) {
+    function handleGASPRICE(State memory state) internal pure returns (uint errno) {
         if (state.stack.size == MAX_STACK_SIZE) {
             return ERROR_STACK_OVERFLOW;
         }
         state.stack.push(state.context.gasPrice);
     }
 
-    function handleEXTCODESIZE(State memory state) internal returns (uint errno) {
+    function handleEXTCODESIZE(State memory state) internal pure returns (uint errno) {
         if (state.stack.size < 1) {
             return ERROR_STACK_UNDERFLOW;
         }
@@ -672,7 +743,7 @@ contract EthereumRuntime is IEthereumRuntime {
         state.stack.push(state.accs.get(address(addr)).code.length);
     }
 
-    function handleEXTCODECOPY(State memory state) internal returns (uint errno) {
+    function handleEXTCODECOPY(State memory state) internal pure returns (uint errno) {
         if (state.stack.size < 4) {
             return ERROR_STACK_UNDERFLOW;
         }
@@ -687,14 +758,14 @@ contract EthereumRuntime is IEthereumRuntime {
         state.mem.storeBytes(code, dAddr, mAddr, len);
     }
 
-    function handleRETURNDATASIZE(State memory state) internal returns (uint errno) {
+    function handleRETURNDATASIZE(State memory state) internal pure returns (uint errno) {
         if (state.stack.size == MAX_STACK_SIZE) {
             return ERROR_STACK_OVERFLOW;
         }
         state.stack.push(state.lastRet.length);
     }
 
-    function handleRETURNDATACOPY(State memory state) internal returns (uint errno) {
+    function handleRETURNDATACOPY(State memory state) internal pure returns (uint errno) {
         if (state.stack.size < 3) {
             return ERROR_STACK_UNDERFLOW;
         }
@@ -706,47 +777,43 @@ contract EthereumRuntime is IEthereumRuntime {
 
     // 0x4X
 
-    function handleBLOCKHASH(State memory state) internal returns (uint errno) {
+    function handleBLOCKHASH(State memory state) internal pure returns (uint errno) {
         if (state.stack.size < 1) {
             return ERROR_STACK_UNDERFLOW;
         }
         uint blockIndex = state.stack.pop();
-        uint blockHash;
-        assembly {
-            blockHash := blockhash(blockIndex)
-        }
-        state.stack.push(blockHash);
+        state.stack.push(0);
     }
 
-    function handleCOINBASE(State memory state) internal returns (uint errno) {
+    function handleCOINBASE(State memory state) internal pure returns (uint errno) {
         if (state.stack.size == MAX_STACK_SIZE) {
             return ERROR_STACK_OVERFLOW;
         }
         state.stack.push(state.context.coinBase);
     }
 
-    function handleTIMESTAMP(State memory state) internal returns (uint errno) {
+    function handleTIMESTAMP(State memory state) internal pure returns (uint errno) {
         if (state.stack.size == MAX_STACK_SIZE) {
             return ERROR_STACK_OVERFLOW;
         }
         state.stack.push(state.context.time);
     }
 
-    function handleNUMBER(State memory state) internal returns (uint errno) {
+    function handleNUMBER(State memory state) internal pure returns (uint errno) {
         if (state.stack.size == MAX_STACK_SIZE) {
             return ERROR_STACK_OVERFLOW;
         }
         state.stack.push(state.context.blockNumber);
     }
 
-    function handleDIFFICULTY(State memory state) internal returns (uint errno) {
+    function handleDIFFICULTY(State memory state) internal pure returns (uint errno) {
         if (state.stack.size == MAX_STACK_SIZE) {
             return ERROR_STACK_OVERFLOW;
         }
         state.stack.push(state.context.difficulty);
     }
 
-    function handleGASLIMIT(State memory state) internal returns (uint errno) {
+    function handleGASLIMIT(State memory state) internal pure returns (uint errno) {
         if (state.stack.size == MAX_STACK_SIZE) {
             return ERROR_STACK_OVERFLOW;
         }
@@ -755,14 +822,14 @@ contract EthereumRuntime is IEthereumRuntime {
 
     // 0x5X
 
-    function handlePOP(State memory state) internal returns (uint errno) {
+    function handlePOP(State memory state) internal pure returns (uint errno) {
         if (state.stack.size < 1) {
             return ERROR_STACK_UNDERFLOW;
         }
         state.stack.pop();
     }
 
-    function handleMLOAD(State memory state) internal returns (uint errno) {
+    function handleMLOAD(State memory state) internal pure returns (uint errno) {
         if (state.stack.size < 1) {
             return ERROR_STACK_UNDERFLOW;
         }
@@ -770,7 +837,7 @@ contract EthereumRuntime is IEthereumRuntime {
         state.stack.push(state.mem.load(addr));
     }
 
-    function handleMSTORE(State memory state) internal returns (uint errno) {
+    function handleMSTORE(State memory state) internal pure returns (uint errno) {
         if (state.stack.size < 2) {
             return ERROR_STACK_UNDERFLOW;
         }
@@ -779,7 +846,7 @@ contract EthereumRuntime is IEthereumRuntime {
         state.mem.store(addr, val);
     }
 
-    function handleMSTORE8(State memory state) internal returns (uint errno) {
+    function handleMSTORE8(State memory state) internal pure returns (uint errno) {
         if (state.stack.size < 2) {
             return ERROR_STACK_UNDERFLOW;
         }
@@ -788,7 +855,7 @@ contract EthereumRuntime is IEthereumRuntime {
         state.mem.store8(addr, uint8(val));
     }
 
-    function handleSLOAD(State memory state) internal returns (uint errno) {
+    function handleSLOAD(State memory state) internal pure returns (uint errno) {
         if (state.stack.size < 1) {
             return ERROR_STACK_UNDERFLOW;
         }
@@ -797,7 +864,7 @@ contract EthereumRuntime is IEthereumRuntime {
         state.stack.push(val);
     }
 
-    function handleSSTORE(State memory state) internal returns (uint errno) {
+    function handleSSTORE(State memory state) internal pure returns (uint errno) {
         if (state.stack.size < 2) {
             return ERROR_STACK_UNDERFLOW;
         }
@@ -806,7 +873,7 @@ contract EthereumRuntime is IEthereumRuntime {
         state.target.stge.store(addr, val);
     }
 
-    function handleJUMP(State memory state) internal returns (uint errno) {
+    function handleJUMP(State memory state) internal pure returns (uint errno) {
         if (state.stack.size < 1) {
             return ERROR_STACK_UNDERFLOW;
         }
@@ -817,7 +884,7 @@ contract EthereumRuntime is IEthereumRuntime {
         state.pc = dest;
     }
 
-    function handleJUMPI(State memory state) internal returns (uint errno) {
+    function handleJUMPI(State memory state) internal pure returns (uint errno) {
         if (state.stack.size < 2) {
             return ERROR_STACK_UNDERFLOW;
         }
@@ -833,34 +900,34 @@ contract EthereumRuntime is IEthereumRuntime {
         state.pc = dest;
     }
 
-    function handlePC(State memory state) internal returns (uint errno) {
+    function handlePC(State memory state) internal pure returns (uint errno) {
         if (state.stack.size == MAX_STACK_SIZE) {
             return ERROR_STACK_OVERFLOW;
         }
         state.stack.push(state.pc);
     }
 
-    function handleMSIZE(State memory state) internal returns (uint errno) {
+    function handleMSIZE(State memory state) internal pure returns (uint errno) {
         if (state.stack.size == MAX_STACK_SIZE) {
             return ERROR_STACK_OVERFLOW;
         }
         state.stack.push(state.mem.size);
     }
 
-    function handleGAS(State memory state) internal returns (uint errno) {
+    function handleGAS(State memory state) internal pure returns (uint errno) {
         if (state.stack.size == MAX_STACK_SIZE) {
             return ERROR_STACK_OVERFLOW;
         }
         state.stack.push(state.gas);
     }
 
-    function handleJUMPDEST(State memory state) internal returns (uint errno) {
+    function handleJUMPDEST(State memory state) internal pure returns (uint errno) {
     }
 
     // 0x6X, 0x7X
 
 
-    function handlePUSH(State memory state) internal returns (uint errno) {
+    function handlePUSH(State memory state) internal pure returns (uint errno) {
         assert(1 <= state.n && state.n <= 32);
         if (state.stack.size == MAX_STACK_SIZE) {
             return ERROR_STACK_OVERFLOW;
@@ -873,7 +940,7 @@ contract EthereumRuntime is IEthereumRuntime {
 
     // 0x8X
 
-    function handleDUP(State memory state) internal returns (uint errno) {
+    function handleDUP(State memory state) internal pure returns (uint errno) {
         assert(1 <= state.n && state.n <= 16);
         if (state.stack.size == MAX_STACK_SIZE) {
             return ERROR_STACK_OVERFLOW;
@@ -886,7 +953,7 @@ contract EthereumRuntime is IEthereumRuntime {
 
     // 0x9X
 
-    function handleSWAP(State memory state) internal returns (uint errno) {
+    function handleSWAP(State memory state) internal pure returns (uint errno) {
         assert(1 <= state.n && state.n <= 16);
         if (state.stack.size <= state.n) {
             return ERROR_STACK_UNDERFLOW;
@@ -895,24 +962,25 @@ contract EthereumRuntime is IEthereumRuntime {
     }
 
     // 0xaX
-    function handleLOG(State memory state) internal returns (uint errno) {
+    function handleLOG(State memory state) internal pure returns (uint errno) {
         return ERROR_INSTRUCTION_NOT_SUPPORTED;
     }
 
     // 0xfX
-    function handleCREATE(State memory state) internal returns (uint errno) {
+    function handleCREATE(State memory state) internal pure returns (uint errno) {
+
         return ERROR_INSTRUCTION_NOT_SUPPORTED;
     }
 
-    function handleCALL(State memory state) internal returns (uint errno) {
+    function handleCALL(State memory state) internal pure returns (uint errno) {
         return ERROR_INSTRUCTION_NOT_SUPPORTED;
     }
 
-    function handleCALLCODE(State memory state) internal returns (uint errno) {
+    function handleCALLCODE(State memory state) internal pure returns (uint errno) {
         return ERROR_INSTRUCTION_NOT_SUPPORTED;
     }
 
-    function handleRETURN(State memory state) internal returns (uint errno) {
+    function handleRETURN(State memory state) internal pure returns (uint errno) {
         if (state.stack.size < 2) {
             return ERROR_STACK_UNDERFLOW;
         }
@@ -921,15 +989,15 @@ contract EthereumRuntime is IEthereumRuntime {
         state.returnData = state.mem.toArray(start, len);
     }
 
-    function handleDELEGATECALL(State memory state) internal returns (uint errno) {
+    function handleDELEGATECALL(State memory state) internal pure returns (uint errno) {
         return ERROR_INSTRUCTION_NOT_SUPPORTED;
     }
 
-    function handleSTATICCALL(State memory state) internal returns (uint errno) {
+    function handleSTATICCALL(State memory state) internal pure returns (uint errno) {
         return ERROR_INSTRUCTION_NOT_SUPPORTED;
     }
 
-    function handleREVERT(State memory state) internal returns (uint errno) {
+    function handleREVERT(State memory state) internal pure returns (uint errno) {
         if (state.stack.size < 2) {
             return ERROR_STACK_UNDERFLOW;
         }
@@ -939,51 +1007,12 @@ contract EthereumRuntime is IEthereumRuntime {
         return ERROR_STATE_REVERTED;
     }
 
-    function handleINVALID(State memory state) internal returns (uint errno) {
+    function handleINVALID(State memory state) internal pure returns (uint errno) {
         return ERROR_INVALID_OPCODE;
     }
 
-    function handleSELFDESTRUCT(State memory state) internal returns (uint errno) {
+    function handleSELFDESTRUCT(State memory state) internal pure returns (uint errno) {
         return ERROR_INSTRUCTION_NOT_SUPPORTED;
-    }
-
-    // ****************************** internal *********************************
-
-    function _newContext(address origin) internal pure returns (Context memory ctxt) {
-        ctxt.origin = origin;
-        return ctxt;
-    }
-
-    function _newState(TxInput memory input, Context memory ctxt) internal pure returns (State memory ste) {
-        ste.gas = input.gas;
-        ste.gasProvided = input.gas;
-        ste.value = input.value;
-        ste.stack = EVMStack.newStack();
-        ste.mem = EVMMemory.newMemory();
-        ste.data = input.data;
-        ste.context = ctxt;
-
-        ste.caller = ste.accs.get(input.caller);
-        ste.caller.balance = input.callerBalance;
-        ste.caller.nonce = input.callerNonce;
-
-        ste.target = ste.accs.get(input.target);
-        ste.target.balance = input.targetBalance;
-        ste.target.nonce = input.targetNonce;
-        ste.target.code = input.targetCode;
-        return ste;
-    }
-
-    function _newEVM(State memory state, Handlers memory handlers) internal pure returns (EVM memory evm) {
-        evm.state = state;
-        evm.handlers = handlers;
-    }
-
-    function _toUint(bytes memory bts, uint addr, uint numBytes) internal pure returns (uint data) {
-        assembly {
-            data := mload(add(add(bts, 0x20), addr))
-        }
-        data = data >> 8*(32 - numBytes);
     }
 
     function _newHandlers() internal pure returns (Handlers memory handlers) {

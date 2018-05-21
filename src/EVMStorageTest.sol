@@ -63,6 +63,21 @@ contract EVMStorageTest {
         assert(sge.load(0x1234) == 0);
     }
 
+    function testCopy() public payable returns (bool ret) {
+        ret = true;
+        EVMStorage.Storage memory sge;
+        sge.store(0x01, 0x02);
+        sge.store(0x03, 0x04);
+        sge.store(0x05, 0x06);
+
+        EVMStorage.Storage memory cpy = sge.copy();
+
+        assert(cpy.size == 3);
+        assert(cpy.load(0x01) == 0x02);
+        assert(cpy.load(0x03) == 0x04);
+        assert(cpy.load(0x05) == 0x06);
+    }
+
     function testToArray() public payable returns (bool ret) {
         ret = true;
         EVMStorage.Storage memory sge;

@@ -32,7 +32,7 @@ import {
     RETURN,
     REVERT,
     ROOT_PATH,
-    SDIV, SGT, SLT,
+    SDIV, SGT, SLOAD, SLT,
     SMOD,
     SRC_PATH, SSTORE, STOP,
     SUB,
@@ -1153,6 +1153,20 @@ describe('stack, memory, storage and flow ops', () => {
         await runTest(code, data, resExpected);
     });
 
+    it('should use SLOAD successfully', async () => {
+        const code = PUSH1 + '02' + PUSH1 + '01' + SSTORE + PUSH1 + '01' + SLOAD;
+        const data = "";
+        const resExpected = {
+            errno: 0,
+            errpc: code.length / 2,
+            returnData: "",
+            memSize: 0,
+            mem: "",
+            stack: [new BigNumber(2)],
+        };
+        const result = await runTest(code, data, resExpected);
+    });
+
     it('should use SSTORE successfully', async () => {
         const code = PUSH1 + '02' + PUSH1 + '01' + SSTORE;
         const data = "";
@@ -1426,3 +1440,25 @@ describe('swap ops', () => {
 
 });
 
+describe('swap ops', () => {
+
+    it('should run swap1 successfully', async () => {
+        const stack_0 = '0101010101010101010101010101010101010101010101010101010101010101';
+        const stack_1 = '0101010101010101010101010101010101010101010101010101010101010102';
+        const code = PUSH32 + stack_0 + PUSH32 + stack_1 + SWAP1;
+        const data = "";
+        const resExpected = {
+            errno: 0,
+            errpc: code.length / 2,
+            returnData: "",
+            memSize: 0,
+            mem: "",
+            stack: [
+                new BigNumber(stack_1, 16),
+                new BigNumber(stack_0, 16)
+            ],
+        };
+        await runTest(code, data, resExpected);
+    });
+
+});

@@ -1625,6 +1625,28 @@ describe('stack, memory, storage and flow ops', function () {
             }
         });
     }); });
+    it('should use SLOAD successfully', function () { return __awaiter(_this, void 0, void 0, function () {
+        var code, data, resExpected, result;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0:
+                    code = constants_1.PUSH1 + '02' + constants_1.PUSH1 + '01' + constants_1.SSTORE + constants_1.PUSH1 + '01' + constants_1.SLOAD;
+                    data = "";
+                    resExpected = {
+                        errno: 0,
+                        errpc: code.length / 2,
+                        returnData: "",
+                        memSize: 0,
+                        mem: "",
+                        stack: [new bignumber_js_1.BigNumber(2)],
+                    };
+                    return [4 /*yield*/, runTest(code, data, resExpected)];
+                case 1:
+                    result = _a.sent();
+                    return [2 /*return*/];
+            }
+        });
+    }); });
     it('should use SSTORE successfully', function () { return __awaiter(_this, void 0, void 0, function () {
         var code, data, resExpected, result, storage;
         return __generator(this, function (_a) {
@@ -1941,6 +1963,35 @@ describe('swap ops', function () {
                             new bignumber_js_1.BigNumber(stack_14, 16),
                             new bignumber_js_1.BigNumber(stack_15, 16),
                             new bignumber_js_1.BigNumber(stack_16, 16),
+                            new bignumber_js_1.BigNumber(stack_0, 16)
+                        ],
+                    };
+                    return [4 /*yield*/, runTest(code, data, resExpected)];
+                case 1:
+                    _a.sent();
+                    return [2 /*return*/];
+            }
+        });
+    }); });
+});
+describe('swap ops', function () {
+    it('should run swap1 successfully', function () { return __awaiter(_this, void 0, void 0, function () {
+        var stack_0, stack_1, code, data, resExpected;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0:
+                    stack_0 = '0101010101010101010101010101010101010101010101010101010101010101';
+                    stack_1 = '0101010101010101010101010101010101010101010101010101010101010102';
+                    code = constants_1.PUSH32 + stack_0 + constants_1.PUSH32 + stack_1 + constants_1.SWAP1;
+                    data = "";
+                    resExpected = {
+                        errno: 0,
+                        errpc: code.length / 2,
+                        returnData: "",
+                        memSize: 0,
+                        mem: "",
+                        stack: [
+                            new bignumber_js_1.BigNumber(stack_1, 16),
                             new bignumber_js_1.BigNumber(stack_0, 16)
                         ],
                     };

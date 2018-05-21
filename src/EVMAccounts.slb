@@ -7,6 +7,8 @@ import {EVMStorage} from "./EVMStorage.slb";
 
 library EVMAccounts {
 
+    using EVMStorage for EVMStorage.Storage;
+
     struct Account {
         address addr;
         uint balance;
@@ -16,8 +18,8 @@ library EVMAccounts {
     }
 
     struct Element {
-        Account account;
         uint _next;
+        Account account;
     }
 
     struct Accounts {
@@ -25,7 +27,7 @@ library EVMAccounts {
         uint size;
     }
 
-    function get(Accounts memory self, address addr) internal pure returns(Account memory acc){
+    function get(Accounts memory self, address addr) internal pure returns (Account memory acc){
         if (self.size == 0) {
             Element memory e;
             e.account.addr = addr;
@@ -35,7 +37,7 @@ library EVMAccounts {
             return;
         } else {
             Element memory e = self.head;
-            while(true) {
+            while (true) {
                 if (e.account.addr == addr) {
                     acc = e.account;
                     return;
@@ -60,16 +62,55 @@ library EVMAccounts {
         }
     }
 
-    function toArray(Accounts memory self) internal pure returns(uint[] memory arr, bytes[] memory code) {
+    function copy(Accounts memory self) internal pure returns (Accounts memory accs) {
+        if (self.size == 0) {
+            return;
+        }
+        accs.size = self.size;
+        Element memory e = self.head;
+        accs.head = Element(0, Account(
+                e.account.addr,
+                e.account.balance,
+                e.account.nonce,
+                e.account.code,
+                e.account.stge.copy()
+            ));
+        Element memory e2 = accs.head;
+        while (true) {
+            if (e._next == 0) {
+                break;
+            }
+            uint n = e._next;
+            assembly {
+                e := n
+            }
+            Element memory newElem = Element(0, Account(
+                    e.account.addr,
+                    e.account.balance,
+                    e.account.nonce,
+                    e.account.code,
+                    e.account.stge.copy()
+                ));
+            uint newElemAddr;
+            assembly {
+                newElemAddr := newElem
+            }
+            e2._next = newElemAddr;
+            e2 = newElem;
+        }
+        return;
+    }
+
+    function toArray(Accounts memory self) internal pure returns (uint[] memory arr, bytes[] memory code) {
         Account[] memory accs = new Account[](self.size);
         uint totalSize;
         Element memory e = self.head;
         uint i = 0;
-        while(true) {
+        while (true) {
             uint stgSize = e.account.stge.size;
             accs[i++] = e.account;
-            totalSize += 4 + stgSize*2;
-            if(e._next == 0) {
+            totalSize += 4 + stgSize * 2;
+            if (e._next == 0) {
                 break;
             }
             uint n = e._next;
@@ -88,11 +129,11 @@ library EVMAccounts {
             arr[offset + 3] = acc.stge.size;
             EVMStorage.StorageSlot[] memory stge = EVMStorage.toArray(acc.stge);
             for (uint j = 0; j < stge.length; j++) {
-                arr[offset + 4 + 2*j] = stge[j].addr;
-                arr[offset + 4 + 2*j + 1] = stge[j].val;
+                arr[offset + 4 + 2 * j] = stge[j].addr;
+                arr[offset + 4 + 2 * j + 1] = stge[j].val;
             }
             code[i] = acc.code;
-            offset += 4 + stge.length*2;
+            offset += 4 + stge.length * 2;
         }
     }
 
