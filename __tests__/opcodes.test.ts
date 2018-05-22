@@ -1186,7 +1186,6 @@ describe('stack, memory, storage and flow ops', () => {
 
 });
 
-
 describe('push ops', () => {
 
     it('should run push32 successfully', async () => {

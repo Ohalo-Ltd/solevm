@@ -89,6 +89,11 @@ library EVMMemory {
         }
     }
 
+    /*
+        Takes 'len' bytes from 'bts', starting at 'srcIndex', and copy into memory
+        starting at 'destIdx'. If 'srcIndex + len' is larger than 'bts.length',
+        the operation will fail.
+    */
     function storeBytes(Memory memory self, bytes memory bts, uint srcIdx, uint destIdx, uint len) internal pure {
         assert(srcIdx + len <= bts.length);
         uint newSize = (destIdx + len + 31) / WORD_SIZE;
@@ -106,9 +111,11 @@ library EVMMemory {
         MemOps.memcopy(btsSrc, memDest, len);
     }
 
-    // Takes 'len' bytes from 'bts', starting at 'srcIndex', and copy into memory
-    // starting at 'destIdx'. If 'srcIndex + len' is larger then 'bts.length',
-    // the bytes that lies outside of 'bts' is considered to be 0.
+    /*
+        Takes 'len' bytes from 'bts', starting at 'srcIndex', and copy into memory
+        starting at 'destIdx'. If 'srcIndex + len' is larger than 'bts.length',
+        the bytes that lies outside of 'bts' is considered to be 0.
+    */
     function storeBytesAndPadWithZeroes(
         Memory memory self,
         bytes memory bts,

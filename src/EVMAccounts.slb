@@ -13,7 +13,7 @@ library EVMAccounts {
         address addr;
         uint balance;
         uint nonce;
-        bytes code;
+        bytes code; // TODO code-hash
         EVMStorage.Storage stge;
     }
 

@@ -175,10 +175,12 @@ contract EVMConstants {
     uint constant internal ERROR_INSTRUCTION_NOT_SUPPORTED = 0x06;
     uint constant internal ERROR_STATE_REVERTED = 0x07;
     uint constant internal ERROR_INSUFFICIENT_FUNDS = 0x08;
+    uint constant internal ERROR_CONTRACT_CREATION_COLLISION = 0x09;
 
     // ENV
 
     uint constant internal MAX_STACK_SIZE = 1024;
     uint constant internal WORD_SIZE = 32;
+    uint constant internal MAX_CODE_SIZE = 24576;
 
 }
