@@ -100,7 +100,7 @@ exports.decode = function (res) {
             addr = '0' + addr;
         }
         var balance = new bignumber_js_1.BigNumber(accsArr[offset + 1]);
-        var nonce = new bignumber_js_1.BigNumber(accsArr[offset + 2]);
+        var nonce = new bignumber_js_1.BigNumber(accsArr[offset + 2]).toNumber();
         var storageSize = new bignumber_js_1.BigNumber(accsArr[offset + 3]).toNumber();
         var storage = [];
         for (var j = 0; j < storageSize; j++) {

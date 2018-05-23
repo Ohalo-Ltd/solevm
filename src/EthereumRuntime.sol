@@ -44,7 +44,11 @@ contract IEthereumRuntime is EVMConstants {
     }
 
     struct EVMInput {
-        TxInput txInput;
+        uint64 gas;
+        uint value;
+        bytes data;
+        address caller;
+        address target;
         Context context;
         EVMAccounts.Accounts accounts;
         Handlers handlers;
@@ -134,23 +138,19 @@ contract EthereumRuntime is IEthereumRuntime {
 
     }
 
-    function _call(EVMInput memory input) internal pure returns (EVM memory evm){
+    function _initEVM(EVMInput memory input) internal pure returns (EVM memory evm) {
 
+    }
+
+    function _call(EVMInput memory input) internal pure returns (EVM memory evm){
         evm.context = input.context;
         evm.handlers = input.handlers;
         evm.accounts = input.accounts.copy();
-        evm.value = input.txInput.value;
-        evm.gas = input.txInput.gas;
-        evm.data = input.txInput.data;
-
-        evm.caller = evm.accounts.get(input.txInput.caller);
-        evm.caller.balance = input.txInput.callerBalance;
-        evm.caller.nonce = input.txInput.callerNonce;
-
-        evm.target = evm.accounts.get(input.txInput.target);
-        evm.target.balance = input.txInput.targetBalance;
-        evm.target.nonce = input.txInput.targetNonce;
-        evm.target.code = input.txInput.targetCode;
+        evm.value = input.value;
+        evm.gas = input.gas;
+        evm.data = input.data;
+        evm.caller = evm.accounts.get(input.caller);
+        evm.target = evm.accounts.get(input.target);
 
         // Increase the nonce. TODO
         evm.caller.nonce++;
@@ -173,7 +173,14 @@ contract EthereumRuntime is IEthereumRuntime {
         _run(evm);
     }
 
-    function _create(EVMInput memory evmInput) internal pure returns (EVM memory evm){
+    function _create(EVMInput memory evmInput) internal pure returns (EVM memory evm) {
+        evm.context = evmInput.context;
+        evm.handlers = evmInput.handlers;
+        evm.accounts = evmInput.accounts.copy();
+        evm.value = evmInput.value;
+        evm.gas = evmInput.gas;
+        evm.data = evmInput.data;
+        evm.caller = evm.accounts.get(evmInput.caller);
 
         // Increase the nonce. TODO
         evm.caller.nonce++;
@@ -294,9 +301,20 @@ contract EthereumRuntime is IEthereumRuntime {
 
     function execute(TxInput memory input, Context memory context) public pure returns (Result memory result) {
         EVMInput memory evmInput;
-        evmInput.txInput = input;
         evmInput.context = context;
         evmInput.handlers = _newHandlers();
+        evmInput.data = input.data;
+
+        EVMAccounts.Account memory caller = evmInput.accounts.get(input.caller);
+        caller.balance = input.callerBalance;
+        caller.nonce = input.callerNonce;
+        evmInput.caller = input.caller;
+
+        EVMAccounts.Account memory target = evmInput.accounts.get(input.target);
+        target.balance = input.targetBalance;
+        target.nonce = input.targetNonce;
+        target.code = input.targetCode;
+        evmInput.target = input.target;
 
         EVM memory evm = _call(evmInput);
 

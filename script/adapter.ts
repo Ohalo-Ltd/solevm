@@ -73,7 +73,7 @@ export const decode = (res) => {
             addr = '0' + addr;
         }
         const balance = new BigNumber(accsArr[offset + 1]);
-        const nonce = new BigNumber(accsArr[offset + 2]);
+        const nonce = new BigNumber(accsArr[offset + 2]).toNumber();
         const storageSize = new BigNumber(accsArr[offset + 3]).toNumber();
         const storage = [];
         for (let j = 0; j < storageSize; j++) {
