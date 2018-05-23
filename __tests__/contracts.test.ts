@@ -45,4 +45,13 @@ describe('solidity contracts', () => {
         //expect(result.returnData).toBe('');
     });
 
+    it('should call test function on TestContractCallsItself', async () => {
+        await compile(path.join(ROOT_PATH, '__tests__', 'testcontract_callsitself.sol'), BIN_OUTPUT_PATH, true);
+        const code = readText(path.join(BIN_OUTPUT_PATH, 'TestContractCallsItself.bin-runtime'));
+        const result = await execute(code, CONTRACT_TEST_SIG);
+        //console.log(result);
+        expect(result.errno).toBe(NO_ERROR);
+        expect(result.returnData).toBe('0000000000000000000000000000000000000000000000000000000000000003');
+    });
+
 });

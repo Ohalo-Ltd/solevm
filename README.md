@@ -2,6 +2,8 @@
 
 This is a (partial) implementation of the Ethereum runtime in Solidity. The runtime contract allows you to execute evm bytecode with calldata and various other parameters. It is meant to be used for one-off execution, like is done with the "evm" executables that comes with the ethereum clients.
 
+Currently, this is still very early in development and lots of things are added just to get basic functionality in place. See the roadmap section for the plans ahead.
+
 **NOTE: This is only an experiment in it's early PoC stages. Do not rely on this library to test or verify EVM bytecode.**
 
 ### Running
@@ -130,10 +132,12 @@ The initial version only lets you run simple code. There is no gas metering syst
 
 Log and call instructions have not yet been added.
 
-### Plans
+### Roadmap
 
-The plan for `0.2.0`, is to support all instructions, and to have a full test suite done. Additionally, the runtime should be verified to meet the yellow paper specification.
+The plan for `0.2.0`, is to support all instructions, and to have a full test suite done.
 
-The plan for `0.3.0` is to extend the capacities of the runtime and add some performance optimization.
+The plan for `0.3.0` is that the runtime should be properly checked against the yellow paper specification - or at least the parts of the protocol that is supported (gas may never be).
 
-The long-term plan is to add gas metering, and also add a way to add block data, chain settings, and other things. Whether any of that will be possible depends on many things, including the limitations of the EVM and Solidity.
+The plan for `0.4.0` is to extend the capacities of the runtime and add some performance optimization. Gas may or may not be added here.
+
+The long-term plan is to add gas metering, and also add a way to add block data, chain settings, and other things. Whether any of that will be possible depends on many things, including the limitations of the EVM and Solidity (such as the maximum allowed code-size for contracts, and Solidity's stack limitations).

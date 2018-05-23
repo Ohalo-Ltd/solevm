@@ -179,7 +179,6 @@ contract EthereumRuntime is IEthereumRuntime {
         evm.accounts = evmInput.accounts.copy();
         evm.value = evmInput.value;
         evm.gas = evmInput.gas;
-        evm.data = evmInput.data;
         evm.caller = evm.accounts.get(evmInput.caller);
 
         // Increase the nonce. TODO
@@ -194,7 +193,7 @@ contract EthereumRuntime is IEthereumRuntime {
         }
 
         address newAddress = _newAddress(evm.caller);
-
+        // TODO
         if (evm.accounts.get(newAddress).nonce != 0) {
             evm.errno = ERROR_CONTRACT_CREATION_COLLISION;
             return;
@@ -203,13 +202,25 @@ contract EthereumRuntime is IEthereumRuntime {
         EVMAccounts.Accounts memory oldAccs = evm.accounts.copy();
         EVMAccounts.Account memory newAcc = evm.accounts.get(newAddress);
         newAcc.nonce = 1;
+        newAcc.code = evmInput.data;
 
         evm.caller.balance -= evm.value;
         newAcc.balance += evm.value;
 
-        // evm.state.target = ;
+        evm.target = newAcc;
+        evm.stack = EVMStack.newStack();
+        evm.mem = EVMMemory.newMemory();
 
         _run(evm);
+
+        // TODO
+        if (evm.errno != NO_ERROR) {
+            return;
+        }
+        if (evm.returnData.length > MAX_CODE_SIZE) {
+            evm.errno = ERROR_MAX_CODE_SIZE_EXCEEDED;
+        }
+        newAcc.code = evm.returnData;
     }
 
     function _run(EVM memory evm) internal pure {
@@ -1017,9 +1028,47 @@ contract EthereumRuntime is IEthereumRuntime {
 
         return ERROR_INSTRUCTION_NOT_SUPPORTED;
     }
-
+/*
+       uint64 gas;
+        uint value;
+        bytes data;
+        address caller;
+        address target;
+        Context context;
+        EVMAccounts.Accounts accounts;
+        Handlers handlers;
+*/
     function handleCALL(EVM memory state) internal pure returns (uint errno) {
-        return ERROR_INSTRUCTION_NOT_SUPPORTED;
+        if (state.stack.size < 7) {
+            return ERROR_STACK_UNDERFLOW;
+        }
+        state.stack.pop();
+        uint targetAddr = state.stack.pop();
+        uint value = state.stack.pop();
+        uint inOffset = state.stack.pop();
+        uint inSize = state.stack.pop();
+        uint retOffset = state.stack.pop(); // return offset
+        uint retSize = state.stack.pop(); // return size
+        EVMInput memory input;
+        // TODO gas
+        input.value = value;
+        input.data = state.mem.toArray(inOffset, inSize);
+        input.caller = state.target.addr;
+        input.target = address(targetAddr);
+        input.context = state.context;
+        input.accounts = state.accounts;
+        input.handlers = state.handlers;
+        EVM memory retEvm = _call(input);
+        if (retEvm.errno != NO_ERROR) {
+            state.stack.push(0);
+            state.lastRet = new bytes(0);
+        } else {
+            state.stack.push(1);
+            state.mem.storeBytes(retEvm.returnData, 0, retOffset, retSize);
+            state.lastRet = retEvm.returnData;
+            // Update to the new state.
+            state.accounts = retEvm.accounts;
+        }
     }
 
     function handleCALLCODE(EVM memory state) internal pure returns (uint errno) {

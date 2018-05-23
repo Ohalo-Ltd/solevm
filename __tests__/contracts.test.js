@@ -110,4 +110,22 @@ describe('solidity contracts', function () {
             }
         });
     }); });
+    it('should call test function on TestContractCallsItself', function () { return __awaiter(_this, void 0, void 0, function () {
+        var code, result;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0: return [4 /*yield*/, solc_1.compile(path.join(constants_1.ROOT_PATH, '__tests__', 'testcontract_callsitself.sol'), constants_1.BIN_OUTPUT_PATH, true)];
+                case 1:
+                    _a.sent();
+                    code = io_1.readText(path.join(constants_1.BIN_OUTPUT_PATH, 'TestContractCallsItself.bin-runtime'));
+                    return [4 /*yield*/, adapter_1.execute(code, constants_1.CONTRACT_TEST_SIG)];
+                case 2:
+                    result = _a.sent();
+                    //console.log(result);
+                    expect(result.errno).toBe(constants_1.NO_ERROR);
+                    expect(result.returnData).toBe('0000000000000000000000000000000000000000000000000000000000000003');
+                    return [2 /*return*/];
+            }
+        });
+    }); });
 });
