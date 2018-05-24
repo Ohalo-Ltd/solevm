@@ -163,3 +163,10 @@ export const executeWithTxInput = async (txInput) => {
     }
     return decode(res);
 };
+
+export const printStorage = (storage) => {
+    for (let slot of storage) {
+        console.log(`address: ${slot.address.toString(16)}`);
+        console.log(`value: ${slot.value.toString(16)}`);
+    }
+};

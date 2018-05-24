@@ -188,3 +188,10 @@ exports.executeWithTxInput = function (txInput) { return __awaiter(_this, void 0
         return [2 /*return*/, exports.decode(res)];
     });
 }); };
+exports.printStorage = function (storage) {
+    for (var _i = 0, storage_1 = storage; _i < storage_1.length; _i++) {
+        var slot = storage_1[_i];
+        console.log("address: " + slot.address.toString(16));
+        console.log("value: " + slot.value.toString(16));
+    }
+};

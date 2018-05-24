@@ -39,6 +39,9 @@ Object.defineProperty(exports, "__esModule", { value: true });
 var adapter_1 = require("../script/adapter");
 var bignumber_js_1 = require("bignumber.js");
 var constants_1 = require("../script/constants");
+var solc_1 = require("../script/solc");
+var path = require("path");
+var io_1 = require("../script/io");
 var runTest = function (code, data, resExpected) { return __awaiter(_this, void 0, void 0, function () {
     var result, i;
     return __generator(this, function (_a) {
@@ -63,10 +66,25 @@ var runTest = function (code, data, resExpected) { return __awaiter(_this, void 
         }
     });
 }); };
+beforeAll(function () { return __awaiter(_this, void 0, void 0, function () {
+    return __generator(this, function (_a) {
+        switch (_a.label) {
+            case 0:
+                console.log("Compiling contracts.");
+                return [4 /*yield*/, solc_1.compile(constants_1.SOL_ETH_SRC, constants_1.BIN_OUTPUT_PATH, true)];
+            case 1:
+                _a.sent();
+                return [4 /*yield*/, solc_1.compile(path.join(constants_1.ROOT_PATH, '__tests__', 'testcontracts.sol'), constants_1.BIN_OUTPUT_PATH, true)];
+            case 2:
+                _a.sent();
+                console.log("Compiling done.");
+                return [2 /*return*/];
+        }
+    });
+}); }, 20000);
 describe('single instructions', function () { return __awaiter(_this, void 0, void 0, function () {
     var _this = this;
     return __generator(this, function (_a) {
-        //    await compile(SOL_ETH_SRC, BIN_OUTPUT_PATH, true);
         describe('stop and arithmetic ops', function () {
             it('should STOP successfully', function () { return __awaiter(_this, void 0, void 0, function () {
                 var code, data, resExpected;
@@ -2010,3 +2028,124 @@ describe('single instructions', function () { return __awaiter(_this, void 0, vo
         return [2 /*return*/];
     });
 }); });
+describe('solidity contracts', function () {
+    it('should call test function on TestContractNoop', function () { return __awaiter(_this, void 0, void 0, function () {
+        var code, result;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0:
+                    code = io_1.readText(path.join(constants_1.BIN_OUTPUT_PATH, 'TestContractNoop.bin-runtime'));
+                    return [4 /*yield*/, adapter_1.execute(code, constants_1.CONTRACT_TEST_SIG)];
+                case 1:
+                    result = _a.sent();
+                    expect(result.errno).toBe(constants_1.NO_ERROR);
+                    return [2 /*return*/];
+            }
+        });
+    }); });
+    it('should call test function on TestContractRetUint', function () { return __awaiter(_this, void 0, void 0, function () {
+        var code, result;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0:
+                    code = io_1.readText(path.join(constants_1.BIN_OUTPUT_PATH, 'TestContractRetUint.bin-runtime'));
+                    return [4 /*yield*/, adapter_1.execute(code, constants_1.CONTRACT_TEST_SIG)];
+                case 1:
+                    result = _a.sent();
+                    expect(result.errno).toBe(constants_1.NO_ERROR);
+                    expect(result.returnData).toBe('0000000000000000000000000000000000000000000000000000000000000005');
+                    return [2 /*return*/];
+            }
+        });
+    }); });
+    it('should call test function on TestContractReverts', function () { return __awaiter(_this, void 0, void 0, function () {
+        var code, result;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0:
+                    code = io_1.readText(path.join(constants_1.BIN_OUTPUT_PATH, 'TestContractReverts.bin-runtime'));
+                    return [4 /*yield*/, adapter_1.execute(code, constants_1.CONTRACT_TEST_SIG)];
+                case 1:
+                    result = _a.sent();
+                    //console.log(result);
+                    expect(result.errno).toBe(constants_1.ERROR_STATE_REVERTED);
+                    expect(result.returnData).toBe('');
+                    return [2 /*return*/];
+            }
+        });
+    }); });
+    it('should call test function on TestContractRevertsWithArgument', function () { return __awaiter(_this, void 0, void 0, function () {
+        var code, result;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0:
+                    code = io_1.readText(path.join(constants_1.BIN_OUTPUT_PATH, 'TestContractRevertsWithArgument.bin-runtime'));
+                    return [4 /*yield*/, adapter_1.execute(code, constants_1.CONTRACT_TEST_SIG)];
+                case 1:
+                    result = _a.sent();
+                    //console.log(result);
+                    expect(result.errno).toBe(constants_1.ERROR_STATE_REVERTED);
+                    return [2 /*return*/];
+            }
+        });
+    }); });
+    it('should call test function on TestContractCallsItself', function () { return __awaiter(_this, void 0, void 0, function () {
+        var code, result;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0:
+                    code = io_1.readText(path.join(constants_1.BIN_OUTPUT_PATH, 'TestContractCallsItself.bin-runtime'));
+                    return [4 /*yield*/, adapter_1.execute(code, constants_1.CONTRACT_TEST_SIG)];
+                case 1:
+                    result = _a.sent();
+                    //console.log(result);
+                    expect(result.errno).toBe(constants_1.NO_ERROR);
+                    expect(result.returnData).toBe('0000000000000000000000000000000000000000000000000000000000000003');
+                    return [2 /*return*/];
+            }
+        });
+    }); });
+    it('should call test function on TestContractStorageWrite', function () { return __awaiter(_this, void 0, void 0, function () {
+        var code, result, storage;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0:
+                    code = io_1.readText(path.join(constants_1.BIN_OUTPUT_PATH, 'TestContractStorageWrite.bin-runtime'));
+                    return [4 /*yield*/, adapter_1.execute(code, constants_1.CONTRACT_TEST_SIG)];
+                case 1:
+                    result = _a.sent();
+                    storage = result.accounts[1].storage;
+                    expect(result.errno).toBe(constants_1.NO_ERROR);
+                    expect(storage.length).toBe(4);
+                    expect(storage[0].address.eq(new bignumber_js_1.BigNumber(0))).toBeTruthy();
+                    expect(storage[0].value.eq(new bignumber_js_1.BigNumber(3))).toBeTruthy();
+                    expect(storage[1].address.eq(new bignumber_js_1.BigNumber('290decd9548b62a8d60345a988386fc84ba6bc95484008f6362f93160ef3e563', 16))).toBeTruthy();
+                    expect(storage[1].value.eq(new bignumber_js_1.BigNumber(0x11))).toBeTruthy();
+                    expect(storage[2].address.eq(new bignumber_js_1.BigNumber('290decd9548b62a8d60345a988386fc84ba6bc95484008f6362f93160ef3e564', 16))).toBeTruthy();
+                    expect(storage[2].value.eq(new bignumber_js_1.BigNumber(0x22))).toBeTruthy();
+                    expect(storage[3].address.eq(new bignumber_js_1.BigNumber('290decd9548b62a8d60345a988386fc84ba6bc95484008f6362f93160ef3e565', 16))).toBeTruthy();
+                    expect(storage[3].value.eq(new bignumber_js_1.BigNumber(0x33))).toBeTruthy();
+                    expect(result.returnData).toBe('');
+                    return [2 /*return*/];
+            }
+        });
+    }); });
+    it('should call test function on TestContractStorageAndInternal', function () { return __awaiter(_this, void 0, void 0, function () {
+        var code, result, storage;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0:
+                    code = io_1.readText(path.join(constants_1.BIN_OUTPUT_PATH, 'TestContractStorageAndInternal.bin-runtime'));
+                    return [4 /*yield*/, adapter_1.execute(code, constants_1.CONTRACT_TEST_SIG)];
+                case 1:
+                    result = _a.sent();
+                    storage = result.accounts[1].storage;
+                    expect(result.errno).toBe(constants_1.NO_ERROR);
+                    expect(result.returnData).toBe('0000000000000000000000000000000000000000000000000000000000000009');
+                    expect(storage[0].address.eq(new bignumber_js_1.BigNumber(0))).toBeTruthy();
+                    expect(storage[0].value.eq(new bignumber_js_1.BigNumber(9))).toBeTruthy();
+                    return [2 /*return*/];
+            }
+        });
+    }); });
+});

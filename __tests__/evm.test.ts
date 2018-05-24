@@ -1,4 +1,4 @@
-import {execute, pad} from "../script/adapter";
+import {execute} from "../script/adapter";
 import {BigNumber} from "bignumber.js";
 import {
     ADD,
@@ -75,10 +75,14 @@ const runTest = async (code, data, resExpected) => {
     return result;
 };
 
+beforeAll(async () => {
+    console.log("Compiling contracts.");
+    await compile(SOL_ETH_SRC, BIN_OUTPUT_PATH, true);
+    await compile(path.join(ROOT_PATH, '__tests__', 'testcontracts.sol'), BIN_OUTPUT_PATH, true);
+    console.log("Compiling done.");
+}, 20000);
 
 describe('single instructions', async () => {
-
-//    await compile(SOL_ETH_SRC, BIN_OUTPUT_PATH, true);
 
     describe('stop and arithmetic ops', () => {
 
@@ -1465,6 +1469,76 @@ describe('single instructions', async () => {
             await runTest(code, data, resExpected);
         });
 
+    });
+
+});
+
+describe('solidity contracts', () => {
+
+    it('should call test function on TestContractNoop', async () => {
+        const code = readText(path.join(BIN_OUTPUT_PATH, 'TestContractNoop.bin-runtime'));
+        const result = await execute(code, CONTRACT_TEST_SIG);
+        expect(result.errno).toBe(NO_ERROR);
+    });
+
+    it('should call test function on TestContractRetUint', async () => {
+        const code = readText(path.join(BIN_OUTPUT_PATH, 'TestContractRetUint.bin-runtime'));
+        const result = await execute(code, CONTRACT_TEST_SIG);
+        expect(result.errno).toBe(NO_ERROR);
+        expect(result.returnData).toBe('0000000000000000000000000000000000000000000000000000000000000005');
+    });
+
+    it('should call test function on TestContractReverts', async () => {
+        const code = readText(path.join(BIN_OUTPUT_PATH, 'TestContractReverts.bin-runtime'));
+        const result = await execute(code, CONTRACT_TEST_SIG);
+        //console.log(result);
+        expect(result.errno).toBe(ERROR_STATE_REVERTED);
+        expect(result.returnData).toBe('');
+    });
+
+    it('should call test function on TestContractRevertsWithArgument', async () => {
+        const code = readText(path.join(BIN_OUTPUT_PATH, 'TestContractRevertsWithArgument.bin-runtime'));
+        const result = await execute(code, CONTRACT_TEST_SIG);
+        //console.log(result);
+        expect(result.errno).toBe(ERROR_STATE_REVERTED);
+        //expect(result.returnData).toBe('');
+    });
+
+    it('should call test function on TestContractCallsItself', async () => {
+        const code = readText(path.join(BIN_OUTPUT_PATH, 'TestContractCallsItself.bin-runtime'));
+        const result = await execute(code, CONTRACT_TEST_SIG);
+        //console.log(result);
+        expect(result.errno).toBe(NO_ERROR);
+        expect(result.returnData).toBe('0000000000000000000000000000000000000000000000000000000000000003');
+    });
+
+    it('should call test function on TestContractStorageWrite', async () => {
+        const code = readText(path.join(BIN_OUTPUT_PATH, 'TestContractStorageWrite.bin-runtime'));
+        const result = await execute(code, CONTRACT_TEST_SIG);
+        const storage = result.accounts[1].storage;
+
+        expect(result.errno).toBe(NO_ERROR);
+        expect(storage.length).toBe(4);
+        expect(storage[0].address.eq(new BigNumber(0))).toBeTruthy();
+        expect(storage[0].value.eq(new BigNumber(3))).toBeTruthy();
+        expect(storage[1].address.eq(new BigNumber('290decd9548b62a8d60345a988386fc84ba6bc95484008f6362f93160ef3e563', 16))).toBeTruthy();
+        expect(storage[1].value.eq(new BigNumber(0x11))).toBeTruthy();
+        expect(storage[2].address.eq(new BigNumber('290decd9548b62a8d60345a988386fc84ba6bc95484008f6362f93160ef3e564', 16))).toBeTruthy();
+        expect(storage[2].value.eq(new BigNumber(0x22))).toBeTruthy();
+        expect(storage[3].address.eq(new BigNumber('290decd9548b62a8d60345a988386fc84ba6bc95484008f6362f93160ef3e565', 16))).toBeTruthy();
+        expect(storage[3].value.eq(new BigNumber(0x33))).toBeTruthy();
+        expect(result.returnData).toBe('');
+    });
+
+    it('should call test function on TestContractStorageAndInternal', async () => {
+        const code = readText(path.join(BIN_OUTPUT_PATH, 'TestContractStorageAndInternal.bin-runtime'));
+        const result = await execute(code, CONTRACT_TEST_SIG);
+        const storage = result.accounts[1].storage;
+
+        expect(result.errno).toBe(NO_ERROR);
+        expect(result.returnData).toBe('0000000000000000000000000000000000000000000000000000000000000009');
+        expect(storage[0].address.eq(new BigNumber(0))).toBeTruthy();
+        expect(storage[0].value.eq(new BigNumber(9))).toBeTruthy();
     });
 
 });

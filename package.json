@@ -23,12 +23,11 @@
     "solhint": "^1.1.7",
     "ts-jest": "^22.4.6",
     "tslint": "^5.10.0",
-    "typescript": "^2.8.3"
-  },
-  "dependencies": {
+    "typescript": "^2.8.3",
     "web3-eth-abi": "^1.0.0-beta.34"
   },
   "jest": {
+    "verbose": true,
     "moduleFileExtensions": [
       "ts",
       "tsx",

@@ -13,6 +13,7 @@ exports.SOL_ETH_BIN = path.join(exports.BIN_OUTPUT_PATH, "EthereumRuntime.bin-ru
 exports.EVM_EXECUTE_SIG = '1f6a1eb9';
 exports.EVM_EXECUTE_TXINPUT_SIG = 'fb9cc4af';
 exports.CONTRACT_TEST_SIG = 'f8a8fd6d';
+exports.TEST_CONTRACT_PATH = path.join(exports.ROOT_PATH, '__tests__', 'testcontracts.sol');
 exports.DEFAULT_CALLER = new bignumber_js_1.default('1234567812345678123456781234567812345678', 16);
 exports.DEFAULT_CONTRACT_ADDRESS = new bignumber_js_1.default('0101010101010101010101010101010101010101', 16);
 // Errors
