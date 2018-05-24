@@ -1,4 +1,4 @@
-import {execute} from "../script/adapter";
+import {execute, printStack, printStorage} from "../script/adapter";
 import {BigNumber} from "bignumber.js";
 import {
     ADD,
@@ -11,7 +11,7 @@ import {
     DIV,
     DUP1,
     DUP16,
-    EQ,
+    EQ, ERROR_INVALID_OPCODE,
     ERROR_STATE_REVERTED,
     EVM_EXECUTE_SIG,
     EXP, GASLIMIT, GASPRICE, GT, ISZERO,
@@ -57,6 +57,15 @@ import {compile} from "../script/solc";
 import path = require("path");
 import {readText} from "../script/io";
 
+beforeAll(async () => {
+    console.log("Compiling contracts.");
+    await compile(SOL_ETH_SRC, BIN_OUTPUT_PATH, true);
+    await compile(path.join(SRC_PATH, 'testcontracts.sol'), BIN_OUTPUT_PATH, true);
+    await compile(path.join(SRC_PATH, 'testcontracts_advanced.sol'), BIN_OUTPUT_PATH, true);
+    console.log("Compiling done.");
+}, 20000);
+
+
 const runTest = async (code, data, resExpected) => {
     const result = await execute(code, data);
     //console.log(result);
@@ -74,13 +83,6 @@ const runTest = async (code, data, resExpected) => {
     }
     return result;
 };
-
-beforeAll(async () => {
-    console.log("Compiling contracts.");
-    await compile(SOL_ETH_SRC, BIN_OUTPUT_PATH, true);
-    await compile(path.join(ROOT_PATH, '__tests__', 'testcontracts.sol'), BIN_OUTPUT_PATH, true);
-    console.log("Compiling done.");
-}, 20000);
 
 describe('single instructions', async () => {
 
@@ -1501,7 +1503,7 @@ describe('solidity contracts', () => {
         const result = await execute(code, CONTRACT_TEST_SIG);
         //console.log(result);
         expect(result.errno).toBe(ERROR_STATE_REVERTED);
-        //expect(result.returnData).toBe('');
+        expect(result.returnData).toBe('08c379a0000000000000000000000000000000000000000000000000000000000000002000000000000000000000000000000000000000000000000000000000000000036162630000000000000000000000000000000000000000000000000000000000');
     });
 
     it('should call test function on TestContractCallsItself', async () => {
@@ -1541,4 +1543,53 @@ describe('solidity contracts', () => {
         expect(storage[0].value.eq(new BigNumber(9))).toBeTruthy();
     });
 
+    it('should create DeployedContractEmpty', async () => {
+        const code = readText(path.join(BIN_OUTPUT_PATH, 'DeployedContractEmpty.bin'));
+        const runtimeCode = readText(path.join(BIN_OUTPUT_PATH, 'DeployedContractEmpty.bin-runtime'));
+        const result = await execute(code, CONTRACT_TEST_SIG);
+        expect(result.returnData).toEqual(runtimeCode);
+        expect(result.errno).toBe(NO_ERROR);
+    });
+
+    it('should call test function on TestContractCreate', async () => {
+        const code = readText(path.join(BIN_OUTPUT_PATH, 'TestContractCreate.bin-runtime'));
+        const result = await execute(code, CONTRACT_TEST_SIG);
+        expect(result.errno).toBe(NO_ERROR);
+        expect(result.returnData).toBe('000000000000000000000000e795c695551b833dd8abd2bc8bf6c67051b17b44');
+    });
+
+    it('should call test function on TestContractCreateAndCall', async () => {
+        const code = readText(path.join(BIN_OUTPUT_PATH, 'TestContractCreateAndCall.bin-runtime'));
+        const result = await execute(code, CONTRACT_TEST_SIG);
+        //console.log(result);
+        expect(result.errno).toBe(NO_ERROR);
+        expect(result.returnData).toBe('0000000000000000000000000000000000000000000000000000000000000003');
+    });
+
+    it('should call test function on TestContractCallchainSameContract', async () => {
+        const code = readText(path.join(BIN_OUTPUT_PATH, 'TestContractCallchainSameContract.bin-runtime'));
+        const result = await execute(code, CONTRACT_TEST_SIG);
+        //console.log(result);
+        expect(result.errno).toBe(NO_ERROR);
+        expect(result.returnData).toBe('0000000000000000000000000000000000000000000000000000000000000002');
+    });
+
+    it('should call test function on TestContractFailedAssertion', async () => {
+        const code = readText(path.join(BIN_OUTPUT_PATH, 'TestContractFailedAssertion.bin-runtime'));
+        const result = await execute(code, CONTRACT_TEST_SIG);
+        //console.log(result);
+        expect(result.errno).toBe(ERROR_INVALID_OPCODE);
+    });
+
+});
+
+
+describe('solidity contracts - advanced', () => {
+
+    it('should call test function on TestContractEVMStack', async () => {
+        const code = readText(path.join(BIN_OUTPUT_PATH, 'TestContractEVMStack.bin-runtime'));
+        const result = await execute(code, CONTRACT_TEST_SIG);
+        //console.log(result);
+        expect(result.errno).toBe(NO_ERROR);
+    });
 });

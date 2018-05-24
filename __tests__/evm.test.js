@@ -42,6 +42,25 @@ var constants_1 = require("../script/constants");
 var solc_1 = require("../script/solc");
 var path = require("path");
 var io_1 = require("../script/io");
+beforeAll(function () { return __awaiter(_this, void 0, void 0, function () {
+    return __generator(this, function (_a) {
+        switch (_a.label) {
+            case 0:
+                console.log("Compiling contracts.");
+                return [4 /*yield*/, solc_1.compile(constants_1.SOL_ETH_SRC, constants_1.BIN_OUTPUT_PATH, true)];
+            case 1:
+                _a.sent();
+                return [4 /*yield*/, solc_1.compile(path.join(constants_1.SRC_PATH, 'testcontracts.sol'), constants_1.BIN_OUTPUT_PATH, true)];
+            case 2:
+                _a.sent();
+                return [4 /*yield*/, solc_1.compile(path.join(constants_1.SRC_PATH, 'testcontracts_advanced.sol'), constants_1.BIN_OUTPUT_PATH, true)];
+            case 3:
+                _a.sent();
+                console.log("Compiling done.");
+                return [2 /*return*/];
+        }
+    });
+}); }, 20000);
 var runTest = function (code, data, resExpected) { return __awaiter(_this, void 0, void 0, function () {
     var result, i;
     return __generator(this, function (_a) {
@@ -66,22 +85,6 @@ var runTest = function (code, data, resExpected) { return __awaiter(_this, void 
         }
     });
 }); };
-beforeAll(function () { return __awaiter(_this, void 0, void 0, function () {
-    return __generator(this, function (_a) {
-        switch (_a.label) {
-            case 0:
-                console.log("Compiling contracts.");
-                return [4 /*yield*/, solc_1.compile(constants_1.SOL_ETH_SRC, constants_1.BIN_OUTPUT_PATH, true)];
-            case 1:
-                _a.sent();
-                return [4 /*yield*/, solc_1.compile(path.join(constants_1.ROOT_PATH, '__tests__', 'testcontracts.sol'), constants_1.BIN_OUTPUT_PATH, true)];
-            case 2:
-                _a.sent();
-                console.log("Compiling done.");
-                return [2 /*return*/];
-        }
-    });
-}); }, 20000);
 describe('single instructions', function () { return __awaiter(_this, void 0, void 0, function () {
     var _this = this;
     return __generator(this, function (_a) {
@@ -2085,6 +2088,7 @@ describe('solidity contracts', function () {
                     result = _a.sent();
                     //console.log(result);
                     expect(result.errno).toBe(constants_1.ERROR_STATE_REVERTED);
+                    expect(result.returnData).toBe('08c379a0000000000000000000000000000000000000000000000000000000000000002000000000000000000000000000000000000000000000000000000000000000036162630000000000000000000000000000000000000000000000000000000000');
                     return [2 /*return*/];
             }
         });
@@ -2144,6 +2148,101 @@ describe('solidity contracts', function () {
                     expect(result.returnData).toBe('0000000000000000000000000000000000000000000000000000000000000009');
                     expect(storage[0].address.eq(new bignumber_js_1.BigNumber(0))).toBeTruthy();
                     expect(storage[0].value.eq(new bignumber_js_1.BigNumber(9))).toBeTruthy();
+                    return [2 /*return*/];
+            }
+        });
+    }); });
+    it('should create DeployedContractEmpty', function () { return __awaiter(_this, void 0, void 0, function () {
+        var code, runtimeCode, result;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0:
+                    code = io_1.readText(path.join(constants_1.BIN_OUTPUT_PATH, 'DeployedContractEmpty.bin'));
+                    runtimeCode = io_1.readText(path.join(constants_1.BIN_OUTPUT_PATH, 'DeployedContractEmpty.bin-runtime'));
+                    return [4 /*yield*/, adapter_1.execute(code, constants_1.CONTRACT_TEST_SIG)];
+                case 1:
+                    result = _a.sent();
+                    expect(result.returnData).toEqual(runtimeCode);
+                    expect(result.errno).toBe(constants_1.NO_ERROR);
+                    return [2 /*return*/];
+            }
+        });
+    }); });
+    it('should call test function on TestContractCreate', function () { return __awaiter(_this, void 0, void 0, function () {
+        var code, result;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0:
+                    code = io_1.readText(path.join(constants_1.BIN_OUTPUT_PATH, 'TestContractCreate.bin-runtime'));
+                    return [4 /*yield*/, adapter_1.execute(code, constants_1.CONTRACT_TEST_SIG)];
+                case 1:
+                    result = _a.sent();
+                    expect(result.errno).toBe(constants_1.NO_ERROR);
+                    expect(result.returnData).toBe('000000000000000000000000e795c695551b833dd8abd2bc8bf6c67051b17b44');
+                    return [2 /*return*/];
+            }
+        });
+    }); });
+    it('should call test function on TestContractCreateAndCall', function () { return __awaiter(_this, void 0, void 0, function () {
+        var code, result;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0:
+                    code = io_1.readText(path.join(constants_1.BIN_OUTPUT_PATH, 'TestContractCreateAndCall.bin-runtime'));
+                    return [4 /*yield*/, adapter_1.execute(code, constants_1.CONTRACT_TEST_SIG)];
+                case 1:
+                    result = _a.sent();
+                    //console.log(result);
+                    expect(result.errno).toBe(constants_1.NO_ERROR);
+                    expect(result.returnData).toBe('0000000000000000000000000000000000000000000000000000000000000003');
+                    return [2 /*return*/];
+            }
+        });
+    }); });
+    it('should call test function on TestContractCallchainSameContract', function () { return __awaiter(_this, void 0, void 0, function () {
+        var code, result;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0:
+                    code = io_1.readText(path.join(constants_1.BIN_OUTPUT_PATH, 'TestContractCallchainSameContract.bin-runtime'));
+                    return [4 /*yield*/, adapter_1.execute(code, constants_1.CONTRACT_TEST_SIG)];
+                case 1:
+                    result = _a.sent();
+                    //console.log(result);
+                    expect(result.errno).toBe(constants_1.NO_ERROR);
+                    expect(result.returnData).toBe('0000000000000000000000000000000000000000000000000000000000000002');
+                    return [2 /*return*/];
+            }
+        });
+    }); });
+    it('should call test function on TestContractFailedAssertion', function () { return __awaiter(_this, void 0, void 0, function () {
+        var code, result;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0:
+                    code = io_1.readText(path.join(constants_1.BIN_OUTPUT_PATH, 'TestContractFailedAssertion.bin-runtime'));
+                    return [4 /*yield*/, adapter_1.execute(code, constants_1.CONTRACT_TEST_SIG)];
+                case 1:
+                    result = _a.sent();
+                    //console.log(result);
+                    expect(result.errno).toBe(constants_1.ERROR_INVALID_OPCODE);
+                    return [2 /*return*/];
+            }
+        });
+    }); });
+});
+describe('solidity contracts - advanced', function () {
+    it('should call test function on TestContractEVMStack', function () { return __awaiter(_this, void 0, void 0, function () {
+        var code, result;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0:
+                    code = io_1.readText(path.join(constants_1.BIN_OUTPUT_PATH, 'TestContractEVMStack.bin-runtime'));
+                    return [4 /*yield*/, adapter_1.execute(code, constants_1.CONTRACT_TEST_SIG)];
+                case 1:
+                    result = _a.sent();
+                    //console.log(result);
+                    expect(result.errno).toBe(constants_1.NO_ERROR);
                     return [2 /*return*/];
             }
         });

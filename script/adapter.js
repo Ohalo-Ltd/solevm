@@ -75,7 +75,7 @@ exports.bytesHexToABI = function (btsHex) {
 };
 exports.decode = function (res) {
     res = res.substr(64);
-    var dec = Web3EthAbi.decodeParameters(['uint256', 'uint256', 'bytes', 'uint256[]', 'bytes', 'uint256[]', 'bytes[]'], '0x' + res);
+    var dec = Web3EthAbi.decodeParameters(['uint256', 'uint256', 'bytes', 'uint256[]', 'bytes', 'uint256[]'], '0x' + res);
     //console.log(dec);
     var returnData = '';
     if (dec['2'] && dec['2'].length >= 2) {
@@ -189,9 +189,17 @@ exports.executeWithTxInput = function (txInput) { return __awaiter(_this, void 0
     });
 }); };
 exports.printStorage = function (storage) {
+    console.log("Storage:");
     for (var _i = 0, storage_1 = storage; _i < storage_1.length; _i++) {
         var slot = storage_1[_i];
         console.log("address: " + slot.address.toString(16));
         console.log("value: " + slot.value.toString(16));
+    }
+};
+exports.printStack = function (stack) {
+    console.log("Stack:");
+    for (var _i = 0, stack_1 = stack; _i < stack_1.length; _i++) {
+        var elem = stack_1[_i];
+        console.log("" + elem.toString(16));
     }
 };

@@ -43,7 +43,7 @@ export const bytesHexToABI = (btsHex) => {
 export const decode = (res) => {
 
     res = res.substr(64);
-    const dec = Web3EthAbi.decodeParameters(['uint256', 'uint256', 'bytes', 'uint256[]', 'bytes', 'uint256[]', 'bytes[]'], '0x' + res);
+    const dec = Web3EthAbi.decodeParameters(['uint256', 'uint256', 'bytes', 'uint256[]', 'bytes', 'uint256[]'], '0x' + res);
     //console.log(dec);
     let returnData = '';
     if (dec['2'] && dec['2'].length >= 2) {
@@ -165,8 +165,16 @@ export const executeWithTxInput = async (txInput) => {
 };
 
 export const printStorage = (storage) => {
+    console.log("Storage:");
     for (let slot of storage) {
         console.log(`address: ${slot.address.toString(16)}`);
         console.log(`value: ${slot.value.toString(16)}`);
+    }
+};
+
+export const printStack = (stack) => {
+    console.log("Stack:");
+    for (let elem of stack) {
+        console.log(`${elem.toString(16)}`);
     }
 };

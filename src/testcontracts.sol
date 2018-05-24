@@ -4,38 +4,28 @@ pragma solidity ^0.4.22;
 
 
 contract TestContractNoop {
-
-    function test() public pure {
-
-    }
-
+    function test() public pure {}
 }
 
 
 contract TestContractRetUint {
-
     function test() public pure returns (uint) {
         return 5;
     }
-
 }
 
 
 contract TestContractReverts {
-
     function test() public pure {
         revert();
     }
-
 }
 
 
 contract TestContractRevertsWithArgument {
-
     function test() public pure {
         revert("abc");
     }
-
 }
 
 
@@ -81,6 +71,60 @@ contract TestContractCallsItself {
 
     function test() public returns (uint) {
         return this.test2() + 2;
+    }
+
+}
+
+
+contract TestContractCallchainSameContract {
+
+    function test4(uint x) public returns (uint) {
+        return x + 1;
+    }
+
+    function test3(uint x) public returns (uint) {
+        return this.test4(x);
+    }
+
+    function test2(uint x) public returns (uint) {
+        return this.test3(x);
+    }
+
+    function test() public returns (uint) {
+        return this.test2(1);
+    }
+
+}
+
+
+contract DeployedContractEmpty {}
+
+
+contract TestContractCreate {
+    function test() public returns (address) {
+        return new DeployedContractEmpty();
+    }
+}
+
+
+contract DeployedContractRetUint {
+    function getNumber() public returns(uint) {
+        return 3;
+    }
+}
+
+
+contract TestContractCreateAndCall {
+    function test() public returns (uint) {
+        return new DeployedContractRetUint().getNumber();
+    }
+}
+
+
+contract TestContractFailedAssertion {
+
+    function test() public {
+        assert(false);
     }
 
 }

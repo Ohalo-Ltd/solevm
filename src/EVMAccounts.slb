@@ -101,7 +101,7 @@ library EVMAccounts {
         return;
     }
 
-    function toArray(Accounts memory self) internal pure returns (uint[] memory arr, bytes[] memory code) {
+    function toArray(Accounts memory self) internal pure returns (uint[] memory arr) {
         Account[] memory accs = new Account[](self.size);
         uint totalSize;
         Element memory e = self.head;
@@ -119,7 +119,6 @@ library EVMAccounts {
             }
         }
         arr = new uint[](totalSize);
-        code = new bytes[](self.size);
         uint offset = 0;
         for (i = 0; i < self.size; i++) {
             Account memory acc = accs[i];
@@ -132,7 +131,6 @@ library EVMAccounts {
                 arr[offset + 4 + 2 * j] = stge[j].addr;
                 arr[offset + 4 + 2 * j + 1] = stge[j].val;
             }
-            code[i] = acc.code;
             offset += 4 + stge.length * 2;
         }
     }

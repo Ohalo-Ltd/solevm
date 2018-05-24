@@ -61,7 +61,6 @@ contract IEthereumRuntime is EVMConstants {
         uint[] stack;
         bytes mem;
         uint[] accounts;
-        bytes[] accountsCode;
     }
 
     struct Handlers {
@@ -138,10 +137,6 @@ contract EthereumRuntime is IEthereumRuntime {
 
     }
 
-    function _initEVM(EVMInput memory input) internal pure returns (EVM memory evm) {
-
-    }
-
     function _call(EVMInput memory input) internal pure returns (EVM memory evm){
         evm.context = input.context;
         evm.handlers = input.handlers;
@@ -164,8 +159,7 @@ contract EthereumRuntime is IEthereumRuntime {
             evm.caller.balance -= evm.value;
             evm.target.balance += evm.value;
         }
-        evm.stack = EVMStack.newStack();
-        evm.mem = EVMMemory.newMemory();
+
         // If there is no code to run, just continue. TODO
         if (evm.target.code.length == 0) {
             return;
@@ -173,7 +167,7 @@ contract EthereumRuntime is IEthereumRuntime {
         _run(evm);
     }
 
-    function _create(EVMInput memory evmInput) internal pure returns (EVM memory evm) {
+    function _create(EVMInput memory evmInput) internal pure returns (EVM memory evm, address addr) {
         evm.context = evmInput.context;
         evm.handlers = evmInput.handlers;
         evm.accounts = evmInput.accounts.copy();
@@ -199,7 +193,6 @@ contract EthereumRuntime is IEthereumRuntime {
             return;
         }
 
-        EVMAccounts.Accounts memory oldAccs = evm.accounts.copy();
         EVMAccounts.Account memory newAcc = evm.accounts.get(newAddress);
         newAcc.nonce = 1;
         newAcc.code = evmInput.data;
@@ -208,8 +201,6 @@ contract EthereumRuntime is IEthereumRuntime {
         newAcc.balance += evm.value;
 
         evm.target = newAcc;
-        evm.stack = EVMStack.newStack();
-        evm.mem = EVMMemory.newMemory();
 
         _run(evm);
 
@@ -219,8 +210,10 @@ contract EthereumRuntime is IEthereumRuntime {
         }
         if (evm.returnData.length > MAX_CODE_SIZE) {
             evm.errno = ERROR_MAX_CODE_SIZE_EXCEEDED;
+            return;
         }
         newAcc.code = evm.returnData;
+        addr = newAddress;
     }
 
     function _run(EVM memory evm) internal pure {
@@ -228,6 +221,10 @@ contract EthereumRuntime is IEthereumRuntime {
         uint pc = 0;
         uint errno = NO_ERROR;
         bytes memory code = evm.target.code;
+
+        evm.stack = EVMStack.newStack();
+        evm.mem = EVMMemory.newMemory();
+
         while (errno == NO_ERROR && pc < code.length) {
             uint opcode = uint(code[pc]);
 
@@ -334,7 +331,7 @@ contract EthereumRuntime is IEthereumRuntime {
         result.returnData = evm.returnData;
         result.errno = evm.errno;
         result.errpc = evm.errpc;
-        (result.accounts, result.accountsCode) = evm.accounts.toArray();
+        result.accounts = evm.accounts.toArray();
         return;
     }
 
@@ -779,7 +776,7 @@ contract EthereumRuntime is IEthereumRuntime {
         uint mAddr = state.stack.pop();
         uint cAddr = state.stack.pop();
         uint len = state.stack.pop();
-        if (cAddr + len < state.target.code.length) {
+        if (cAddr + len > state.target.code.length) {
             return ERROR_INDEX_OOB;
         }
         state.mem.storeBytes(state.target.code, cAddr, mAddr, len);
@@ -809,7 +806,7 @@ contract EthereumRuntime is IEthereumRuntime {
         uint dAddr = state.stack.pop();
         uint len = state.stack.pop();
         bytes memory code = state.accounts.get(address(addr)).code;
-        if (dAddr + len < code.length) {
+        if (dAddr + len > code.length) {
             return ERROR_INDEX_OOB;
         }
         state.mem.storeBytes(code, dAddr, mAddr, len);
@@ -1025,28 +1022,42 @@ contract EthereumRuntime is IEthereumRuntime {
 
     // 0xfX
     function handleCREATE(EVM memory state) internal pure returns (uint errno) {
+        if (state.stack.size < 3) {
+            return ERROR_STACK_UNDERFLOW;
+        }
+        uint value = state.stack.pop();
+        uint memPos = state.stack.pop();
+        uint size = state.stack.pop();
+        EVMInput memory input;
+        // input.gas = gas; TODO
+        input.value = value;
+        input.data = state.mem.toArray(memPos, size);
+        input.caller = state.target.addr;
+        input.context = state.context;
+        input.accounts = state.accounts;
+        input.handlers = state.handlers;
+        EVM memory retEvm;
+        address newAddress;
+        (retEvm, newAddress) = _create(input);
+        if (retEvm.errno != NO_ERROR) {
+            state.stack.push(0);
+        } else {
+            state.stack.push(uint(newAddress));
+            state.accounts = retEvm.accounts;
+        }
 
-        return ERROR_INSTRUCTION_NOT_SUPPORTED;
     }
-/*
-       uint64 gas;
-        uint value;
-        bytes data;
-        address caller;
-        address target;
-        Context context;
-        EVMAccounts.Accounts accounts;
-        Handlers handlers;
-*/
+
     function handleCALL(EVM memory state) internal pure returns (uint errno) {
         if (state.stack.size < 7) {
             return ERROR_STACK_UNDERFLOW;
         }
-        state.stack.pop();
+        state.stack.pop(); // gas
         uint targetAddr = state.stack.pop();
         uint value = state.stack.pop();
         uint inOffset = state.stack.pop();
         uint inSize = state.stack.pop();
+
         uint retOffset = state.stack.pop(); // return offset
         uint retSize = state.stack.pop(); // return size
         EVMInput memory input;
