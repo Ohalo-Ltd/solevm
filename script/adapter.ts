@@ -41,9 +41,8 @@ export const bytesHexToABI = (btsHex) => {
 };
 
 export const decode = (res) => {
-
     res = res.substr(64);
-    const dec = Web3EthAbi.decodeParameters(['uint256', 'uint256', 'bytes', 'uint256[]', 'bytes', 'uint256[]'], '0x' + res);
+    const dec = Web3EthAbi.decodeParameters(['uint256', 'uint256', 'bytes', 'uint256[]', 'bytes', 'uint256[]', 'bytes', 'uint256[]', 'bytes'], '0x' + res);
     //console.log(dec);
     let returnData = '';
     if (dec['2'] && dec['2'].length >= 2) {
@@ -63,6 +62,11 @@ export const decode = (res) => {
     }
 
     const accsArr = dec['5'];
+
+    let accsCode = '';
+    if (dec['6'] && dec['6'].length >= 2) {
+        accsCode = dec['6'].substr(2);
+    }
     //console.log(accsArr.length);
     const accs = [];
     let offset = 0;
@@ -74,11 +78,14 @@ export const decode = (res) => {
         }
         const balance = new BigNumber(accsArr[offset + 1]);
         const nonce = new BigNumber(accsArr[offset + 2]).toNumber();
-        const storageSize = new BigNumber(accsArr[offset + 3]).toNumber();
+        const codeIdx = new BigNumber(accsArr[offset + 3]).toNumber();
+        const codeSize = new BigNumber(accsArr[offset + 4]).toNumber();
+        const code = accsCode.substr(2*codeIdx, 2*codeSize);
+        const storageSize = new BigNumber(accsArr[offset + 5]).toNumber();
         const storage = [];
         for (let j = 0; j < storageSize; j++) {
-            const address = new BigNumber(accsArr[offset + 4 + 2*j]);
-            const value = new BigNumber(accsArr[offset + 4 + 2*j + 1]);
+            const address = new BigNumber(accsArr[offset + 6 + 2*j]);
+            const value = new BigNumber(accsArr[offset + 6 + 2*j + 1]);
             if (!value.eq(BN_ZERO)) {
                 storage.push({
                     address: address,
@@ -90,10 +97,43 @@ export const decode = (res) => {
             address: addr,
             balance: balance,
             nonce: nonce,
+            code: code,
             storage: storage
         });
 
-        offset += 4 + 2*storageSize;
+        offset += 6 + 2*storageSize;
+    }
+
+    const logsArr = dec['7'];
+    let logsCode = '';
+    if (dec['8'] && dec['8'].length >= 2) {
+        logsCode = dec['8'].substr(2);
+    }
+
+    const logs = [];
+    offset = 0;
+
+    while(offset < logsArr.length) {
+        let addr = new BigNumber(logsArr[offset]).toString(16);
+        while(addr.length < 40) {
+            addr = '0' + addr;
+        }
+        const topics = [];
+        topics.push(new BigNumber(logsArr[offset + 1]));
+        topics.push(new BigNumber(logsArr[offset + 2]));
+        topics.push(new BigNumber(logsArr[offset + 3]));
+        topics.push(new BigNumber(logsArr[offset + 4]));
+        const dataIdx = new BigNumber(logsArr[offset + 5]).toNumber();
+        const dataSize = new BigNumber(logsArr[offset + 6]).toNumber();
+        const data = logsCode.substr(2*dataIdx, 2*dataSize);
+
+        logs.push({
+            account: addr,
+            topics: topics,
+            data: data
+        });
+
+        offset += 7;
     }
 
     return {
@@ -102,7 +142,8 @@ export const decode = (res) => {
         returnData: returnData,
         stack: stack,
         mem: mem,
-        accounts: accs
+        accounts: accs,
+        logs: logs
     }
 };
 
@@ -177,4 +218,63 @@ export const printStack = (stack) => {
     for (let elem of stack) {
         console.log(`${elem.toString(16)}`);
     }
+};
+
+/*
+        errno: new BigNumber(dec['0']).toNumber(),
+        errpc: new BigNumber(dec['1']).toNumber(),
+        returnData: returnData,
+        stack: stack,
+        mem: mem,
+        accounts: accs,
+        logs: logs
+*/
+export const prettyPrintResults = (result) => {
+    const resultF = {};
+    resultF['errno'] = result.errno;
+    resultF['errpc'] = result.errpc;
+    resultF['returnData'] = result.returnData;
+    resultF['mem'] = result.mem;
+    const stackF = [];
+    let i = 0;
+    for (let stackItem of result.stack) {
+        stackF.push(`${i++}: ${stackItem.toString(16)}`);
+    }
+    resultF['stack'] = stackF;
+
+    const accountsF = [];
+    for (let account of result.accounts) {
+        const accountF = {};
+        accountF['address'] = account.address;
+        accountF['balance'] = account.balance.toString(16);
+        accountF['nonce'] = account.nonce;
+        accountF['code'] = account.code;
+
+        const storageF = [];
+        for (let item of account.storage) {
+            storageF.push({
+                address: item.address.toString(16),
+                value: item.value.toString(16)
+            });
+        }
+        accountF['storage'] = storageF;
+        accountsF.push(accountF);
+    }
+    resultF['accounts'] = accountsF;
+
+    const logsF = [];
+    //console.log(result.logs);
+    for (let log of result.logs) {
+        const logF = {};
+        logF['account'] = log.account;
+        logF['topics'] = [];
+        for(let i = 0; i < log.topics.length; i++) {
+            logF['topics'].push(log.topics[i].toString(16));
+        }
+        logF['data'] = log.data;
+        logsF.push(logF);
+    }
+    resultF['logs'] = logsF;
+
+    console.log(JSON.stringify(resultF, null, '\t'));
 };

@@ -1,4 +1,4 @@
-import {execute, printStack, printStorage} from "../script/adapter";
+import {execute, prettyPrintResults, printStack, printStorage} from "../script/adapter";
 import {BigNumber} from "bignumber.js";
 import {
     ADD,
@@ -11,7 +11,7 @@ import {
     DIV,
     DUP1,
     DUP16,
-    EQ, ERROR_INVALID_OPCODE,
+    EQ, ERROR_INVALID_JUMP_DESTINATION, ERROR_INVALID_OPCODE,
     ERROR_STATE_REVERTED,
     EVM_EXECUTE_SIG,
     EXP, GASLIMIT, GASPRICE, GT, ISZERO,
@@ -20,7 +20,7 @@ import {
     JUMPI,
     LT, MLOAD,
     MOD,
-    MSTORE,
+    MSTORE, MSTORE8,
     MUL, MULMOD,
     NO_ERROR, NOT, NUMBER, OR,
     PC,
@@ -64,7 +64,6 @@ beforeAll(async () => {
     await compile(path.join(SRC_PATH, 'testcontracts_advanced.sol'), BIN_OUTPUT_PATH, true);
     console.log("Compiling done.");
 }, 20000);
-
 
 const runTest = async (code, data, resExpected) => {
     const result = await execute(code, data);
@@ -1164,6 +1163,20 @@ describe('single instructions', async () => {
             await runTest(code, data, resExpected);
         });
 
+        it('should use MSTORE8 successfully', async () => {
+            const code = PUSH32 + '8877665544332211887766554433221188776655443322118877665544332211' + PUSH1 + '00' + MSTORE8;
+            const data = "";
+            const resExpected = {
+                errno: 0,
+                errpc: code.length / 2,
+                returnData: "",
+                memSize: 0,
+                mem: "1100000000000000000000000000000000000000000000000000000000000000",
+                stack: [],
+            };
+            await runTest(code, data, resExpected);
+        });
+
         it('should use SLOAD successfully', async () => {
             const code = PUSH1 + '02' + PUSH1 + '01' + SSTORE + PUSH1 + '01' + SLOAD;
             const data = "";
@@ -1190,9 +1203,80 @@ describe('single instructions', async () => {
                 stack: [],
             };
             const result = await runTest(code, data, resExpected);
+            expect(result.errno).toBe(0);
             const storage = result.accounts[1].storage;
             expect(storage[0].address.toNumber()).toBe(1);
             expect(storage[0].value.toNumber()).toBe(2);
+        });
+
+        it('should use JUMP successfully', async () => {
+            const code = PUSH1 + '05' + JUMP + PUSH1 + '05' + JUMPDEST + STOP;
+            const data = "";
+            const resExpected = {
+                errno: 0,
+                errpc: 6,
+                returnData: "",
+                memSize: 0,
+                mem: "",
+                stack: [],
+            };
+            await runTest(code, data, resExpected);
+        });
+
+        it('should fail JUMP when the jump destination is invalid', async () => {
+            const code = PUSH1 + '05' + JUMP + PUSH1 + '05' + STOP;
+            const data = "";
+            const resExpected = {
+                errno: ERROR_INVALID_JUMP_DESTINATION,
+                errpc: 2,
+                returnData: "",
+                memSize: 0,
+                mem: "",
+                stack: [],
+            };
+            await runTest(code, data, resExpected);
+        });
+
+        it('should use JUMPI successfully when condition is true', async () => {
+            const code = PUSH1 + '01' + PUSH1 + '07' + JUMPI + PUSH1 + '05' + JUMPDEST + STOP;
+            const data = "";
+            const resExpected = {
+                errno: 0,
+                errpc: 8,
+                returnData: "",
+                memSize: 0,
+                mem: "",
+                stack: [],
+            };
+            await runTest(code, data, resExpected);
+        });
+
+        it('should use JUMPI successfully when condition is false', async () => {
+            const code = PUSH1 + '00' + PUSH1 + '07' + JUMPI + PUSH1 + '05' + JUMPDEST + STOP;
+            const data = "";
+            const resExpected = {
+                errno: 0,
+                errpc: 8,
+                returnData: "",
+                memSize: 0,
+                mem: "",
+                stack: [new BigNumber(5)],
+            };
+            await runTest(code, data, resExpected);
+        });
+
+        it('should fail JUMPI when the jump destination is invalid', async () => {
+            const code = PUSH1 + '01' + PUSH1 + '07' + JUMPI + PUSH1 + '05' + STOP;
+            const data = "";
+            const resExpected = {
+                errno: ERROR_INVALID_JUMP_DESTINATION,
+                errpc: 4,
+                returnData: "",
+                memSize: 0,
+                mem: "",
+                stack: [],
+            };
+            await runTest(code, data, resExpected);
         });
 
     });
@@ -1517,9 +1601,10 @@ describe('solidity contracts', () => {
     it('should call test function on TestContractStorageWrite', async () => {
         const code = readText(path.join(BIN_OUTPUT_PATH, 'TestContractStorageWrite.bin-runtime'));
         const result = await execute(code, CONTRACT_TEST_SIG);
-        const storage = result.accounts[1].storage;
-
         expect(result.errno).toBe(NO_ERROR);
+        const storage = result.accounts[1].storage;
+        //console.log(result);
+        //prettyPrintResults(result);
         expect(storage.length).toBe(4);
         expect(storage[0].address.eq(new BigNumber(0))).toBeTruthy();
         expect(storage[0].value.eq(new BigNumber(3))).toBeTruthy();
@@ -1530,14 +1615,14 @@ describe('solidity contracts', () => {
         expect(storage[3].address.eq(new BigNumber('290decd9548b62a8d60345a988386fc84ba6bc95484008f6362f93160ef3e565', 16))).toBeTruthy();
         expect(storage[3].value.eq(new BigNumber(0x33))).toBeTruthy();
         expect(result.returnData).toBe('');
+
     });
 
     it('should call test function on TestContractStorageAndInternal', async () => {
         const code = readText(path.join(BIN_OUTPUT_PATH, 'TestContractStorageAndInternal.bin-runtime'));
         const result = await execute(code, CONTRACT_TEST_SIG);
-        const storage = result.accounts[1].storage;
-
         expect(result.errno).toBe(NO_ERROR);
+        const storage = result.accounts[1].storage;
         expect(result.returnData).toBe('0000000000000000000000000000000000000000000000000000000000000009');
         expect(storage[0].address.eq(new BigNumber(0))).toBeTruthy();
         expect(storage[0].value.eq(new BigNumber(9))).toBeTruthy();
@@ -1581,8 +1666,130 @@ describe('solidity contracts', () => {
         expect(result.errno).toBe(ERROR_INVALID_OPCODE);
     });
 
-});
+    it('should call test function on TestContractNoTopicEvent', async () => {
+        const code = readText(path.join(BIN_OUTPUT_PATH, 'TestContractNoTopicEvent.bin-runtime'));
+        const result = await execute(code, CONTRACT_TEST_SIG);
+        //prettyPrintResults(result);
+        expect(result.errno).toBe(NO_ERROR);
+        expect(result.logs.length).toBe(1);
+        const log = result.logs[0];
+        expect(log.account).toBe("0101010101010101010101010101010101010101");
+        expect(log.topics.length).toBe(4);
+        expect(log.topics[0].eq(new BigNumber("1732d0c17008d342618e7f03069177d8d39391d79811bb4e706d7c6c84108c0f", 16))).toBeTruthy();
+        expect(log.topics[1].eq(new BigNumber(0))).toBeTruthy();
+        expect(log.topics[2].eq(new BigNumber(0))).toBeTruthy();
+        expect(log.topics[3].eq(new BigNumber(0))).toBeTruthy();
+        expect(log.data).toBe("");
+    });
 
+    it('should call test function on TestContractOneTopicEvent', async () => {
+        const code = readText(path.join(BIN_OUTPUT_PATH, 'TestContractOneTopicEvent.bin-runtime'));
+        const result = await execute(code, CONTRACT_TEST_SIG);
+        //prettyPrintResults(result);
+        expect(result.errno).toBe(NO_ERROR);
+        expect(result.logs.length).toBe(1);
+        const log = result.logs[0];
+        expect(log.account).toBe("0101010101010101010101010101010101010101");
+        expect(log.topics.length).toBe(4);
+        expect(log.topics[0].eq(new BigNumber("624fb00c2ce79f34cb543884c3af64816dce0f4cec3d32661959e49d488a7a93", 16))).toBeTruthy();
+        expect(log.topics[1].eq(new BigNumber(5))).toBeTruthy();
+        expect(log.topics[2].eq(new BigNumber(0))).toBeTruthy();
+        expect(log.topics[3].eq(new BigNumber(0))).toBeTruthy();
+        expect(log.data).toBe("");
+    });
+
+    it('should call test function on TestContractTwoTopicsEvent', async () => {
+        const code = readText(path.join(BIN_OUTPUT_PATH, 'TestContractTwoTopicsEvent.bin-runtime'));
+        const result = await execute(code, CONTRACT_TEST_SIG);
+        //prettyPrintResults(result);
+        expect(result.errno).toBe(NO_ERROR);
+        expect(result.logs.length).toBe(1);
+        const log = result.logs[0];
+
+        expect(log.account).toBe("0101010101010101010101010101010101010101");
+        expect(log.topics.length).toBe(4);
+        expect(log.topics[0].eq(new BigNumber("ebe57242c74e694c7ec0f2fe9302812f324576f94a505b0de3f0ecb473d149bb", 16))).toBeTruthy();
+        expect(log.topics[1].eq(new BigNumber(5))).toBeTruthy();
+        expect(log.topics[2].eq(new BigNumber(6))).toBeTruthy();
+        expect(log.topics[3].eq(new BigNumber(0))).toBeTruthy();
+        expect(log.data).toBe("");
+
+    });
+
+    it('should call test function on TestContractThreeTopicsEvent', async () => {
+        const code = readText(path.join(BIN_OUTPUT_PATH, 'TestContractThreeTopicsEvent.bin-runtime'));
+        const result = await execute(code, CONTRACT_TEST_SIG);
+        //prettyPrintResults(result);
+        expect(result.errno).toBe(NO_ERROR);
+        expect(result.logs.length).toBe(1);
+        const log = result.logs[0];
+        expect(log.account).toBe("0101010101010101010101010101010101010101");
+        expect(log.topics.length).toBe(4);
+        expect(log.topics[0].eq(new BigNumber("8540fe9d62711b26f5d55a228125ce553737daafbb466fb5c89ffef0b5907d14", 16))).toBeTruthy();
+        expect(log.topics[1].eq(new BigNumber(5))).toBeTruthy();
+        expect(log.topics[2].eq(new BigNumber(6))).toBeTruthy();
+        expect(log.topics[3].eq(new BigNumber(7))).toBeTruthy();
+        expect(log.data).toBe("");
+    });
+
+    it('should call test function on TestContractDataEvent', async () => {
+        const code = readText(path.join(BIN_OUTPUT_PATH, 'TestContractDataEvent.bin-runtime'));
+        const result = await execute(code, CONTRACT_TEST_SIG);
+        //prettyPrintResults(result);
+        expect(result.errno).toBe(NO_ERROR);
+
+        expect(result.logs.length).toBe(1);
+        const log = result.logs[0];
+        expect(log.account).toBe("0101010101010101010101010101010101010101");
+        expect(log.topics.length).toBe(4);
+        expect(log.topics[0].eq(new BigNumber("7e1e31b207b8694ac24cb269143e8ba879cc2fbc6def5fae514c8783140c48dc", 16))).toBeTruthy();
+        expect(log.topics[1].eq(new BigNumber(0))).toBeTruthy();
+        expect(log.topics[2].eq(new BigNumber(0))).toBeTruthy();
+        expect(log.topics[3].eq(new BigNumber(0))).toBeTruthy();
+        expect(log.data).toBe("00000000000000000000000000000000000000000000000000000000000000040000000000000000000000000000000000000000000000000000000000000005");
+    });
+
+    it('should call test function on TestContractThreeTopicsAndDataEvent', async () => {
+        const code = readText(path.join(BIN_OUTPUT_PATH, 'TestContractThreeTopicsAndDataEvent.bin-runtime'));
+        const result = await execute(code, CONTRACT_TEST_SIG);
+        //prettyPrintResults(result);
+        expect(result.errno).toBe(NO_ERROR);
+        expect(result.logs.length).toBe(1);
+        const log = result.logs[0];
+        expect(log.account).toBe("0101010101010101010101010101010101010101");
+        expect(log.topics.length).toBe(4);
+        expect(log.topics[0].eq(new BigNumber("e9759a9398e9a2cc19ff163f90583422455643acd0b40fb4561be7d1df63b160", 16))).toBeTruthy();
+        expect(log.topics[1].eq(new BigNumber(5))).toBeTruthy();
+        expect(log.topics[2].eq(new BigNumber(6))).toBeTruthy();
+        expect(log.topics[3].eq(new BigNumber(7))).toBeTruthy();
+        expect(log.data).toBe("0000000000000000000000000101010101010101010101010101010101010101");
+    });
+
+    it('should call test function on TestContractMultipleThreeTopicsAndDataEvents', async () => {
+        const code = readText(path.join(BIN_OUTPUT_PATH, 'TestContractMultipleThreeTopicsAndDataEvents.bin-runtime'));
+        const result = await execute(code, CONTRACT_TEST_SIG);
+        //prettyPrintResults(result);
+        expect(result.errno).toBe(NO_ERROR);
+        expect(result.logs.length).toBe(2);
+        const log = result.logs[0];
+        expect(log.account).toBe("0101010101010101010101010101010101010101");
+        expect(log.topics.length).toBe(4);
+        expect(log.topics[0].eq(new BigNumber("e9759a9398e9a2cc19ff163f90583422455643acd0b40fb4561be7d1df63b160", 16))).toBeTruthy();
+        expect(log.topics[1].eq(new BigNumber(5))).toBeTruthy();
+        expect(log.topics[2].eq(new BigNumber(6))).toBeTruthy();
+        expect(log.topics[3].eq(new BigNumber(7))).toBeTruthy();
+        expect(log.data).toBe("0000000000000000000000000101010101010101010101010101010101010101");
+        const log2 = result.logs[1];
+        expect(log2.account).toBe("0101010101010101010101010101010101010101");
+        expect(log2.topics.length).toBe(4);
+        expect(log2.topics[0].eq(new BigNumber("aa2ecc4039583791812ce14fb62fff084d7d4ac354b47128d283d12b9ded2275", 16))).toBeTruthy();
+        expect(log2.topics[1].eq(new BigNumber(7))).toBeTruthy();
+        expect(log2.topics[2].eq(new BigNumber(8))).toBeTruthy();
+        expect(log2.topics[3].eq(new BigNumber(9))).toBeTruthy();
+        expect(log2.data).toBe("0000000000000000000000000101010101010101010101010101010101010101");
+    });
+
+});
 
 describe('solidity contracts - advanced', () => {
 

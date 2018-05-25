@@ -4,6 +4,7 @@ pragma solidity ^0.4.22;
 
 import {MemOps} from "./MemOps.slb";
 import {EVMStorage} from "./EVMStorage.slb";
+import {EVMUtils} from "./EVMUtils.slb";
 
 library EVMAccounts {
 
@@ -12,7 +13,7 @@ library EVMAccounts {
     struct Account {
         address addr;
         uint balance;
-        uint nonce;
+        uint8 nonce;
         bytes code; // TODO code-hash
         EVMStorage.Storage stge;
     }
@@ -101,15 +102,17 @@ library EVMAccounts {
         return;
     }
 
-    function toArray(Accounts memory self) internal pure returns (uint[] memory arr) {
+    function toArray(Accounts memory self) internal pure returns (uint[] memory arr, bytes memory code) {
         Account[] memory accs = new Account[](self.size);
         uint totalSize;
         Element memory e = self.head;
         uint i = 0;
+        uint codeSize = 0;
         while (true) {
             uint stgSize = e.account.stge.size;
             accs[i++] = e.account;
-            totalSize += 4 + stgSize * 2;
+            totalSize += 6 + stgSize * 2;
+            codeSize += e.account.code.length;
             if (e._next == 0) {
                 break;
             }
@@ -119,19 +122,25 @@ library EVMAccounts {
             }
         }
         arr = new uint[](totalSize);
+        code = new bytes(codeSize);
         uint offset = 0;
+        uint codeOffset = 0;
         for (i = 0; i < self.size; i++) {
             Account memory acc = accs[i];
             arr[offset] = uint(acc.addr);
             arr[offset + 1] = acc.balance;
             arr[offset + 2] = acc.nonce;
-            arr[offset + 3] = acc.stge.size;
+            arr[offset + 3] = codeOffset;
+            arr[offset + 4] = acc.code.length;
+            arr[offset + 5] = acc.stge.size;
             EVMStorage.StorageSlot[] memory stge = EVMStorage.toArray(acc.stge);
             for (uint j = 0; j < stge.length; j++) {
-                arr[offset + 4 + 2 * j] = stge[j].addr;
-                arr[offset + 4 + 2 * j + 1] = stge[j].val;
+                arr[offset + 6 + 2 * j] = stge[j].addr;
+                arr[offset + 6 + 2 * j + 1] = stge[j].val;
             }
-            offset += 4 + stge.length * 2;
+            EVMUtils.copy(acc.code, code, 0, codeOffset, acc.code.length);
+            offset += 6 + stge.length * 2;
+            codeOffset += acc.code.length;
         }
     }
 

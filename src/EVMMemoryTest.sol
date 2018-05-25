@@ -75,14 +75,14 @@ contract EVMMemoryTest {
         EVMMemory.Memory memory mem = EVMMemory.newMemory();
         uint sAddr = WORD_SIZE*70;
         mem.store8(sAddr, 3);
-        assert(mem.cap == (sAddr + 31) / 32 + ALLOC_SIZE);
+        assert(mem.cap == sAddr / WORD_SIZE + 1 + ALLOC_SIZE);
         uint pos = mem.dataPtr + sAddr;
         uint val;
         assembly {
             val := mload(pos)
         }
         assert(val == 0x0300000000000000000000000000000000000000000000000000000000000000);
-        assert(mem.size == 70);
+        assert(mem.size == 71);
     }
 
     function testStore() public payable returns (bool ret) {

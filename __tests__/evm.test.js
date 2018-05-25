@@ -1650,6 +1650,28 @@ describe('single instructions', function () { return __awaiter(_this, void 0, vo
                     }
                 });
             }); });
+            it('should use MSTORE8 successfully', function () { return __awaiter(_this, void 0, void 0, function () {
+                var code, data, resExpected;
+                return __generator(this, function (_a) {
+                    switch (_a.label) {
+                        case 0:
+                            code = constants_1.PUSH32 + '8877665544332211887766554433221188776655443322118877665544332211' + constants_1.PUSH1 + '00' + constants_1.MSTORE8;
+                            data = "";
+                            resExpected = {
+                                errno: 0,
+                                errpc: code.length / 2,
+                                returnData: "",
+                                memSize: 0,
+                                mem: "1100000000000000000000000000000000000000000000000000000000000000",
+                                stack: [],
+                            };
+                            return [4 /*yield*/, runTest(code, data, resExpected)];
+                        case 1:
+                            _a.sent();
+                            return [2 /*return*/];
+                    }
+                });
+            }); });
             it('should use SLOAD successfully', function () { return __awaiter(_this, void 0, void 0, function () {
                 var code, data, resExpected, result;
                 return __generator(this, function (_a) {
@@ -1690,9 +1712,120 @@ describe('single instructions', function () { return __awaiter(_this, void 0, vo
                             return [4 /*yield*/, runTest(code, data, resExpected)];
                         case 1:
                             result = _a.sent();
+                            expect(result.errno).toBe(0);
                             storage = result.accounts[1].storage;
                             expect(storage[0].address.toNumber()).toBe(1);
                             expect(storage[0].value.toNumber()).toBe(2);
+                            return [2 /*return*/];
+                    }
+                });
+            }); });
+            it('should use JUMP successfully', function () { return __awaiter(_this, void 0, void 0, function () {
+                var code, data, resExpected;
+                return __generator(this, function (_a) {
+                    switch (_a.label) {
+                        case 0:
+                            code = constants_1.PUSH1 + '05' + constants_1.JUMP + constants_1.PUSH1 + '05' + constants_1.JUMPDEST + constants_1.STOP;
+                            data = "";
+                            resExpected = {
+                                errno: 0,
+                                errpc: 6,
+                                returnData: "",
+                                memSize: 0,
+                                mem: "",
+                                stack: [],
+                            };
+                            return [4 /*yield*/, runTest(code, data, resExpected)];
+                        case 1:
+                            _a.sent();
+                            return [2 /*return*/];
+                    }
+                });
+            }); });
+            it('should fail JUMP when the jump destination is invalid', function () { return __awaiter(_this, void 0, void 0, function () {
+                var code, data, resExpected;
+                return __generator(this, function (_a) {
+                    switch (_a.label) {
+                        case 0:
+                            code = constants_1.PUSH1 + '05' + constants_1.JUMP + constants_1.PUSH1 + '05' + constants_1.STOP;
+                            data = "";
+                            resExpected = {
+                                errno: constants_1.ERROR_INVALID_JUMP_DESTINATION,
+                                errpc: 2,
+                                returnData: "",
+                                memSize: 0,
+                                mem: "",
+                                stack: [],
+                            };
+                            return [4 /*yield*/, runTest(code, data, resExpected)];
+                        case 1:
+                            _a.sent();
+                            return [2 /*return*/];
+                    }
+                });
+            }); });
+            it('should use JUMPI successfully when condition is true', function () { return __awaiter(_this, void 0, void 0, function () {
+                var code, data, resExpected;
+                return __generator(this, function (_a) {
+                    switch (_a.label) {
+                        case 0:
+                            code = constants_1.PUSH1 + '01' + constants_1.PUSH1 + '07' + constants_1.JUMPI + constants_1.PUSH1 + '05' + constants_1.JUMPDEST + constants_1.STOP;
+                            data = "";
+                            resExpected = {
+                                errno: 0,
+                                errpc: 8,
+                                returnData: "",
+                                memSize: 0,
+                                mem: "",
+                                stack: [],
+                            };
+                            return [4 /*yield*/, runTest(code, data, resExpected)];
+                        case 1:
+                            _a.sent();
+                            return [2 /*return*/];
+                    }
+                });
+            }); });
+            it('should use JUMPI successfully when condition is false', function () { return __awaiter(_this, void 0, void 0, function () {
+                var code, data, resExpected;
+                return __generator(this, function (_a) {
+                    switch (_a.label) {
+                        case 0:
+                            code = constants_1.PUSH1 + '00' + constants_1.PUSH1 + '07' + constants_1.JUMPI + constants_1.PUSH1 + '05' + constants_1.JUMPDEST + constants_1.STOP;
+                            data = "";
+                            resExpected = {
+                                errno: 0,
+                                errpc: 8,
+                                returnData: "",
+                                memSize: 0,
+                                mem: "",
+                                stack: [new bignumber_js_1.BigNumber(5)],
+                            };
+                            return [4 /*yield*/, runTest(code, data, resExpected)];
+                        case 1:
+                            _a.sent();
+                            return [2 /*return*/];
+                    }
+                });
+            }); });
+            it('should fail JUMPI when the jump destination is invalid', function () { return __awaiter(_this, void 0, void 0, function () {
+                var code, data, resExpected;
+                return __generator(this, function (_a) {
+                    switch (_a.label) {
+                        case 0:
+                            code = constants_1.PUSH1 + '01' + constants_1.PUSH1 + '07' + constants_1.JUMPI + constants_1.PUSH1 + '05' + constants_1.STOP;
+                            data = "";
+                            resExpected = {
+                                errno: constants_1.ERROR_INVALID_JUMP_DESTINATION,
+                                errpc: 4,
+                                returnData: "",
+                                memSize: 0,
+                                mem: "",
+                                stack: [],
+                            };
+                            return [4 /*yield*/, runTest(code, data, resExpected)];
+                        case 1:
+                            _a.sent();
                             return [2 /*return*/];
                     }
                 });
@@ -2118,8 +2251,10 @@ describe('solidity contracts', function () {
                     return [4 /*yield*/, adapter_1.execute(code, constants_1.CONTRACT_TEST_SIG)];
                 case 1:
                     result = _a.sent();
-                    storage = result.accounts[1].storage;
                     expect(result.errno).toBe(constants_1.NO_ERROR);
+                    storage = result.accounts[1].storage;
+                    //console.log(result);
+                    //prettyPrintResults(result);
                     expect(storage.length).toBe(4);
                     expect(storage[0].address.eq(new bignumber_js_1.BigNumber(0))).toBeTruthy();
                     expect(storage[0].value.eq(new bignumber_js_1.BigNumber(3))).toBeTruthy();
@@ -2143,8 +2278,8 @@ describe('solidity contracts', function () {
                     return [4 /*yield*/, adapter_1.execute(code, constants_1.CONTRACT_TEST_SIG)];
                 case 1:
                     result = _a.sent();
-                    storage = result.accounts[1].storage;
                     expect(result.errno).toBe(constants_1.NO_ERROR);
+                    storage = result.accounts[1].storage;
                     expect(result.returnData).toBe('0000000000000000000000000000000000000000000000000000000000000009');
                     expect(storage[0].address.eq(new bignumber_js_1.BigNumber(0))).toBeTruthy();
                     expect(storage[0].value.eq(new bignumber_js_1.BigNumber(9))).toBeTruthy();
@@ -2226,6 +2361,182 @@ describe('solidity contracts', function () {
                     result = _a.sent();
                     //console.log(result);
                     expect(result.errno).toBe(constants_1.ERROR_INVALID_OPCODE);
+                    return [2 /*return*/];
+            }
+        });
+    }); });
+    it('should call test function on TestContractNoTopicEvent', function () { return __awaiter(_this, void 0, void 0, function () {
+        var code, result, log;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0:
+                    code = io_1.readText(path.join(constants_1.BIN_OUTPUT_PATH, 'TestContractNoTopicEvent.bin-runtime'));
+                    return [4 /*yield*/, adapter_1.execute(code, constants_1.CONTRACT_TEST_SIG)];
+                case 1:
+                    result = _a.sent();
+                    //prettyPrintResults(result);
+                    expect(result.errno).toBe(constants_1.NO_ERROR);
+                    expect(result.logs.length).toBe(1);
+                    log = result.logs[0];
+                    expect(log.account).toBe("0101010101010101010101010101010101010101");
+                    expect(log.topics.length).toBe(4);
+                    expect(log.topics[0].eq(new bignumber_js_1.BigNumber("1732d0c17008d342618e7f03069177d8d39391d79811bb4e706d7c6c84108c0f", 16))).toBeTruthy();
+                    expect(log.topics[1].eq(new bignumber_js_1.BigNumber(0))).toBeTruthy();
+                    expect(log.topics[2].eq(new bignumber_js_1.BigNumber(0))).toBeTruthy();
+                    expect(log.topics[3].eq(new bignumber_js_1.BigNumber(0))).toBeTruthy();
+                    expect(log.data).toBe("");
+                    return [2 /*return*/];
+            }
+        });
+    }); });
+    it('should call test function on TestContractOneTopicEvent', function () { return __awaiter(_this, void 0, void 0, function () {
+        var code, result, log;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0:
+                    code = io_1.readText(path.join(constants_1.BIN_OUTPUT_PATH, 'TestContractOneTopicEvent.bin-runtime'));
+                    return [4 /*yield*/, adapter_1.execute(code, constants_1.CONTRACT_TEST_SIG)];
+                case 1:
+                    result = _a.sent();
+                    //prettyPrintResults(result);
+                    expect(result.errno).toBe(constants_1.NO_ERROR);
+                    expect(result.logs.length).toBe(1);
+                    log = result.logs[0];
+                    expect(log.account).toBe("0101010101010101010101010101010101010101");
+                    expect(log.topics.length).toBe(4);
+                    expect(log.topics[0].eq(new bignumber_js_1.BigNumber("624fb00c2ce79f34cb543884c3af64816dce0f4cec3d32661959e49d488a7a93", 16))).toBeTruthy();
+                    expect(log.topics[1].eq(new bignumber_js_1.BigNumber(5))).toBeTruthy();
+                    expect(log.topics[2].eq(new bignumber_js_1.BigNumber(0))).toBeTruthy();
+                    expect(log.topics[3].eq(new bignumber_js_1.BigNumber(0))).toBeTruthy();
+                    expect(log.data).toBe("");
+                    return [2 /*return*/];
+            }
+        });
+    }); });
+    it('should call test function on TestContractTwoTopicsEvent', function () { return __awaiter(_this, void 0, void 0, function () {
+        var code, result, log;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0:
+                    code = io_1.readText(path.join(constants_1.BIN_OUTPUT_PATH, 'TestContractTwoTopicsEvent.bin-runtime'));
+                    return [4 /*yield*/, adapter_1.execute(code, constants_1.CONTRACT_TEST_SIG)];
+                case 1:
+                    result = _a.sent();
+                    //prettyPrintResults(result);
+                    expect(result.errno).toBe(constants_1.NO_ERROR);
+                    expect(result.logs.length).toBe(1);
+                    log = result.logs[0];
+                    expect(log.account).toBe("0101010101010101010101010101010101010101");
+                    expect(log.topics.length).toBe(4);
+                    expect(log.topics[0].eq(new bignumber_js_1.BigNumber("ebe57242c74e694c7ec0f2fe9302812f324576f94a505b0de3f0ecb473d149bb", 16))).toBeTruthy();
+                    expect(log.topics[1].eq(new bignumber_js_1.BigNumber(5))).toBeTruthy();
+                    expect(log.topics[2].eq(new bignumber_js_1.BigNumber(6))).toBeTruthy();
+                    expect(log.topics[3].eq(new bignumber_js_1.BigNumber(0))).toBeTruthy();
+                    expect(log.data).toBe("");
+                    return [2 /*return*/];
+            }
+        });
+    }); });
+    it('should call test function on TestContractThreeTopicsEvent', function () { return __awaiter(_this, void 0, void 0, function () {
+        var code, result, log;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0:
+                    code = io_1.readText(path.join(constants_1.BIN_OUTPUT_PATH, 'TestContractThreeTopicsEvent.bin-runtime'));
+                    return [4 /*yield*/, adapter_1.execute(code, constants_1.CONTRACT_TEST_SIG)];
+                case 1:
+                    result = _a.sent();
+                    //prettyPrintResults(result);
+                    expect(result.errno).toBe(constants_1.NO_ERROR);
+                    expect(result.logs.length).toBe(1);
+                    log = result.logs[0];
+                    expect(log.account).toBe("0101010101010101010101010101010101010101");
+                    expect(log.topics.length).toBe(4);
+                    expect(log.topics[0].eq(new bignumber_js_1.BigNumber("8540fe9d62711b26f5d55a228125ce553737daafbb466fb5c89ffef0b5907d14", 16))).toBeTruthy();
+                    expect(log.topics[1].eq(new bignumber_js_1.BigNumber(5))).toBeTruthy();
+                    expect(log.topics[2].eq(new bignumber_js_1.BigNumber(6))).toBeTruthy();
+                    expect(log.topics[3].eq(new bignumber_js_1.BigNumber(7))).toBeTruthy();
+                    expect(log.data).toBe("");
+                    return [2 /*return*/];
+            }
+        });
+    }); });
+    it('should call test function on TestContractDataEvent', function () { return __awaiter(_this, void 0, void 0, function () {
+        var code, result, log;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0:
+                    code = io_1.readText(path.join(constants_1.BIN_OUTPUT_PATH, 'TestContractDataEvent.bin-runtime'));
+                    return [4 /*yield*/, adapter_1.execute(code, constants_1.CONTRACT_TEST_SIG)];
+                case 1:
+                    result = _a.sent();
+                    //prettyPrintResults(result);
+                    expect(result.errno).toBe(constants_1.NO_ERROR);
+                    expect(result.logs.length).toBe(1);
+                    log = result.logs[0];
+                    expect(log.account).toBe("0101010101010101010101010101010101010101");
+                    expect(log.topics.length).toBe(4);
+                    expect(log.topics[0].eq(new bignumber_js_1.BigNumber("7e1e31b207b8694ac24cb269143e8ba879cc2fbc6def5fae514c8783140c48dc", 16))).toBeTruthy();
+                    expect(log.topics[1].eq(new bignumber_js_1.BigNumber(0))).toBeTruthy();
+                    expect(log.topics[2].eq(new bignumber_js_1.BigNumber(0))).toBeTruthy();
+                    expect(log.topics[3].eq(new bignumber_js_1.BigNumber(0))).toBeTruthy();
+                    expect(log.data).toBe("00000000000000000000000000000000000000000000000000000000000000040000000000000000000000000000000000000000000000000000000000000005");
+                    return [2 /*return*/];
+            }
+        });
+    }); });
+    it('should call test function on TestContractThreeTopicsAndDataEvent', function () { return __awaiter(_this, void 0, void 0, function () {
+        var code, result, log;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0:
+                    code = io_1.readText(path.join(constants_1.BIN_OUTPUT_PATH, 'TestContractThreeTopicsAndDataEvent.bin-runtime'));
+                    return [4 /*yield*/, adapter_1.execute(code, constants_1.CONTRACT_TEST_SIG)];
+                case 1:
+                    result = _a.sent();
+                    //prettyPrintResults(result);
+                    expect(result.errno).toBe(constants_1.NO_ERROR);
+                    expect(result.logs.length).toBe(1);
+                    log = result.logs[0];
+                    expect(log.account).toBe("0101010101010101010101010101010101010101");
+                    expect(log.topics.length).toBe(4);
+                    expect(log.topics[0].eq(new bignumber_js_1.BigNumber("e9759a9398e9a2cc19ff163f90583422455643acd0b40fb4561be7d1df63b160", 16))).toBeTruthy();
+                    expect(log.topics[1].eq(new bignumber_js_1.BigNumber(5))).toBeTruthy();
+                    expect(log.topics[2].eq(new bignumber_js_1.BigNumber(6))).toBeTruthy();
+                    expect(log.topics[3].eq(new bignumber_js_1.BigNumber(7))).toBeTruthy();
+                    expect(log.data).toBe("0000000000000000000000000101010101010101010101010101010101010101");
+                    return [2 /*return*/];
+            }
+        });
+    }); });
+    it('should call test function on TestContractMultipleThreeTopicsAndDataEvents', function () { return __awaiter(_this, void 0, void 0, function () {
+        var code, result, log, log2;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0:
+                    code = io_1.readText(path.join(constants_1.BIN_OUTPUT_PATH, 'TestContractMultipleThreeTopicsAndDataEvents.bin-runtime'));
+                    return [4 /*yield*/, adapter_1.execute(code, constants_1.CONTRACT_TEST_SIG)];
+                case 1:
+                    result = _a.sent();
+                    //prettyPrintResults(result);
+                    expect(result.errno).toBe(constants_1.NO_ERROR);
+                    expect(result.logs.length).toBe(2);
+                    log = result.logs[0];
+                    expect(log.account).toBe("0101010101010101010101010101010101010101");
+                    expect(log.topics.length).toBe(4);
+                    expect(log.topics[0].eq(new bignumber_js_1.BigNumber("e9759a9398e9a2cc19ff163f90583422455643acd0b40fb4561be7d1df63b160", 16))).toBeTruthy();
+                    expect(log.topics[1].eq(new bignumber_js_1.BigNumber(5))).toBeTruthy();
+                    expect(log.topics[2].eq(new bignumber_js_1.BigNumber(6))).toBeTruthy();
+                    expect(log.topics[3].eq(new bignumber_js_1.BigNumber(7))).toBeTruthy();
+                    expect(log.data).toBe("0000000000000000000000000101010101010101010101010101010101010101");
+                    log2 = result.logs[1];
+                    expect(log2.account).toBe("0101010101010101010101010101010101010101");
+                    expect(log2.topics.length).toBe(4);
+                    expect(log2.topics[0].eq(new bignumber_js_1.BigNumber("aa2ecc4039583791812ce14fb62fff084d7d4ac354b47128d283d12b9ded2275", 16))).toBeTruthy();
+                    expect(log2.topics[1].eq(new bignumber_js_1.BigNumber(7))).toBeTruthy();
+                    expect(log2.topics[2].eq(new bignumber_js_1.BigNumber(8))).toBeTruthy();
+                    expect(log2.topics[3].eq(new bignumber_js_1.BigNumber(9))).toBeTruthy();
+                    expect(log2.data).toBe("0000000000000000000000000101010101010101010101010101010101010101");
                     return [2 /*return*/];
             }
         });

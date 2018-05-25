@@ -1,5 +1,10 @@
 {
     "tests": [
-      "EVMAccountsTest"
+      "EVMAccountsTest",
+      "EVMMemoryTest",
+      "EVMStackTest",
+      "EVMStorageTest",
+      "EVMLogsTest",
+      "MemOpsTest"
     ]
 }

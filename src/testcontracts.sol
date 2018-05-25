@@ -128,3 +128,80 @@ contract TestContractFailedAssertion {
     }
 
 }
+
+
+contract TestContractNoTopicEvent {
+
+    event Log1();
+
+    function test() public {
+        emit Log1();
+    }
+
+}
+
+
+contract TestContractOneTopicEvent {
+
+    event Log2(uint indexed x);
+
+    function test() public {
+        emit Log2(5);
+    }
+
+}
+
+
+contract TestContractTwoTopicsEvent {
+
+    event Log3(uint indexed x, uint indexed y);
+
+    function test() public {
+        emit Log3(5, 6);
+    }
+
+}
+
+
+contract TestContractThreeTopicsEvent {
+
+    event Log4(uint indexed x, uint indexed y, uint indexed z);
+
+    function test() public {
+        emit Log4(5, 6, 7);
+    }
+
+}
+
+
+contract TestContractThreeTopicsAndDataEvent {
+
+    event Log4Data(uint indexed x, uint indexed y, uint indexed z, address a);
+
+    function test() public {
+        emit Log4Data(5, 6, 7, address(this));
+    }
+
+}
+
+contract TestContractMultipleThreeTopicsAndDataEvents {
+
+    event Log4Data(uint indexed x, uint indexed y, uint indexed z, address a);
+    event Log4Data2(uint indexed x, uint indexed y, uint indexed z, address a);
+
+    function test() public {
+        emit Log4Data(5, 6, 7, address(this));
+        emit Log4Data2(7, 8, 9, address(this));
+    }
+
+}
+
+contract TestContractDataEvent {
+
+    event LogData(uint x, uint y);
+
+    function test() public {
+        emit LogData(4, 5);
+    }
+
+}

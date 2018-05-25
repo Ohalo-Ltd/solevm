@@ -60,7 +60,7 @@ library EVMMemory {
     }
 
     function store8(Memory memory self, uint index, uint val) internal pure {
-        uint newSize = (index + 31) / WORD_SIZE;
+        uint newSize = index / WORD_SIZE + 1;
         if(newSize >= self.cap - 1) {
             setCapacity(self, newSize + ALLOC_SIZE);
         }
