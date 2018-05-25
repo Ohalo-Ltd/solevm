@@ -220,15 +220,6 @@ export const printStack = (stack) => {
     }
 };
 
-/*
-        errno: new BigNumber(dec['0']).toNumber(),
-        errpc: new BigNumber(dec['1']).toNumber(),
-        returnData: returnData,
-        stack: stack,
-        mem: mem,
-        accounts: accs,
-        logs: logs
-*/
 export const prettyPrintResults = (result) => {
     const resultF = {};
     resultF['errno'] = result.errno;

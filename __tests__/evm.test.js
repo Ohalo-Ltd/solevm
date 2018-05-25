@@ -2334,6 +2334,22 @@ describe('solidity contracts', function () {
             }
         });
     }); });
+    it('should call test function on TestContractCreateAndStaticCall', function () { return __awaiter(_this, void 0, void 0, function () {
+        var code, result;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0:
+                    code = io_1.readText(path.join(constants_1.BIN_OUTPUT_PATH, 'TestContractCreateAndStaticCall.bin-runtime'));
+                    return [4 /*yield*/, adapter_1.execute(code, constants_1.CONTRACT_TEST_SIG)];
+                case 1:
+                    result = _a.sent();
+                    //console.log(result);
+                    expect(result.errno).toBe(constants_1.NO_ERROR);
+                    expect(result.returnData).toBe('0000000000000000000000000000000000000000000000000000000000000003');
+                    return [2 /*return*/];
+            }
+        });
+    }); });
     it('should call test function on TestContractCallchainSameContract', function () { return __awaiter(_this, void 0, void 0, function () {
         var code, result;
         return __generator(this, function (_a) {
@@ -2537,6 +2553,38 @@ describe('solidity contracts', function () {
                     expect(log2.topics[2].eq(new bignumber_js_1.BigNumber(8))).toBeTruthy();
                     expect(log2.topics[3].eq(new bignumber_js_1.BigNumber(9))).toBeTruthy();
                     expect(log2.data).toBe("0000000000000000000000000101010101010101010101010101010101010101");
+                    return [2 /*return*/];
+            }
+        });
+    }); });
+    it('should call test function on TestContractPrecompileSha256', function () { return __awaiter(_this, void 0, void 0, function () {
+        var code, result;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0:
+                    code = io_1.readText(path.join(constants_1.BIN_OUTPUT_PATH, 'TestContractPrecompileSha256.bin-runtime'));
+                    return [4 /*yield*/, adapter_1.execute(code, constants_1.CONTRACT_TEST_SIG)];
+                case 1:
+                    result = _a.sent();
+                    //prettyPrintResults(result);
+                    expect(result.errno).toBe(constants_1.NO_ERROR);
+                    expect(result.returnData).toBe('66840dda154e8a113c31dd0ad32f7f3a366a80e8136979d8f5a101d3d29d6f72');
+                    return [2 /*return*/];
+            }
+        });
+    }); });
+    it('should call test function on TestContractPrecompileRipemd160', function () { return __awaiter(_this, void 0, void 0, function () {
+        var code, result;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0:
+                    code = io_1.readText(path.join(constants_1.BIN_OUTPUT_PATH, 'TestContractPrecompileRipemd160.bin-runtime'));
+                    return [4 /*yield*/, adapter_1.execute(code, constants_1.CONTRACT_TEST_SIG)];
+                case 1:
+                    result = _a.sent();
+                    //prettyPrintResults(result);
+                    expect(result.errno).toBe(constants_1.NO_ERROR);
+                    expect(result.returnData).toBe('c9883eece7dca619b830dc9d87e82c38478111c0000000000000000000000000');
                     return [2 /*return*/];
             }
         });

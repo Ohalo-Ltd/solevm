@@ -239,15 +239,6 @@ exports.printStack = function (stack) {
         console.log("" + elem.toString(16));
     }
 };
-/*
-        errno: new BigNumber(dec['0']).toNumber(),
-        errpc: new BigNumber(dec['1']).toNumber(),
-        returnData: returnData,
-        stack: stack,
-        mem: mem,
-        accounts: accs,
-        logs: logs
-*/
 exports.prettyPrintResults = function (result) {
     var resultF = {};
     resultF['errno'] = result.errno;

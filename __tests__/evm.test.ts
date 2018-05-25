@@ -34,7 +34,7 @@ import {
     ROOT_PATH,
     SDIV, SGT, SLOAD, SLT,
     SMOD, SOL_ETH_SRC,
-    SRC_PATH, SSTORE, STOP,
+    SRC_PATH, SSTORE, STATICCALL, STOP,
     SUB,
     SWAP1,
     SWAP10,
@@ -82,6 +82,7 @@ const runTest = async (code, data, resExpected) => {
     }
     return result;
 };
+
 
 describe('single instructions', async () => {
 
@@ -1557,7 +1558,37 @@ describe('single instructions', async () => {
 
     });
 
+    /*
+    it('ecrecover', async () => {
+        const code = PUSH1 + '20' + PUSH1 + '20' + PUSH1 + '20' + PUSH1 + '00' + PUSH1 + '01' + PUSH1 + '00' + STATICCALL;
+        const data = "";
+        const result = await execute(code, data);
+        prettyPrintResults(result);
+    });
+
+    it('sha256', async () => {
+        const code = PUSH1 + '20' + PUSH1 + '20' + PUSH1 + '20' + PUSH1 + '00' + PUSH1 + '02' + PUSH1 + '00' + STATICCALL;
+        const data = "";
+        const result = await execute(code, data);
+        prettyPrintResults(result);
+    });
+
+    it('ripemd160', async () => {
+        const code = PUSH1 + '20' + PUSH1 + '20' + PUSH1 + '20' + PUSH1 + '00' + PUSH1 + '03' + PUSH1 + '00' + STATICCALL;
+        const data = "";
+        const result = await execute(code, data);
+        prettyPrintResults(result);
+    });
+
+    it('identity', async () => {
+        const code = PUSH1 + '20' + PUSH1 + '20' + PUSH1 + '20' + PUSH1 + '00' + PUSH1 + '04' + PUSH1 + '00' + STATICCALL;
+        const data = "";
+        const result = await execute(code, data);
+        prettyPrintResults(result);
+    });
+    */
 });
+
 
 describe('solidity contracts', () => {
 
@@ -1645,6 +1676,14 @@ describe('solidity contracts', () => {
 
     it('should call test function on TestContractCreateAndCall', async () => {
         const code = readText(path.join(BIN_OUTPUT_PATH, 'TestContractCreateAndCall.bin-runtime'));
+        const result = await execute(code, CONTRACT_TEST_SIG);
+        //console.log(result);
+        expect(result.errno).toBe(NO_ERROR);
+        expect(result.returnData).toBe('0000000000000000000000000000000000000000000000000000000000000003');
+    });
+
+    it('should call test function on TestContractCreateAndStaticCall', async () => {
+        const code = readText(path.join(BIN_OUTPUT_PATH, 'TestContractCreateAndStaticCall.bin-runtime'));
         const result = await execute(code, CONTRACT_TEST_SIG);
         //console.log(result);
         expect(result.errno).toBe(NO_ERROR);
@@ -1789,7 +1828,24 @@ describe('solidity contracts', () => {
         expect(log2.data).toBe("0000000000000000000000000101010101010101010101010101010101010101");
     });
 
+    it('should call test function on TestContractPrecompileSha256', async () => {
+        const code = readText(path.join(BIN_OUTPUT_PATH, 'TestContractPrecompileSha256.bin-runtime'));
+        const result = await execute(code, CONTRACT_TEST_SIG);
+        //prettyPrintResults(result);
+        expect(result.errno).toBe(NO_ERROR);
+        expect(result.returnData).toBe('66840dda154e8a113c31dd0ad32f7f3a366a80e8136979d8f5a101d3d29d6f72');
+    });
+
+    it('should call test function on TestContractPrecompileRipemd160', async () => {
+        const code = readText(path.join(BIN_OUTPUT_PATH, 'TestContractPrecompileRipemd160.bin-runtime'));
+        const result = await execute(code, CONTRACT_TEST_SIG);
+        //prettyPrintResults(result);
+        expect(result.errno).toBe(NO_ERROR);
+        expect(result.returnData).toBe('c9883eece7dca619b830dc9d87e82c38478111c0000000000000000000000000');
+    });
+
 });
+
 
 describe('solidity contracts - advanced', () => {
 

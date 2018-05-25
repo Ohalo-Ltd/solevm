@@ -177,6 +177,7 @@ contract EVMConstants {
     uint constant internal ERROR_INSUFFICIENT_FUNDS = 0x08;
     uint constant internal ERROR_CONTRACT_CREATION_COLLISION = 0x09;
     uint constant internal ERROR_MAX_CODE_SIZE_EXCEEDED = 0x0a;
+    uint constant internal ERROR_ILLEGAL_WRITE_OPERATION = 0x0b;
 
     // ENV
 

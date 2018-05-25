@@ -184,6 +184,7 @@ contract TestContractThreeTopicsAndDataEvent {
 
 }
 
+
 contract TestContractMultipleThreeTopicsAndDataEvents {
 
     event Log4Data(uint indexed x, uint indexed y, uint indexed z, address a);
@@ -196,6 +197,7 @@ contract TestContractMultipleThreeTopicsAndDataEvents {
 
 }
 
+
 contract TestContractDataEvent {
 
     event LogData(uint x, uint y);
@@ -204,4 +206,34 @@ contract TestContractDataEvent {
         emit LogData(4, 5);
     }
 
+}
+
+
+contract DeployedContractRetUintStatic {
+    function getNumber() public pure returns(uint) {
+        return 3;
+    }
+}
+
+
+contract TestContractCreateAndStaticCall {
+    function test() public returns (uint) {
+        return new DeployedContractRetUintStatic().getNumber();
+    }
+}
+
+
+contract TestContractPrecompileRipemd160 {
+    function test() public returns (bytes20) {
+        bytes memory bts = hex"0102030405060708";
+        return ripemd160(bts);
+    }
+}
+
+
+contract TestContractPrecompileSha256 {
+    function test() public returns (bytes32) {
+        bytes memory bts = hex"0102030405060708";
+        return sha256(bts);
+    }
 }

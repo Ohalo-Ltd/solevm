@@ -14,6 +14,13 @@ library EVMUtils {
         data = data >> 8 * (32 - numBytes);
     }
 
+    function fromUint(uint x) internal pure returns (bytes memory bts) {
+        bts = new bytes(32);
+        assembly {
+            mstore(add(bts, 0x20), x)
+        }
+    }
+
     function copy(bytes memory src, bytes memory dest, uint srcIdx, uint destIdx, uint len) internal pure {
         assert(srcIdx + len <= src.length);
         assert(destIdx + len <= dest.length);
