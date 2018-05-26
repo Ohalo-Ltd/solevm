@@ -178,10 +178,12 @@ contract EVMConstants {
     uint constant internal ERROR_CONTRACT_CREATION_COLLISION = 0x09;
     uint constant internal ERROR_MAX_CODE_SIZE_EXCEEDED = 0x0a;
     uint constant internal ERROR_ILLEGAL_WRITE_OPERATION = 0x0b;
+    uint constant internal ERROR_PRECOMPILE_NOT_IMPLEMENTED = 0x0c;
 
     // ENV
 
     uint constant internal MAX_STACK_SIZE = 1024;
+    uint constant internal CALL_CREATE_DEPTH = 1024;
     uint constant internal WORD_SIZE = 32;
     uint constant internal MAX_CODE_SIZE = 24576;
 

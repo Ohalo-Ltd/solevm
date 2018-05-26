@@ -12,6 +12,13 @@ import {EVMUtils} from "./EVMUtils.slb";
 
 contract IEthereumRuntime is EVMConstants {
 
+    enum CallType {
+        Call,
+        StaticCall,
+        DelegateCall,
+        CallCode
+    }
+
     address constant DEFAULT_CONTRACT_ADDRESS = 0x0101010101010101010101010101010101010101;
     address constant DEFAULT_CALLER = 0x1234567812345678123456781234567812345678;
 
@@ -73,6 +80,7 @@ contract IEthereumRuntime is EVMConstants {
 
     struct Handlers {
         function(EVM memory) internal pure returns (uint)[256] f;
+        function(bytes memory input) internal pure returns (bytes memory ret, uint errno)[9] p;
     }
 
     struct EVM {
@@ -116,11 +124,16 @@ contract EthereumRuntime is IEthereumRuntime {
 
     constructor() public {}
 
-    function _call(EVMInput memory evmInput) internal pure returns (EVM memory evm){
+    function _call(EVMInput memory evmInput, CallType callType) internal pure returns (EVM memory evm){
         evm.context = evmInput.context;
         evm.handlers = evmInput.handlers;
-        evm.accounts = evmInput.accounts.copy();
-        evm.logs = evmInput.logs.copy();
+        if (evmInput.staticExec) {
+            evm.accounts = evmInput.accounts;
+            evm.logs = evmInput.logs;
+        } else {
+            evm.accounts = evmInput.accounts.copy();
+            evm.logs = evmInput.logs.copy();
+        }
         evm.value = evmInput.value;
         evm.gas = evmInput.gas;
         evm.data = evmInput.data;
@@ -129,9 +142,9 @@ contract EthereumRuntime is IEthereumRuntime {
         evm.target = evm.accounts.get(evmInput.target);
         evm.staticExec = evmInput.staticExec;
 
-        // Transfer value. TODO precompiles and other things.
+        // Transfer value. TODO
         if (evm.value > 0) {
-            if (evm.staticExec) {
+            if (evm.staticExec && callType == CallType.Call) {
                 evm.errno = ERROR_ILLEGAL_WRITE_OPERATION;
                 return;
             }
@@ -143,46 +156,8 @@ contract EthereumRuntime is IEthereumRuntime {
             evm.target.balance += evm.value;
         }
 
-        if (evm.target.addr == 1) {
-            (evm.returnData, evm.errno) = handlePreC_ECRECOVER(evm.data);
-        } else if (evm.target.addr == 2) {
-            (evm.returnData, evm.errno) = handlePreC_SHA256(evm.data);
-        } else if (evm.target.addr == 3) {
-            (evm.returnData, evm.errno) = handlePreC_RIPEMD160(evm.data);
-        } else if (evm.target.addr == 4) {
-            (evm.returnData, evm.errno) = handlePreC_IDENTITY(evm.data);
-        } else {
-            // If there is no code to run, just continue. TODO
-            if (evm.target.code.length == 0) {
-                return;
-            }
-            _run(evm);
-        }
-    }
-
-    function _staticCall(EVMInput memory evmInput) internal pure returns (EVM memory evm) {
-        // https://github.com/ethereum/EIPs/blob/master/EIPS/eip-214.md
-        assert(evmInput.staticExec);
-        evm.context = evmInput.context;
-        evm.handlers = evmInput.handlers;
-        // don't copy accounts and logs since they will not be modified
-        evm.accounts = evmInput.accounts;
-        evm.logs = evmInput.logs;
-        evm.gas = evmInput.gas;
-        evm.data = evmInput.data;
-        evm.caller = evm.accounts.get(evmInput.caller);
-        // TODO touching accounts.
-        evm.target = evm.accounts.get(evmInput.target);
-        evm.staticExec = true;
-
-        if (evm.target.addr == 1) {
-            (evm.returnData, evm.errno) = handlePreC_ECRECOVER(evm.data);
-        } else if (evm.target.addr == 2) {
-            (evm.returnData, evm.errno) = handlePreC_SHA256(evm.data);
-        } else if (evm.target.addr == 3) {
-            (evm.returnData, evm.errno) = handlePreC_RIPEMD160(evm.data);
-        } else if (evm.target.addr == 4) {
-            (evm.returnData, evm.errno) = handlePreC_IDENTITY(evm.data);
+        if (1 <= evm.target.addr && evm.target.addr <= 8) {
+            (evm.returnData, evm.errno) = evm.handlers.p[uint(evm.target.addr)](evm.data);
         } else {
             // If there is no code to run, just continue. TODO
             if (evm.target.code.length == 0) {
@@ -222,7 +197,6 @@ contract EthereumRuntime is IEthereumRuntime {
         }
 
         EVMAccounts.Account memory newAcc = evm.accounts.get(newAddress);
-        newAcc.nonce = 1;
         newAcc.code = evmInput.data;
 
         evm.caller.balance -= evm.value;
@@ -360,7 +334,7 @@ contract EthereumRuntime is IEthereumRuntime {
         target.code = input.targetCode;
         evmInput.target = input.target;
 
-        EVM memory evm = _call(evmInput);
+        EVM memory evm = _call(evmInput, CallType.Call);
 
         result.stack = evm.stack.toArray();
         result.mem = evm.mem.toArray();
@@ -397,6 +371,9 @@ contract EthereumRuntime is IEthereumRuntime {
         ret = input;
     }
 
+    function handlePreC_UNIMPLEMENTED(bytes memory input) internal pure returns (bytes memory ret, uint errno){
+        errno = ERROR_PRECOMPILE_NOT_IMPLEMENTED;
+    }
     // 0x0X
 
     function handleSTOP(EVM memory state) internal pure returns (uint errno) {
@@ -1121,6 +1098,10 @@ contract EthereumRuntime is IEthereumRuntime {
 
     }
 
+    function handleCREATE2(EVM memory state) internal pure returns (uint errno) {
+        return ERROR_INSTRUCTION_NOT_SUPPORTED;
+    }
+
     function handleCALL(EVM memory state) internal pure returns (uint errno) {
         if (state.stack.size < 7) {
             return ERROR_STACK_UNDERFLOW;
@@ -1149,7 +1130,7 @@ contract EthereumRuntime is IEthereumRuntime {
         input.handlers = state.handlers;
         input.staticExec = state.staticExec;
 
-        EVM memory retEvm = _call(input);
+        EVM memory retEvm = _call(input, CallType.Call);
         if (retEvm.errno != NO_ERROR) {
             state.stack.push(0);
             state.lastRet = new bytes(0);
@@ -1177,7 +1158,42 @@ contract EthereumRuntime is IEthereumRuntime {
     }
 
     function handleDELEGATECALL(EVM memory state) internal pure returns (uint errno) {
-        return ERROR_INSTRUCTION_NOT_SUPPORTED;
+        if (state.stack.size < 6) {
+            return ERROR_STACK_UNDERFLOW;
+        }
+        // gas
+        state.stack.pop();
+        uint targetAddr = state.stack.pop();
+        uint inOffset = state.stack.pop();
+        uint inSize = state.stack.pop();
+        uint retOffset = state.stack.pop();
+        uint retSize = state.stack.pop();
+
+        EVMInput memory input;
+        // TODO gas
+        input.data = state.mem.toArray(inOffset, inSize);
+        input.value = state.value;
+        input.caller = state.caller.addr;
+        bytes memory callCode = state.accounts.get(address(targetAddr)).code;
+        bytes memory oldCode = state.target.code;
+        state.target.code = callCode;
+
+        input.context = state.context;
+        input.accounts = state.accounts;
+        input.logs = state.logs;
+        input.handlers = state.handlers;
+        input.staticExec = state.staticExec;
+
+        EVM memory retEvm = _call(input, CallType.DelegateCall);
+        state.target.code = oldCode;
+        if (retEvm.errno != NO_ERROR) {
+            state.stack.push(0);
+            state.lastRet = new bytes(0);
+        } else {
+            state.stack.push(1);
+            state.mem.storeBytesAndPadWithZeroes(retEvm.returnData, 0, retOffset, retSize);
+            state.lastRet = retEvm.returnData;
+        }
     }
 
     function handleSTATICCALL(EVM memory state) internal pure returns (uint errno) {
@@ -1203,7 +1219,7 @@ contract EthereumRuntime is IEthereumRuntime {
         input.handlers = state.handlers;
         input.staticExec = true;
 
-        EVM memory retEvm = _staticCall(input);
+        EVM memory retEvm = _call(input, CallType.StaticCall);
         if (retEvm.errno != NO_ERROR) {
             state.stack.push(0);
             state.lastRet = new bytes(0);
@@ -1504,6 +1520,16 @@ contract EthereumRuntime is IEthereumRuntime {
         handlers.f[OP_REVERT] = handleREVERT;
         handlers.f[OP_INVALID] = handleINVALID;
         handlers.f[OP_SELFDESTRUCT] = handleSELFDESTRUCT;
+
+
+        handlers.p[1] = handlePreC_ECRECOVER;
+        handlers.p[2] = handlePreC_SHA256;
+        handlers.p[3] = handlePreC_RIPEMD160;
+        handlers.p[4] = handlePreC_IDENTITY;
+        handlers.p[5] = handlePreC_UNIMPLEMENTED;
+        handlers.p[6] = handlePreC_UNIMPLEMENTED;
+        handlers.p[7] = handlePreC_UNIMPLEMENTED;
+        handlers.p[8] = handlePreC_UNIMPLEMENTED;
     }
 
 }

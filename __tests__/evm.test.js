@@ -111,7 +111,7 @@ describe('single instructions', function () { return __awaiter(_this, void 0, vo
                     }
                 });
             }); });
-            it('should add two numbers successfully', function () { return __awaiter(_this, void 0, void 0, function () {
+            it('should ADD two numbers successfully', function () { return __awaiter(_this, void 0, void 0, function () {
                 var stack_0, stack_1, code, data, resExpected;
                 return __generator(this, function (_a) {
                     switch (_a.label) {
@@ -137,7 +137,29 @@ describe('single instructions', function () { return __awaiter(_this, void 0, vo
                     }
                 });
             }); });
-            it('should multiply two numbers successfully', function () { return __awaiter(_this, void 0, void 0, function () {
+            it('should ADD with too few params, resulting in a stack underflow', function () { return __awaiter(_this, void 0, void 0, function () {
+                var code, data, resExpected;
+                return __generator(this, function (_a) {
+                    switch (_a.label) {
+                        case 0:
+                            code = constants_1.PUSH1 + '00' + constants_1.ADD;
+                            data = "";
+                            resExpected = {
+                                errno: constants_1.ERROR_STACK_UNDERFLOW,
+                                errpc: 2,
+                                returnData: "",
+                                memSize: 0,
+                                mem: "",
+                                stack: [new bignumber_js_1.BigNumber(0)],
+                            };
+                            return [4 /*yield*/, runTest(code, data, resExpected)];
+                        case 1:
+                            _a.sent();
+                            return [2 /*return*/];
+                    }
+                });
+            }); });
+            it('should MUL two numbers successfully', function () { return __awaiter(_this, void 0, void 0, function () {
                 var stack_0, stack_1, code, data, resExpected;
                 return __generator(this, function (_a) {
                     switch (_a.label) {
@@ -163,7 +185,29 @@ describe('single instructions', function () { return __awaiter(_this, void 0, vo
                     }
                 });
             }); });
-            it('should subtract two numbers successfully', function () { return __awaiter(_this, void 0, void 0, function () {
+            it('should MUL with too few params, resulting in a stack underflow', function () { return __awaiter(_this, void 0, void 0, function () {
+                var code, data, resExpected;
+                return __generator(this, function (_a) {
+                    switch (_a.label) {
+                        case 0:
+                            code = constants_1.PUSH1 + '00' + constants_1.MUL;
+                            data = "";
+                            resExpected = {
+                                errno: constants_1.ERROR_STACK_UNDERFLOW,
+                                errpc: 2,
+                                returnData: "",
+                                memSize: 0,
+                                mem: "",
+                                stack: [new bignumber_js_1.BigNumber(0)],
+                            };
+                            return [4 /*yield*/, runTest(code, data, resExpected)];
+                        case 1:
+                            _a.sent();
+                            return [2 /*return*/];
+                    }
+                });
+            }); });
+            it('should SUB two numbers successfully', function () { return __awaiter(_this, void 0, void 0, function () {
                 var stack_0, stack_1, code, data, resExpected;
                 return __generator(this, function (_a) {
                     switch (_a.label) {
@@ -189,7 +233,29 @@ describe('single instructions', function () { return __awaiter(_this, void 0, vo
                     }
                 });
             }); });
-            it('should divide two numbers successfully', function () { return __awaiter(_this, void 0, void 0, function () {
+            it('should SUB with too few params, resulting in a stack underflow', function () { return __awaiter(_this, void 0, void 0, function () {
+                var code, data, resExpected;
+                return __generator(this, function (_a) {
+                    switch (_a.label) {
+                        case 0:
+                            code = constants_1.PUSH1 + '00' + constants_1.SUB;
+                            data = "";
+                            resExpected = {
+                                errno: constants_1.ERROR_STACK_UNDERFLOW,
+                                errpc: 2,
+                                returnData: "",
+                                memSize: 0,
+                                mem: "",
+                                stack: [new bignumber_js_1.BigNumber(0)],
+                            };
+                            return [4 /*yield*/, runTest(code, data, resExpected)];
+                        case 1:
+                            _a.sent();
+                            return [2 /*return*/];
+                    }
+                });
+            }); });
+            it('should DIV two numbers successfully', function () { return __awaiter(_this, void 0, void 0, function () {
                 var stack_0, stack_1, code, data, resExpected;
                 return __generator(this, function (_a) {
                     switch (_a.label) {
@@ -215,7 +281,29 @@ describe('single instructions', function () { return __awaiter(_this, void 0, vo
                     }
                 });
             }); });
-            it('should divide with zero successfully', function () { return __awaiter(_this, void 0, void 0, function () {
+            it('should DIV with too few params, resulting in a stack underflow', function () { return __awaiter(_this, void 0, void 0, function () {
+                var code, data, resExpected;
+                return __generator(this, function (_a) {
+                    switch (_a.label) {
+                        case 0:
+                            code = constants_1.PUSH1 + '00' + constants_1.DIV;
+                            data = "";
+                            resExpected = {
+                                errno: constants_1.ERROR_STACK_UNDERFLOW,
+                                errpc: 2,
+                                returnData: "",
+                                memSize: 0,
+                                mem: "",
+                                stack: [new bignumber_js_1.BigNumber(0)],
+                            };
+                            return [4 /*yield*/, runTest(code, data, resExpected)];
+                        case 1:
+                            _a.sent();
+                            return [2 /*return*/];
+                    }
+                });
+            }); });
+            it('should DIV with zero successfully', function () { return __awaiter(_this, void 0, void 0, function () {
                 var stack_0, stack_1, code, data, resExpected;
                 return __generator(this, function (_a) {
                     switch (_a.label) {
@@ -241,7 +329,7 @@ describe('single instructions', function () { return __awaiter(_this, void 0, vo
                     }
                 });
             }); });
-            it('should divide two signed numbers successfully', function () { return __awaiter(_this, void 0, void 0, function () {
+            it('should SDIV two numbers successfully', function () { return __awaiter(_this, void 0, void 0, function () {
                 var stack_0, stack_1, code, data, resExpected;
                 return __generator(this, function (_a) {
                     switch (_a.label) {
@@ -267,7 +355,29 @@ describe('single instructions', function () { return __awaiter(_this, void 0, vo
                     }
                 });
             }); });
-            it('should signed-divide with zero successfully', function () { return __awaiter(_this, void 0, void 0, function () {
+            it('should SDIV with too few params, resulting in a stack underflow', function () { return __awaiter(_this, void 0, void 0, function () {
+                var code, data, resExpected;
+                return __generator(this, function (_a) {
+                    switch (_a.label) {
+                        case 0:
+                            code = constants_1.PUSH1 + '00' + constants_1.SDIV;
+                            data = "";
+                            resExpected = {
+                                errno: constants_1.ERROR_STACK_UNDERFLOW,
+                                errpc: 2,
+                                returnData: "",
+                                memSize: 0,
+                                mem: "",
+                                stack: [new bignumber_js_1.BigNumber(0)],
+                            };
+                            return [4 /*yield*/, runTest(code, data, resExpected)];
+                        case 1:
+                            _a.sent();
+                            return [2 /*return*/];
+                    }
+                });
+            }); });
+            it('should SDIV with zero successfully', function () { return __awaiter(_this, void 0, void 0, function () {
                 var stack_0, stack_1, code, data, resExpected;
                 return __generator(this, function (_a) {
                     switch (_a.label) {
@@ -293,7 +403,7 @@ describe('single instructions', function () { return __awaiter(_this, void 0, vo
                     }
                 });
             }); });
-            it('should compute the modulus of a number successfully', function () { return __awaiter(_this, void 0, void 0, function () {
+            it('should MOD a number successfully', function () { return __awaiter(_this, void 0, void 0, function () {
                 var stack_0, stack_1, code, data, resExpected;
                 return __generator(this, function (_a) {
                     switch (_a.label) {
@@ -319,7 +429,7 @@ describe('single instructions', function () { return __awaiter(_this, void 0, vo
                     }
                 });
             }); });
-            it('should compute the modulus of a number with zero successfully', function () { return __awaiter(_this, void 0, void 0, function () {
+            it('should MOD a number with zero successfully', function () { return __awaiter(_this, void 0, void 0, function () {
                 var stack_0, stack_1, code, data, resExpected;
                 return __generator(this, function (_a) {
                     switch (_a.label) {
@@ -345,7 +455,29 @@ describe('single instructions', function () { return __awaiter(_this, void 0, vo
                     }
                 });
             }); });
-            it('should compute the modulus of a signed number successfully', function () { return __awaiter(_this, void 0, void 0, function () {
+            it('should MOD with too few params, resulting in a stack underflow', function () { return __awaiter(_this, void 0, void 0, function () {
+                var code, data, resExpected;
+                return __generator(this, function (_a) {
+                    switch (_a.label) {
+                        case 0:
+                            code = constants_1.PUSH1 + '00' + constants_1.MOD;
+                            data = "";
+                            resExpected = {
+                                errno: constants_1.ERROR_STACK_UNDERFLOW,
+                                errpc: 2,
+                                returnData: "",
+                                memSize: 0,
+                                mem: "",
+                                stack: [new bignumber_js_1.BigNumber(0)],
+                            };
+                            return [4 /*yield*/, runTest(code, data, resExpected)];
+                        case 1:
+                            _a.sent();
+                            return [2 /*return*/];
+                    }
+                });
+            }); });
+            it('should SMOD a signed number successfully', function () { return __awaiter(_this, void 0, void 0, function () {
                 var stack_0, stack_1, code, data, resExpected;
                 return __generator(this, function (_a) {
                     switch (_a.label) {
@@ -371,7 +503,7 @@ describe('single instructions', function () { return __awaiter(_this, void 0, vo
                     }
                 });
             }); });
-            it('should compute the modulus of a signed number with zero successfully', function () { return __awaiter(_this, void 0, void 0, function () {
+            it('should SMOD number with zero successfully', function () { return __awaiter(_this, void 0, void 0, function () {
                 var stack_0, stack_1, code, data, resExpected;
                 return __generator(this, function (_a) {
                     switch (_a.label) {
@@ -397,7 +529,29 @@ describe('single instructions', function () { return __awaiter(_this, void 0, vo
                     }
                 });
             }); });
-            it('should compute addmod successfully', function () { return __awaiter(_this, void 0, void 0, function () {
+            it('should SMOD with too few params, resulting in a stack underflow', function () { return __awaiter(_this, void 0, void 0, function () {
+                var code, data, resExpected;
+                return __generator(this, function (_a) {
+                    switch (_a.label) {
+                        case 0:
+                            code = constants_1.PUSH1 + '00' + constants_1.SMOD;
+                            data = "";
+                            resExpected = {
+                                errno: constants_1.ERROR_STACK_UNDERFLOW,
+                                errpc: 2,
+                                returnData: "",
+                                memSize: 0,
+                                mem: "",
+                                stack: [new bignumber_js_1.BigNumber(0)],
+                            };
+                            return [4 /*yield*/, runTest(code, data, resExpected)];
+                        case 1:
+                            _a.sent();
+                            return [2 /*return*/];
+                    }
+                });
+            }); });
+            it('should ADDMOD successfully', function () { return __awaiter(_this, void 0, void 0, function () {
                 var stack_0, stack_1, stack_2, code, data, resExpected;
                 return __generator(this, function (_a) {
                     switch (_a.label) {
@@ -424,7 +578,29 @@ describe('single instructions', function () { return __awaiter(_this, void 0, vo
                     }
                 });
             }); });
-            it('should compute mulmod successfully', function () { return __awaiter(_this, void 0, void 0, function () {
+            it('should ADDMOD with too few params, resulting in a stack underflow', function () { return __awaiter(_this, void 0, void 0, function () {
+                var code, data, resExpected;
+                return __generator(this, function (_a) {
+                    switch (_a.label) {
+                        case 0:
+                            code = constants_1.PUSH1 + '00' + constants_1.PUSH1 + '00' + constants_1.ADDMOD;
+                            data = "";
+                            resExpected = {
+                                errno: constants_1.ERROR_STACK_UNDERFLOW,
+                                errpc: 4,
+                                returnData: "",
+                                memSize: 0,
+                                mem: "",
+                                stack: [new bignumber_js_1.BigNumber(0), new bignumber_js_1.BigNumber(0)],
+                            };
+                            return [4 /*yield*/, runTest(code, data, resExpected)];
+                        case 1:
+                            _a.sent();
+                            return [2 /*return*/];
+                    }
+                });
+            }); });
+            it('should MULMOD successfully', function () { return __awaiter(_this, void 0, void 0, function () {
                 var stack_0, stack_1, stack_2, code, data, resExpected;
                 return __generator(this, function (_a) {
                     switch (_a.label) {
@@ -451,7 +627,29 @@ describe('single instructions', function () { return __awaiter(_this, void 0, vo
                     }
                 });
             }); });
-            it('should compute exp successfully', function () { return __awaiter(_this, void 0, void 0, function () {
+            it('should MULMOD with too few params, resulting in a stack underflow', function () { return __awaiter(_this, void 0, void 0, function () {
+                var code, data, resExpected;
+                return __generator(this, function (_a) {
+                    switch (_a.label) {
+                        case 0:
+                            code = constants_1.PUSH1 + '00' + constants_1.PUSH1 + '00' + constants_1.MULMOD;
+                            data = "";
+                            resExpected = {
+                                errno: constants_1.ERROR_STACK_UNDERFLOW,
+                                errpc: 4,
+                                returnData: "",
+                                memSize: 0,
+                                mem: "",
+                                stack: [new bignumber_js_1.BigNumber(0), new bignumber_js_1.BigNumber(0)],
+                            };
+                            return [4 /*yield*/, runTest(code, data, resExpected)];
+                        case 1:
+                            _a.sent();
+                            return [2 /*return*/];
+                    }
+                });
+            }); });
+            it('should EXP successfully', function () { return __awaiter(_this, void 0, void 0, function () {
                 var stack_0, stack_1, code, data, resExpected;
                 return __generator(this, function (_a) {
                     switch (_a.label) {
@@ -469,6 +667,28 @@ describe('single instructions', function () { return __awaiter(_this, void 0, vo
                                 stack: [
                                     new bignumber_js_1.BigNumber(81)
                                 ],
+                            };
+                            return [4 /*yield*/, runTest(code, data, resExpected)];
+                        case 1:
+                            _a.sent();
+                            return [2 /*return*/];
+                    }
+                });
+            }); });
+            it('should EXP with too few params, resulting in a stack underflow', function () { return __awaiter(_this, void 0, void 0, function () {
+                var code, data, resExpected;
+                return __generator(this, function (_a) {
+                    switch (_a.label) {
+                        case 0:
+                            code = constants_1.PUSH1 + '00' + constants_1.EXP;
+                            data = "";
+                            resExpected = {
+                                errno: constants_1.ERROR_STACK_UNDERFLOW,
+                                errpc: 2,
+                                returnData: "",
+                                memSize: 0,
+                                mem: "",
+                                stack: [new bignumber_js_1.BigNumber(0)],
                             };
                             return [4 /*yield*/, runTest(code, data, resExpected)];
                         case 1:
@@ -531,6 +751,28 @@ describe('single instructions', function () { return __awaiter(_this, void 0, vo
                     }
                 });
             }); });
+            it('should LT with too few params, resulting in a stack underflow', function () { return __awaiter(_this, void 0, void 0, function () {
+                var code, data, resExpected;
+                return __generator(this, function (_a) {
+                    switch (_a.label) {
+                        case 0:
+                            code = constants_1.PUSH1 + '00' + constants_1.LT;
+                            data = "";
+                            resExpected = {
+                                errno: constants_1.ERROR_STACK_UNDERFLOW,
+                                errpc: 2,
+                                returnData: "",
+                                memSize: 0,
+                                mem: "",
+                                stack: [new bignumber_js_1.BigNumber(0)],
+                            };
+                            return [4 /*yield*/, runTest(code, data, resExpected)];
+                        case 1:
+                            _a.sent();
+                            return [2 /*return*/];
+                    }
+                });
+            }); });
             it('should compute GT of two numbers successfully when true', function () { return __awaiter(_this, void 0, void 0, function () {
                 var stack_0, stack_1, code, data, resExpected;
                 return __generator(this, function (_a) {
@@ -575,6 +817,28 @@ describe('single instructions', function () { return __awaiter(_this, void 0, vo
                                 stack: [
                                     new bignumber_js_1.BigNumber(0)
                                 ],
+                            };
+                            return [4 /*yield*/, runTest(code, data, resExpected)];
+                        case 1:
+                            _a.sent();
+                            return [2 /*return*/];
+                    }
+                });
+            }); });
+            it('should GT with too few params, resulting in a stack underflow', function () { return __awaiter(_this, void 0, void 0, function () {
+                var code, data, resExpected;
+                return __generator(this, function (_a) {
+                    switch (_a.label) {
+                        case 0:
+                            code = constants_1.PUSH1 + '00' + constants_1.GT;
+                            data = "";
+                            resExpected = {
+                                errno: constants_1.ERROR_STACK_UNDERFLOW,
+                                errpc: 2,
+                                returnData: "",
+                                memSize: 0,
+                                mem: "",
+                                stack: [new bignumber_js_1.BigNumber(0)],
                             };
                             return [4 /*yield*/, runTest(code, data, resExpected)];
                         case 1:
@@ -635,6 +899,28 @@ describe('single instructions', function () { return __awaiter(_this, void 0, vo
                     }
                 });
             }); });
+            it('should SLT with too few params, resulting in a stack underflow', function () { return __awaiter(_this, void 0, void 0, function () {
+                var code, data, resExpected;
+                return __generator(this, function (_a) {
+                    switch (_a.label) {
+                        case 0:
+                            code = constants_1.PUSH1 + '00' + constants_1.SLT;
+                            data = "";
+                            resExpected = {
+                                errno: constants_1.ERROR_STACK_UNDERFLOW,
+                                errpc: 2,
+                                returnData: "",
+                                memSize: 0,
+                                mem: "",
+                                stack: [new bignumber_js_1.BigNumber(0)],
+                            };
+                            return [4 /*yield*/, runTest(code, data, resExpected)];
+                        case 1:
+                            _a.sent();
+                            return [2 /*return*/];
+                    }
+                });
+            }); });
             it('should compute SGT of two numbers successfully when true', function () { return __awaiter(_this, void 0, void 0, function () {
                 var stack_0, stack_1, code, data, resExpected;
                 return __generator(this, function (_a) {
@@ -679,6 +965,28 @@ describe('single instructions', function () { return __awaiter(_this, void 0, vo
                                 stack: [
                                     new bignumber_js_1.BigNumber(0)
                                 ],
+                            };
+                            return [4 /*yield*/, runTest(code, data, resExpected)];
+                        case 1:
+                            _a.sent();
+                            return [2 /*return*/];
+                    }
+                });
+            }); });
+            it('should SGT with too few params, resulting in a stack underflow', function () { return __awaiter(_this, void 0, void 0, function () {
+                var code, data, resExpected;
+                return __generator(this, function (_a) {
+                    switch (_a.label) {
+                        case 0:
+                            code = constants_1.PUSH1 + '00' + constants_1.SGT;
+                            data = "";
+                            resExpected = {
+                                errno: constants_1.ERROR_STACK_UNDERFLOW,
+                                errpc: 2,
+                                returnData: "",
+                                memSize: 0,
+                                mem: "",
+                                stack: [new bignumber_js_1.BigNumber(0)],
                             };
                             return [4 /*yield*/, runTest(code, data, resExpected)];
                         case 1:
@@ -739,6 +1047,28 @@ describe('single instructions', function () { return __awaiter(_this, void 0, vo
                     }
                 });
             }); });
+            it('should EQ with too few params, resulting in a stack underflow', function () { return __awaiter(_this, void 0, void 0, function () {
+                var code, data, resExpected;
+                return __generator(this, function (_a) {
+                    switch (_a.label) {
+                        case 0:
+                            code = constants_1.PUSH1 + '00' + constants_1.EQ;
+                            data = "";
+                            resExpected = {
+                                errno: constants_1.ERROR_STACK_UNDERFLOW,
+                                errpc: 2,
+                                returnData: "",
+                                memSize: 0,
+                                mem: "",
+                                stack: [new bignumber_js_1.BigNumber(0)],
+                            };
+                            return [4 /*yield*/, runTest(code, data, resExpected)];
+                        case 1:
+                            _a.sent();
+                            return [2 /*return*/];
+                    }
+                });
+            }); });
             it('should compute ISZERO of a number successfully when true', function () { return __awaiter(_this, void 0, void 0, function () {
                 var stack_0, code, data, resExpected;
                 return __generator(this, function (_a) {
@@ -789,6 +1119,28 @@ describe('single instructions', function () { return __awaiter(_this, void 0, vo
                     }
                 });
             }); });
+            it('should EQ with too few params, resulting in a stack underflow', function () { return __awaiter(_this, void 0, void 0, function () {
+                var code, data, resExpected;
+                return __generator(this, function (_a) {
+                    switch (_a.label) {
+                        case 0:
+                            code = constants_1.EQ;
+                            data = "";
+                            resExpected = {
+                                errno: constants_1.ERROR_STACK_UNDERFLOW,
+                                errpc: 0,
+                                returnData: "",
+                                memSize: 0,
+                                mem: "",
+                                stack: [],
+                            };
+                            return [4 /*yield*/, runTest(code, data, resExpected)];
+                        case 1:
+                            _a.sent();
+                            return [2 /*return*/];
+                    }
+                });
+            }); });
             it('should compute AND of two numbers successfully', function () { return __awaiter(_this, void 0, void 0, function () {
                 var stack_0, stack_1, code, data, resExpected;
                 return __generator(this, function (_a) {
@@ -807,6 +1159,28 @@ describe('single instructions', function () { return __awaiter(_this, void 0, vo
                                 stack: [
                                     new bignumber_js_1.BigNumber(1)
                                 ],
+                            };
+                            return [4 /*yield*/, runTest(code, data, resExpected)];
+                        case 1:
+                            _a.sent();
+                            return [2 /*return*/];
+                    }
+                });
+            }); });
+            it('should AND with too few params, resulting in a stack underflow', function () { return __awaiter(_this, void 0, void 0, function () {
+                var code, data, resExpected;
+                return __generator(this, function (_a) {
+                    switch (_a.label) {
+                        case 0:
+                            code = constants_1.PUSH1 + '00' + constants_1.AND;
+                            data = "";
+                            resExpected = {
+                                errno: constants_1.ERROR_STACK_UNDERFLOW,
+                                errpc: 2,
+                                returnData: "",
+                                memSize: 0,
+                                mem: "",
+                                stack: [new bignumber_js_1.BigNumber(0)],
                             };
                             return [4 /*yield*/, runTest(code, data, resExpected)];
                         case 1:
@@ -841,6 +1215,28 @@ describe('single instructions', function () { return __awaiter(_this, void 0, vo
                     }
                 });
             }); });
+            it('should OR with too few params, resulting in a stack underflow', function () { return __awaiter(_this, void 0, void 0, function () {
+                var code, data, resExpected;
+                return __generator(this, function (_a) {
+                    switch (_a.label) {
+                        case 0:
+                            code = constants_1.PUSH1 + '00' + constants_1.OR;
+                            data = "";
+                            resExpected = {
+                                errno: constants_1.ERROR_STACK_UNDERFLOW,
+                                errpc: 2,
+                                returnData: "",
+                                memSize: 0,
+                                mem: "",
+                                stack: [new bignumber_js_1.BigNumber(0)],
+                            };
+                            return [4 /*yield*/, runTest(code, data, resExpected)];
+                        case 1:
+                            _a.sent();
+                            return [2 /*return*/];
+                    }
+                });
+            }); });
             it('should compute XOR of two numbers successfully', function () { return __awaiter(_this, void 0, void 0, function () {
                 var stack_0, stack_1, code, data, resExpected;
                 return __generator(this, function (_a) {
@@ -867,6 +1263,28 @@ describe('single instructions', function () { return __awaiter(_this, void 0, vo
                     }
                 });
             }); });
+            it('should XOR with too few params, resulting in a stack underflow', function () { return __awaiter(_this, void 0, void 0, function () {
+                var code, data, resExpected;
+                return __generator(this, function (_a) {
+                    switch (_a.label) {
+                        case 0:
+                            code = constants_1.PUSH1 + '00' + constants_1.XOR;
+                            data = "";
+                            resExpected = {
+                                errno: constants_1.ERROR_STACK_UNDERFLOW,
+                                errpc: 2,
+                                returnData: "",
+                                memSize: 0,
+                                mem: "",
+                                stack: [new bignumber_js_1.BigNumber(0)],
+                            };
+                            return [4 /*yield*/, runTest(code, data, resExpected)];
+                        case 1:
+                            _a.sent();
+                            return [2 /*return*/];
+                    }
+                });
+            }); });
             it('should compute NOT of a number successfully', function () { return __awaiter(_this, void 0, void 0, function () {
                 var stack_0, code, data, resExpected;
                 return __generator(this, function (_a) {
@@ -884,6 +1302,28 @@ describe('single instructions', function () { return __awaiter(_this, void 0, vo
                                 stack: [
                                     new bignumber_js_1.BigNumber(0)
                                 ],
+                            };
+                            return [4 /*yield*/, runTest(code, data, resExpected)];
+                        case 1:
+                            _a.sent();
+                            return [2 /*return*/];
+                    }
+                });
+            }); });
+            it('should NOT with too few params, resulting in a stack underflow', function () { return __awaiter(_this, void 0, void 0, function () {
+                var code, data, resExpected;
+                return __generator(this, function (_a) {
+                    switch (_a.label) {
+                        case 0:
+                            code = constants_1.NOT;
+                            data = "";
+                            resExpected = {
+                                errno: constants_1.ERROR_STACK_UNDERFLOW,
+                                errpc: 0,
+                                returnData: "",
+                                memSize: 0,
+                                mem: "",
+                                stack: [],
                             };
                             return [4 /*yield*/, runTest(code, data, resExpected)];
                         case 1:
@@ -970,16 +1410,37 @@ describe('single instructions', function () { return __awaiter(_this, void 0, vo
                     }
                 });
             }); });
-        });
-        describe('sha3', function () {
-            it('should use sha3 successfully', function () { return __awaiter(_this, void 0, void 0, function () {
-                var stack_0, code, data, resExpected;
+            it('should BYTE with too few params, resulting in a stack underflow', function () { return __awaiter(_this, void 0, void 0, function () {
+                var code, data, resExpected;
                 return __generator(this, function (_a) {
                     switch (_a.label) {
                         case 0:
-                            stack_0 = '0000000000000000000000000000000000000000000000000000000000000000';
-                            code = constants_1.PUSH32 + stack_0 + constants_1.CALLDATALOAD;
-                            data = "0000000000000000000000000000000000000000000000000000000000000001";
+                            code = constants_1.PUSH1 + '00' + constants_1.BYTE;
+                            data = "";
+                            resExpected = {
+                                errno: constants_1.ERROR_STACK_UNDERFLOW,
+                                errpc: 2,
+                                returnData: "",
+                                memSize: 0,
+                                mem: "",
+                                stack: [new bignumber_js_1.BigNumber(0)],
+                            };
+                            return [4 /*yield*/, runTest(code, data, resExpected)];
+                        case 1:
+                            _a.sent();
+                            return [2 /*return*/];
+                    }
+                });
+            }); });
+        });
+        describe('sha3', function () {
+            it('should use SHA3 successfully with 0-size input', function () { return __awaiter(_this, void 0, void 0, function () {
+                var code, data, resExpected;
+                return __generator(this, function (_a) {
+                    switch (_a.label) {
+                        case 0:
+                            code = constants_1.PUSH1 + '00' + constants_1.PUSH1 + '00' + constants_1.SHA3;
+                            data = "";
                             resExpected = {
                                 errno: 0,
                                 errpc: code.length / 2,
@@ -987,8 +1448,78 @@ describe('single instructions', function () { return __awaiter(_this, void 0, vo
                                 memSize: 0,
                                 mem: "",
                                 stack: [
-                                    new bignumber_js_1.BigNumber(1)
+                                    new bignumber_js_1.BigNumber("c5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a470", 16)
                                 ],
+                            };
+                            return [4 /*yield*/, runTest(code, data, resExpected)];
+                        case 1:
+                            _a.sent();
+                            return [2 /*return*/];
+                    }
+                });
+            }); });
+            it('should use SHA3 successfully with non-zero length input', function () { return __awaiter(_this, void 0, void 0, function () {
+                var code, data, resExpected;
+                return __generator(this, function (_a) {
+                    switch (_a.label) {
+                        case 0:
+                            code = constants_1.PUSH1 + '20' + constants_1.PUSH1 + '00' + constants_1.SHA3;
+                            data = "";
+                            resExpected = {
+                                errno: 0,
+                                errpc: code.length / 2,
+                                returnData: "",
+                                memSize: 0,
+                                mem: "",
+                                stack: [
+                                    new bignumber_js_1.BigNumber("290decd9548b62a8d60345a988386fc84ba6bc95484008f6362f93160ef3e563", 16)
+                                ],
+                            };
+                            return [4 /*yield*/, runTest(code, data, resExpected)];
+                        case 1:
+                            _a.sent();
+                            return [2 /*return*/];
+                    }
+                });
+            }); });
+            it('should use SHA3 successfully with large input', function () { return __awaiter(_this, void 0, void 0, function () {
+                var code, data, resExpected;
+                return __generator(this, function (_a) {
+                    switch (_a.label) {
+                        case 0:
+                            code = constants_1.PUSH2 + '0500' + constants_1.PUSH1 + '00' + constants_1.SHA3;
+                            data = "";
+                            resExpected = {
+                                errno: 0,
+                                errpc: code.length / 2,
+                                returnData: "",
+                                memSize: 0,
+                                mem: "",
+                                stack: [
+                                    new bignumber_js_1.BigNumber("e36384b33d42c0941ec56a16413312b35766b36e5e75c673c1862ae08e6d02ba", 16)
+                                ],
+                            };
+                            return [4 /*yield*/, runTest(code, data, resExpected)];
+                        case 1:
+                            _a.sent();
+                            return [2 /*return*/];
+                    }
+                });
+            }); });
+            it('should SHA3 with too few params, resulting in a stack underflow', function () { return __awaiter(_this, void 0, void 0, function () {
+                var code, data, resExpected;
+                return __generator(this, function (_a) {
+                    switch (_a.label) {
+                        case 0:
+                            code = constants_1.PUSH1 + '00' + constants_1.SHA3;
+                            data = "";
+                            resExpected = {
+                                errno: constants_1.ERROR_STACK_UNDERFLOW,
+                                errpc: 2,
+                                returnData: "",
+                                memSize: 0,
+                                mem: "",
+                                stack: [new bignumber_js_1.BigNumber(0)],
                             };
                             return [4 /*yield*/, runTest(code, data, resExpected)];
                         case 1:
@@ -1604,6 +2135,28 @@ describe('single instructions', function () { return __awaiter(_this, void 0, vo
                     }
                 });
             }); });
+            it('should pop empty stack and result in a stack underflow', function () { return __awaiter(_this, void 0, void 0, function () {
+                var code, data, resExpected;
+                return __generator(this, function (_a) {
+                    switch (_a.label) {
+                        case 0:
+                            code = constants_1.POP;
+                            data = "";
+                            resExpected = {
+                                errno: constants_1.ERROR_STACK_UNDERFLOW,
+                                errpc: 0,
+                                returnData: "",
+                                memSize: 0,
+                                mem: "",
+                                stack: [],
+                            };
+                            return [4 /*yield*/, runTest(code, data, resExpected)];
+                        case 1:
+                            _a.sent();
+                            return [2 /*return*/];
+                    }
+                });
+            }); });
             it('should use MLOAD successfully', function () { return __awaiter(_this, void 0, void 0, function () {
                 var code, data, resExpected;
                 return __generator(this, function (_a) {
@@ -2164,6 +2717,39 @@ describe('single instructions', function () { return __awaiter(_this, void 0, vo
         return [2 /*return*/];
     });
 }); });
+/* TODO
+describe('precompiles', () => {
+
+    it('ecrecover', async () => {
+        const code = PUSH1 + '20' + PUSH1 + '20' + PUSH1 + '20' + PUSH1 + '00' + PUSH1 + '01' + PUSH1 + '00' + STATICCALL;
+        const data = "";
+        const result = await execute(code, data);
+        prettyPrintResults(result);
+    });
+
+    it('sha256', async () => {
+        const code = PUSH1 + '20' + PUSH1 + '20' + PUSH1 + '20' + PUSH1 + '00' + PUSH1 + '02' + PUSH1 + '00' + STATICCALL;
+        const data = "";
+        const result = await execute(code, data);
+        prettyPrintResults(result);
+    });
+
+    it('ripemd160', async () => {
+        const code = PUSH1 + '20' + PUSH1 + '20' + PUSH1 + '20' + PUSH1 + '00' + PUSH1 + '03' + PUSH1 + '00' + STATICCALL;
+        const data = "";
+        const result = await execute(code, data);
+        prettyPrintResults(result);
+    });
+
+    it('identity', async () => {
+        const code = PUSH1 + '20' + PUSH1 + '20' + PUSH1 + '20' + PUSH1 + '00' + PUSH1 + '04' + PUSH1 + '00' + STATICCALL;
+        const data = "";
+        const result = await execute(code, data);
+        prettyPrintResults(result);
+    });
+
+});
+*/
 describe('solidity contracts', function () {
     it('should call test function on TestContractNoop', function () { return __awaiter(_this, void 0, void 0, function () {
         var code, result;
@@ -2585,6 +3171,38 @@ describe('solidity contracts', function () {
                     //prettyPrintResults(result);
                     expect(result.errno).toBe(constants_1.NO_ERROR);
                     expect(result.returnData).toBe('c9883eece7dca619b830dc9d87e82c38478111c0000000000000000000000000');
+                    return [2 /*return*/];
+            }
+        });
+    }); });
+    it('should call test function on TestContractMultipleCreate', function () { return __awaiter(_this, void 0, void 0, function () {
+        var code, result;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0:
+                    code = io_1.readText(path.join(constants_1.BIN_OUTPUT_PATH, 'TestContractMultipleCreate.bin-runtime'));
+                    return [4 /*yield*/, adapter_1.execute(code, constants_1.CONTRACT_TEST_SIG)];
+                case 1:
+                    result = _a.sent();
+                    //prettyPrintResults(result);
+                    expect(result.errno).toBe(constants_1.NO_ERROR);
+                    expect(result.returnData).toBe('0000000000000000000000000000000000000000000000000000000000000005');
+                    return [2 /*return*/];
+            }
+        });
+    }); });
+    it('should call test function on TestContractCreateWithConstructorParams', function () { return __awaiter(_this, void 0, void 0, function () {
+        var code, result;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0:
+                    code = io_1.readText(path.join(constants_1.BIN_OUTPUT_PATH, 'TestContractCreateWithConstructorParams.bin-runtime'));
+                    return [4 /*yield*/, adapter_1.execute(code, constants_1.CONTRACT_TEST_SIG)];
+                case 1:
+                    result = _a.sent();
+                    //prettyPrintResults(result);
+                    expect(result.errno).toBe(constants_1.NO_ERROR);
+                    expect(result.returnData).toBe('00000000000000000000000000000000000000000000000000000000000000040000000000000000000000000000000000000000000000000000000000000005');
                     return [2 /*return*/];
             }
         });

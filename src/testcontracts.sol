@@ -237,3 +237,47 @@ contract TestContractPrecompileSha256 {
         return sha256(bts);
     }
 }
+
+
+contract CreatedContractReturnsUint {
+    function retUint() public pure returns (uint) {
+        return 5;
+    }
+}
+
+
+contract DeployedContractCreatesNew {
+    function retUint() public returns (uint) {
+        return new CreatedContractReturnsUint().retUint();
+    }
+}
+
+
+contract TestContractMultipleCreate {
+    function test() public returns (uint) {
+        return new DeployedContractCreatesNew().retUint();
+    }
+}
+
+
+contract DeployedContractWithConstructorParams {
+
+    uint public x;
+    address public y;
+
+    constructor(uint _x, address _y) public {
+        x = _x;
+        y = _y;
+    }
+
+}
+
+
+contract TestContractCreateWithConstructorParams {
+    function test() public returns (uint, address) {
+        DeployedContractWithConstructorParams c = new DeployedContractWithConstructorParams(4, 5);
+        uint x = c.x();
+        address y = c.y();
+        return (x, y);
+    }
+}
