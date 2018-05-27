@@ -2,7 +2,7 @@
 
 This is a (partial) implementation of the Ethereum runtime in Solidity. The runtime contract allows you to execute evm bytecode with calldata and various other parameters. It is meant to be used for one-off execution, like is done with the "evm" executables that comes with the ethereum clients.
 
-This is still very early in development and lots of things are added just to get basic functionality in place. Most importantly there is no support for gas metering (and may never be, due to the limit to contract code-size). See the roadmap section for the plans ahead.
+This is still very early in development and lots of things are added just to get basic functionality in place. Most importantly there is no support for gas metering (and may never be, due to the limit to contract code-size). See the roadmap section for the plans ahead. Hopefully it will be in great working order by the time of the `0.5.0` release of Solidity.
 
 **NOTE: This is only an experiment in it's early PoC stages. Do not rely on this library to test or verify EVM bytecode.**
 
