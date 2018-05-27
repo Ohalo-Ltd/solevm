@@ -326,7 +326,7 @@ contract EthereumRuntime is IEthereumRuntime {
 
         EVMAccounts.Account memory caller = evmInput.accounts.get(input.caller);
         caller.balance = input.callerBalance;
-        if (input.staticExec) {
+        if (!input.staticExec) {
             caller.nonce = uint8(1);
         }
         evmInput.caller = input.caller;
@@ -344,6 +344,7 @@ contract EthereumRuntime is IEthereumRuntime {
         result.returnData = evm.returnData;
         result.errno = evm.errno;
         result.errpc = evm.errpc;
+        // TODO handle accounts that result from a failed transaction.
         (result.accounts, result.accountsCode) = evm.accounts.toArray();
         (result.logs, result.logsData) = evm.logs.toArray();
         return;

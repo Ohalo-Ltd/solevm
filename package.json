@@ -16,14 +16,16 @@
     "@types/node": "^10.0.8",
     "babel-cli": "^6.26.0",
     "babel-preset-env": "^1.7.0",
-    "bignumber.js": "^7.0.1",
-    "chalk": "^2.4.1",
     "jest": "^22.4.3",
-    "mkdirp": "^0.5.1",
     "solhint": "^1.1.7",
     "ts-jest": "^22.4.6",
     "tslint": "^5.10.0",
-    "typescript": "^2.8.3",
+    "typescript": "^2.8.3"
+  },
+  "dependencies": {
+    "bignumber.js": "^7.0.1",
+    "chalk": "^2.4.1",
+    "mkdirp": "^0.5.1",
     "web3-eth-abi": "^1.0.0-beta.34"
   },
   "jest": {

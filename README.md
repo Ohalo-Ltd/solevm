@@ -10,7 +10,7 @@ This is still very early in development. There is no support for gas metering, a
 
 The runtime is a regular Solidity contract that can be compiled by `solc`, and can therefore be used with libraries such as `web3js` or just executed by the various different stand-alone evm implementations. The limitations is that a lot of gas is required in order to run the code, and that web3js does not have support for Solidity structs (ABI tuples).
 
-In order to build and test the code you need go-ethereum's `evm` as well as `solc` on your path. The code is tested using the solidity `0.4.24` release version and the evm `1.8.7` version - both with constantinople settings. The library includes some javsacript code and evm configuration files which can be used to run the contract. The configuration files configures the geth EVM to have the right settings, and the javascript function will call it and automatically format input and output.
+In order to build and test the code you need go-ethereum's `evm` as well as `solc` on your path. The code is tested using the solidity `0.4.24` release version and the evm `1.8.7` version - both with constantinople settings.
 
 `bin/compile.js` can be executed to create `bin`, `bin-runtime`, `abi` and `signatures` files for the runtime contract. The files are put in the `bin_output` folder.
 
@@ -113,7 +113,7 @@ struct Result {
 
 Note that `errpc` is only meant to be used when the error is non-zero, in which case it will be the program counter at the time when the error was thrown.
 
-There is a javascript (typescript) adapter at `script/adapter.ts` which allow you to run the execute function and automatically format input and output parameters. The return data is formatted as such:
+There is a javascript (typescript) adapter at `script/adapter.ts` which allow you to run the execute function from within this library, and automatically format input and output parameters. The return data is formatted as such:
 
 ```
 {
@@ -139,6 +139,8 @@ There is a javascript (typescript) adapter at `script/adapter.ts` which allow yo
     }]
 }
 ```
+
+There is a pretty-print function in the adapter as well.
 
 #### Accounts
 
@@ -224,7 +226,7 @@ There are no blocks, so `BLOCKHASH` will always return `0`. The only blockchain 
 
 In addition to the contracts, the library also comes with some rudimentary javascript (typescript) for compiling the contract, and for executing unit tests through the geth evm. In order for this to work, both `solc` and the geth `evm` must be on the path.
 
-The `script/adapter.ts` file can be used to call the runtime contract with code and data provided as hex-strings. Currently, only the code + data version and the `TxInput` overload is supported, but the one using `TxInput` and `Context` will soon be supported as well.
+The `script/adapter.ts` file can be used to call the runtime contract with code and data provided as hex-strings. Currently, only the code + data version and the `TxInput` overload is supported, but the one using both `TxInput` and `Context` will soon be supported as well.
 
 The supporting script will be improved over time.
 
