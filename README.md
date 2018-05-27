@@ -222,6 +222,10 @@ The initial version only lets you run code. There is no gas metering system in p
 
 Calls are currently being tested, and is not yet verified to work well. `CALLCODE` has not yet been added, and delegatecall has no tests.
 
+Of the precompiled contracts, only ecrecover, sha256, ripemd160 and identity has been implemented. Neither of them are properly tested, although the last 3 works when running compiled solidity contracts in which they are used.
+
+`CREATE2` has not been added.
+
 ### Roadmap
 
 The plan for `0.2.0`, is to support all instructions, and to have a full test suite done.
