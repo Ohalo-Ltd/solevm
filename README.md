@@ -1,8 +1,8 @@
 # Solidity EVM and Runtime (PoC)
 
-This is a (partial) implementation of the Ethereum runtime in Solidity. The runtime contract allows you to execute evm bytecode with calldata and various other parameters. It is meant to be used for one-off execution, like is done with the "evm" executables that comes with the ethereum clients.
+This is a simple Ethereum runtime written in Solidity. The runtime contract allows you to execute evm bytecode with calldata and various other parameters. It is meant to be used for one-off execution, like is done with the "evm" executables that comes with the ethereum clients.
 
-This is still very early in development and lots of things are added just to get basic functionality in place. Most importantly there is no support for gas metering (and may never be, due to the limit to contract code-size). See the roadmap section for the plans ahead. Hopefully it will be in great working order by the time of the `0.5.0` release of Solidity.
+This is still very early in development. There is no support for gas metering, and the limit to contract code-size could make it impossible to add. See the roadmap section for the plans ahead.
 
 **NOTE: This is only an experiment in it's early PoC stages. Do not rely on this library to test or verify EVM bytecode.**
 
@@ -10,7 +10,7 @@ This is still very early in development and lots of things are added just to get
 
 The runtime is a regular Solidity contract that can be compiled by `solc`, and can therefore be used with libraries such as `web3js` or just executed by the various different stand-alone evm implementations. The limitations is that a lot of gas is required in order to run the code, and that web3js does not have support for Solidity structs (ABI tuples).
 
-In order to build and test the code you need go-ethereum's `evm` as well as `solc` on your path. The code is tested using the solidity `0.4.24` release version and the evm `1.8.7` version - both with the constantinople settings.
+In order to build and test the code you need go-ethereum's `evm` as well as `solc` on your path. The code is tested using the solidity `0.4.24` release version and the evm `1.8.7` version - both with constantinople settings. The library includes some javsacript code and evm configuration files which can be used to run the contract. The configuration files configures the geth EVM to have the right settings, and the javascript function will call it and automatically format input and output.
 
 `bin/compile.js` can be executed to create `bin`, `bin-runtime`, `abi` and `signatures` files for the runtime contract. The files are put in the `bin_output` folder.
 
@@ -20,7 +20,7 @@ In order to build and test the code you need go-ethereum's `evm` as well as `sol
 
 ### Runtime
 
-First of all, the `EthereumRuntime` code is designed to run on a constantinople net, with all constantinople features.
+First of all, the `EthereumRuntime` code is designed to run on a constantinople net, with all constantinople features. The `genesis.json` file in the root folder can be used to configure the geth EVM (through the `--prestate` option).
 
 The executable contract is `EthereumRuntime.sol`. The contract has an `execute` method which is used to run code. It has many overloaded versions, but the simplest version takes two arguments - `code` and `data`.
 
@@ -29,6 +29,18 @@ The executable contract is `EthereumRuntime.sol`. The contract has an `execute` 
 `data` is the calldata.
 
 The solidity type for both of them is `bytes memory`.
+
+```
+// Execute the given code and call-data.
+    function execute(bytes memory code, bytes memory data) public pure returns (Result memory state);
+
+    // Execute the given transaction.
+    function execute(TxInput memory input) public pure returns (Result memory result);
+
+    // Execute the given transaction in the given context.
+    function execute(TxInput memory input, Context memory context) public pure returns (Result memory result);
+
+```
 
 The other alternatives have two objects, `TxInput` and `Context`:
 
@@ -47,7 +59,7 @@ The other alternatives have two objects, `TxInput` and `Context`:
     }
 ```
 
-The `gas` and `gasPrice` fields are never used, since gas is not yet supported. All the other params are obvious except for `staticExec` which should be set to `true` if the call should be executed as a `STATICCALL`, i.e. what used to be called a read-only "call", as opposed to a "transaction".
+The `gas` and `gasPrice` fields are reserved but never used, since gas is not yet supported. All the other params are obvious except for `staticExec` which should be set to `true` if the call should be executed as a `STATICCALL`, i.e. what used to be called a read-only call (as opposed to a transaction).
 
 ```
 struct Context {
@@ -220,9 +232,9 @@ The supporting script will be improved over time.
 
 The initial version only lets you run code. There is no gas metering system in place.
 
-Calls are currently being tested, and is not yet verified to work well. `CALLCODE` has not yet been added, and delegatecall has no tests.
+Calls are currently being tested, and is not yet verified to work well in all cases. `CALLCODE` has not yet been added (and may not be).
 
-Of the precompiled contracts, only ecrecover, sha256, ripemd160 and identity has been implemented. Neither of them are properly tested, although the last 3 works when running compiled solidity contracts in which they are used.
+Of the precompiled contracts, only ecrecover, sha256, ripemd160 and identity has been implemented. Neither of them are properly tested.
 
 `CREATE2` has not been added.
 

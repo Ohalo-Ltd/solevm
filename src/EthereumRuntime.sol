@@ -119,6 +119,7 @@ contract IEthereumRuntime is EVMConstants {
 
 }
 
+
 contract EthereumRuntime is IEthereumRuntime {
 
     constructor() public {}
@@ -141,9 +142,9 @@ contract EthereumRuntime is IEthereumRuntime {
         evm.target = evm.accounts.get(evmInput.target);
         evm.staticExec = evmInput.staticExec;
 
-        // Transfer value. TODO
-        if (evm.value > 0) {
-            if (evm.staticExec && callType == CallType.Call) {
+        // Transfer value. TODO if callcode is added
+        if (callType != CallType.DelegateCall && evm.value > 0) {
+            if (evm.staticExec) {
                 evm.errno = ERROR_ILLEGAL_WRITE_OPERATION;
                 return;
             }
@@ -352,9 +353,9 @@ contract EthereumRuntime is IEthereumRuntime {
 
     function handlePreC_ECRECOVER(bytes memory input) internal pure returns (bytes memory ret, uint errno){
         uint hash = EVMUtils.toUint(input, 0, 32);
-        uint v = EVMUtils.toUint(input, 32, 1);
-        uint r = EVMUtils.toUint(input, 33, 32);
-        uint s = EVMUtils.toUint(input, 65, 32);
+        uint v = uint8(EVMUtils.toUint(input, 32, 32));
+        uint r = EVMUtils.toUint(input, 64, 32);
+        uint s = EVMUtils.toUint(input, 96, 32);
         address result = ecrecover(bytes32(hash), uint8(v), bytes32(r), bytes32(s));
         ret = EVMUtils.fromUint(uint(result));
     }
@@ -1019,7 +1020,6 @@ contract EthereumRuntime is IEthereumRuntime {
 
     // 0x6X, 0x7X
 
-
     function handlePUSH(EVM memory state) internal pure returns (uint errno) {
         assert(1 <= state.n && state.n <= 32);
         if (state.stack.size == MAX_STACK_SIZE) {
@@ -1142,6 +1142,8 @@ contract EthereumRuntime is IEthereumRuntime {
             state.lastRet = retEvm.returnData;
             // Update to the new state.
             state.accounts = retEvm.accounts;
+            state.caller = state.accounts.get(state.caller.addr);
+            state.target = state.accounts.get(state.target.addr);
             state.logs = retEvm.logs;
         }
     }
@@ -1178,6 +1180,7 @@ contract EthereumRuntime is IEthereumRuntime {
         input.caller = state.caller.addr;
         bytes memory callCode = state.accounts.get(address(targetAddr)).code;
         bytes memory oldCode = state.target.code;
+        input.target = state.target.addr;
         state.target.code = callCode;
 
         input.context = state.context;
@@ -1187,7 +1190,7 @@ contract EthereumRuntime is IEthereumRuntime {
         input.staticExec = state.staticExec;
 
         EVM memory retEvm = _call(input, CallType.DelegateCall);
-        state.target.code = oldCode;
+
         if (retEvm.errno != NO_ERROR) {
             state.stack.push(0);
             state.lastRet = new bytes(0);
@@ -1195,7 +1198,12 @@ contract EthereumRuntime is IEthereumRuntime {
             state.stack.push(1);
             state.mem.storeBytesAndPadWithZeroes(retEvm.returnData, 0, retOffset, retSize);
             state.lastRet = retEvm.returnData;
+            state.accounts = retEvm.accounts;
+            state.caller = state.accounts.get(state.caller.addr);
+            state.target = state.accounts.get(state.target.addr);
+            state.logs = retEvm.logs;
         }
+        state.target.code = oldCode;
     }
 
     function handleSTATICCALL(EVM memory state) internal pure returns (uint errno) {

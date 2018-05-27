@@ -132,22 +132,6 @@ export const execute = async (code, data) => {
     return decode(res);
 };
 
-/*
-    struct TxInput {
-        uint gas;
-        uint gasPrice;
-        address caller;
-        uint callerBalance;
-        uint callerNonce;
-        uint value;
-        address target;
-        uint targetBalance;
-        uint targetNonce;
-        bytes targetCode;
-        bytes data;
-    }
- */
-
 export const newDefaultTxInput = () => {
     return {
         gas: BN_ZERO,

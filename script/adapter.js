@@ -149,21 +149,6 @@ exports.execute = function (code, data) { return __awaiter(_this, void 0, void 0
         return [2 /*return*/, exports.decode(res)];
     });
 }); };
-/*
-    struct TxInput {
-        uint gas;
-        uint gasPrice;
-        address caller;
-        uint callerBalance;
-        uint callerNonce;
-        uint value;
-        address target;
-        uint targetBalance;
-        uint targetNonce;
-        bytes targetCode;
-        bytes data;
-    }
- */
 exports.newDefaultTxInput = function () {
     return {
         gas: BN_ZERO,

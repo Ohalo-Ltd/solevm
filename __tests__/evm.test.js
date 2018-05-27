@@ -60,7 +60,7 @@ beforeAll(function () { return __awaiter(_this, void 0, void 0, function () {
                 return [2 /*return*/];
         }
     });
-}); }, 20000);
+}); }, 30000);
 var runTest = function (code, data, resExpected) { return __awaiter(_this, void 0, void 0, function () {
     var result, i;
     return __generator(this, function (_a) {
@@ -2747,7 +2747,7 @@ describe('single instructions', function () { return __awaiter(_this, void 0, vo
 describe('precompiles', () => {
 
     it('ecrecover', async () => {
-        const code = PUSH1 + '20' + PUSH1 + '20' + PUSH1 + '20' + PUSH1 + '00' + PUSH1 + '01' + PUSH1 + '00' + STATICCALL;
+        const code = PUSH1 + '20' + PUSH1 + '20' + PUSH1 + '80' + PUSH1 + '00' + PUSH1 + '01' + PUSH1 + '00' + STATICCALL;
         const data = "";
         const result = await execute(code, data);
         prettyPrintResults(result);
@@ -3272,6 +3272,50 @@ describe('solidity contracts', function () {
                     expect(result.errno).toBe(constants_1.NO_ERROR);
                     expect(result.accounts[1].balance.eq(0)).toBeTruthy();
                     expect(result.accounts[1].destroyed).toBeTruthy();
+                    return [2 /*return*/];
+            }
+        });
+    }); });
+    it('should call test function on TestContractCallsB', function () { return __awaiter(_this, void 0, void 0, function () {
+        var code, data, input, result, storage;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0:
+                    code = io_1.readText(path.join(constants_1.BIN_OUTPUT_PATH, 'TestContractCallsB.bin-runtime'));
+                    data = constants_1.CONTRACT_TEST_SIG;
+                    input = adapter_1.createTxInput(code, data);
+                    return [4 /*yield*/, adapter_1.executeWithTxInput(input)];
+                case 1:
+                    result = _a.sent();
+                    //prettyPrintResults(result);
+                    expect(result.errno).toBe(constants_1.NO_ERROR);
+                    storage = result.accounts[3].storage;
+                    expect(storage[0].address.eq(0)).toBeTruthy();
+                    expect(storage[0].value.eq(5)).toBeTruthy();
+                    expect(storage[1].address.eq(1)).toBeTruthy();
+                    expect(storage[1].value.eq("e795c695551b833dd8abd2bc8bf6c67051b17b44", 16)).toBeTruthy();
+                    return [2 /*return*/];
+            }
+        });
+    }); });
+    it('should call test function on TestContractCallsC', function () { return __awaiter(_this, void 0, void 0, function () {
+        var code, data, input, result, storage;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0:
+                    code = io_1.readText(path.join(constants_1.BIN_OUTPUT_PATH, 'TestContractCallsC.bin-runtime'));
+                    data = constants_1.CONTRACT_TEST_SIG;
+                    input = adapter_1.createTxInput(code, data);
+                    return [4 /*yield*/, adapter_1.executeWithTxInput(input)];
+                case 1:
+                    result = _a.sent();
+                    //prettyPrintResults(result);
+                    expect(result.errno).toBe(constants_1.NO_ERROR);
+                    storage = result.accounts[2].storage;
+                    expect(storage[0].address.eq(0)).toBeTruthy();
+                    expect(storage[0].value.eq(5)).toBeTruthy();
+                    expect(storage[1].address.eq(1)).toBeTruthy();
+                    expect(storage[1].value.eq("101010101010101010101010101010101010101", 16)).toBeTruthy();
                     return [2 /*return*/];
             }
         });
