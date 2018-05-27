@@ -85,6 +85,30 @@ var runTest = function (code, data, resExpected) { return __awaiter(_this, void 
         }
     });
 }); };
+var runTestWithInput = function (input, resExpected) { return __awaiter(_this, void 0, void 0, function () {
+    var result, i;
+    return __generator(this, function (_a) {
+        switch (_a.label) {
+            case 0: return [4 /*yield*/, adapter_1.executeWithTxInput(input)];
+            case 1:
+                result = _a.sent();
+                //console.log(result);
+                //console.log(result.stack[0].toNumber());
+                expect(result.errno).toEqual(resExpected.errno);
+                expect(result.errpc).toEqual(resExpected.errpc);
+                expect(result.returnData).toEqual(resExpected.returnData);
+                expect(result.mem.length).toEqual(resExpected.mem.length);
+                expect(result.mem).toEqual(resExpected.mem);
+                expect(result.stack.length).toEqual(resExpected.stack.length);
+                for (i = 0; i < result.stack.length; i++) {
+                    //console.log(result.stack[i].toString(16));
+                    //console.log(resExpected.stack[i].toString(16));
+                    expect(result.stack[i].eq(resExpected.stack[i])).toBeTruthy();
+                }
+                return [2 /*return*/, result];
+        }
+    });
+}); };
 describe('single instructions', function () { return __awaiter(_this, void 0, void 0, function () {
     var _this = this;
     return __generator(this, function (_a) {
@@ -1544,7 +1568,7 @@ describe('single instructions', function () { return __awaiter(_this, void 0, vo
                                 memSize: 0,
                                 mem: "",
                                 stack: [
-                                    constants_1.DEFAULT_CONTRACT_ADDRESS
+                                    new bignumber_js_1.BigNumber(constants_1.DEFAULT_CONTRACT_ADDRESS, 16)
                                 ],
                             };
                             return [4 /*yield*/, runTest(code, data, resExpected)];
@@ -1555,13 +1579,14 @@ describe('single instructions', function () { return __awaiter(_this, void 0, vo
                 });
             }); });
             it('should use BALANCE successfully', function () { return __awaiter(_this, void 0, void 0, function () {
-                var stack_0, code, data, resExpected;
+                var code, data, input, resExpected, result;
                 return __generator(this, function (_a) {
                     switch (_a.label) {
                         case 0:
-                            stack_0 = '0000000000000000000000000000000000000000000000000000000000000000';
-                            code = constants_1.PUSH32 + stack_0 + constants_1.BALANCE;
+                            code = constants_1.PUSH20 + constants_1.DEFAULT_CALLER + constants_1.BALANCE;
                             data = "";
+                            input = adapter_1.createTxInput(code, data, 500);
+                            input.value = 0; // just use createTxInput to not have to set everything.
                             resExpected = {
                                 errno: 0,
                                 errpc: code.length / 2,
@@ -1569,12 +1594,12 @@ describe('single instructions', function () { return __awaiter(_this, void 0, vo
                                 memSize: 0,
                                 mem: "",
                                 stack: [
-                                    new bignumber_js_1.BigNumber(0)
+                                    new bignumber_js_1.BigNumber(500)
                                 ],
                             };
-                            return [4 /*yield*/, runTest(code, data, resExpected)];
+                            return [4 /*yield*/, runTestWithInput(input, resExpected)];
                         case 1:
-                            _a.sent();
+                            result = _a.sent();
                             return [2 /*return*/];
                     }
                 });
@@ -1593,7 +1618,7 @@ describe('single instructions', function () { return __awaiter(_this, void 0, vo
                                 memSize: 0,
                                 mem: "",
                                 stack: [
-                                    constants_1.DEFAULT_CALLER
+                                    new bignumber_js_1.BigNumber(constants_1.DEFAULT_CALLER, 16)
                                 ],
                             };
                             return [4 /*yield*/, runTest(code, data, resExpected)];
@@ -1604,12 +1629,13 @@ describe('single instructions', function () { return __awaiter(_this, void 0, vo
                 });
             }); });
             it('should use CALLVALUE successfully', function () { return __awaiter(_this, void 0, void 0, function () {
-                var code, data, resExpected;
+                var code, data, input, resExpected, result;
                 return __generator(this, function (_a) {
                     switch (_a.label) {
                         case 0:
                             code = constants_1.CALLVALUE;
                             data = "";
+                            input = adapter_1.createTxInput(code, data, 55, false);
                             resExpected = {
                                 errno: 0,
                                 errpc: code.length / 2,
@@ -1617,12 +1643,12 @@ describe('single instructions', function () { return __awaiter(_this, void 0, vo
                                 memSize: 0,
                                 mem: "",
                                 stack: [
-                                    new bignumber_js_1.BigNumber(0)
+                                    new bignumber_js_1.BigNumber(55)
                                 ],
                             };
-                            return [4 /*yield*/, runTest(code, data, resExpected)];
+                            return [4 /*yield*/, runTestWithInput(input, resExpected)];
                         case 1:
-                            _a.sent();
+                            result = _a.sent();
                             return [2 /*return*/];
                     }
                 });
@@ -3203,6 +3229,49 @@ describe('solidity contracts', function () {
                     //prettyPrintResults(result);
                     expect(result.errno).toBe(constants_1.NO_ERROR);
                     expect(result.returnData).toBe('00000000000000000000000000000000000000000000000000000000000000040000000000000000000000000000000000000000000000000000000000000005');
+                    return [2 /*return*/];
+            }
+        });
+    }); });
+    it('should call test function on TestContractCreatesPayable', function () { return __awaiter(_this, void 0, void 0, function () {
+        var code, data, input, result, _i, _a, acc;
+        return __generator(this, function (_b) {
+            switch (_b.label) {
+                case 0:
+                    code = io_1.readText(path.join(constants_1.BIN_OUTPUT_PATH, 'TestContractCreatesPayable.bin-runtime'));
+                    data = constants_1.CONTRACT_TEST_SIG;
+                    input = adapter_1.createTxInput(code, data, 3);
+                    input.value = 2;
+                    return [4 /*yield*/, adapter_1.executeWithTxInput(input)];
+                case 1:
+                    result = _b.sent();
+                    //prettyPrintResults(result);
+                    expect(result.errno).toBe(constants_1.NO_ERROR);
+                    expect(result.accounts.length).toBe(3);
+                    // should spread the 3 wei, 1 to each account.
+                    for (_i = 0, _a = result.accounts; _i < _a.length; _i++) {
+                        acc = _a[_i];
+                        expect(acc.balance.eq(1)).toBeTruthy();
+                    }
+                    return [2 /*return*/];
+            }
+        });
+    }); });
+    it('should call test function on TestContractSelfDestructs', function () { return __awaiter(_this, void 0, void 0, function () {
+        var code, data, input, result;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0:
+                    code = io_1.readText(path.join(constants_1.BIN_OUTPUT_PATH, 'TestContractSelfDestructs.bin-runtime'));
+                    data = constants_1.CONTRACT_TEST_SIG;
+                    input = adapter_1.createTxInput(code, data, 55);
+                    return [4 /*yield*/, adapter_1.executeWithTxInput(input)];
+                case 1:
+                    result = _a.sent();
+                    //prettyPrintResults(result);
+                    expect(result.errno).toBe(constants_1.NO_ERROR);
+                    expect(result.accounts[1].balance.eq(0)).toBeTruthy();
+                    expect(result.accounts[1].destroyed).toBeTruthy();
                     return [2 /*return*/];
             }
         });

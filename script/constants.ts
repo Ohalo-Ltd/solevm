@@ -10,13 +10,13 @@ export const CONTRACT_FILE = path.join(ROOT_PATH, "contracts.json");
 export const SOL_ETH_SRC = path.join(SRC_PATH, "EthereumRuntime.sol");
 export const SOL_ETH_BIN = path.join(BIN_OUTPUT_PATH, "EthereumRuntime.bin-runtime");
 export const EVM_EXECUTE_SIG = '1f6a1eb9';
-export const EVM_EXECUTE_TXINPUT_SIG = 'fb9cc4af';
+export const EVM_EXECUTE_TXINPUT_SIG = '3edd9a51';
 export const CONTRACT_TEST_SIG = 'f8a8fd6d';
 
 export const TEST_CONTRACT_PATH = path.join(ROOT_PATH, '__tests__', 'testcontracts.sol');
 
-export const DEFAULT_CALLER = new BigNumber('1234567812345678123456781234567812345678', 16);
-export const DEFAULT_CONTRACT_ADDRESS = new BigNumber('0101010101010101010101010101010101010101', 16);
+export const DEFAULT_CALLER = '1234567812345678123456781234567812345678';
+export const DEFAULT_CONTRACT_ADDRESS = '0101010101010101010101010101010101010101';
 // Errors
 
 export const NO_ERROR = 0;

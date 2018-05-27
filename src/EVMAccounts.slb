@@ -14,7 +14,8 @@ library EVMAccounts {
         address addr;
         uint balance;
         uint8 nonce;
-        bytes code; // TODO code-hash
+        bool destroyed;
+        bytes code;
         EVMStorage.Storage stge;
     }
 
@@ -73,6 +74,7 @@ library EVMAccounts {
                 e.account.addr,
                 e.account.balance,
                 e.account.nonce,
+                e.account.destroyed,
                 e.account.code,
                 e.account.stge.copy()
             ));
@@ -89,6 +91,7 @@ library EVMAccounts {
                     e.account.addr,
                     e.account.balance,
                     e.account.nonce,
+                    e.account.destroyed,
                     e.account.code,
                     e.account.stge.copy()
                 ));
@@ -111,7 +114,7 @@ library EVMAccounts {
         while (true) {
             uint stgSize = e.account.stge.size;
             accs[i++] = e.account;
-            totalSize += 6 + stgSize * 2;
+            totalSize += 7 + stgSize * 2;
             codeSize += e.account.code.length;
             if (e._next == 0) {
                 break;
@@ -130,16 +133,17 @@ library EVMAccounts {
             arr[offset] = uint(acc.addr);
             arr[offset + 1] = acc.balance;
             arr[offset + 2] = acc.nonce;
-            arr[offset + 3] = codeOffset;
-            arr[offset + 4] = acc.code.length;
-            arr[offset + 5] = acc.stge.size;
+            arr[offset + 3] = acc.destroyed ? 1 : 0;
+            arr[offset + 4] = codeOffset;
+            arr[offset + 5] = acc.code.length;
+            arr[offset + 6] = acc.stge.size;
             EVMStorage.StorageSlot[] memory stge = EVMStorage.toArray(acc.stge);
             for (uint j = 0; j < stge.length; j++) {
-                arr[offset + 6 + 2 * j] = stge[j].addr;
-                arr[offset + 6 + 2 * j + 1] = stge[j].val;
+                arr[offset + 7 + 2*j] = stge[j].addr;
+                arr[offset + 7 + 2*j + 1] = stge[j].val;
             }
             EVMUtils.copy(acc.code, code, 0, codeOffset, acc.code.length);
-            offset += 6 + stge.length * 2;
+            offset += 7 + stge.length * 2;
             codeOffset += acc.code.length;
         }
     }

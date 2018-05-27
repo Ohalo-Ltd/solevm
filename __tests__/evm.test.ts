@@ -1,4 +1,11 @@
-import {execute, prettyPrintResults, printStack, printStorage} from "../script/adapter";
+import {
+    createTxInput,
+    execute,
+    executeWithTxInput, newDefaultTxInput,
+    prettyPrintResults,
+    printStack,
+    printStorage
+} from "../script/adapter";
 import {BigNumber} from "bignumber.js";
 import {
     ADD,
@@ -25,7 +32,7 @@ import {
     NO_ERROR, NOT, NUMBER, OR,
     PC,
     POP,
-    PUSH1, PUSH2,
+    PUSH1, PUSH2, PUSH20,
     PUSH29,
     PUSH32,
     PUSH4,
@@ -83,12 +90,27 @@ const runTest = async (code, data, resExpected) => {
     return result;
 };
 
+const runTestWithInput = async (input, resExpected) => {
+    const result = await executeWithTxInput(input);
+    //console.log(result);
+    //console.log(result.stack[0].toNumber());
+    expect(result.errno).toEqual(resExpected.errno);
+    expect(result.errpc).toEqual(resExpected.errpc);
+    expect(result.returnData).toEqual(resExpected.returnData);
+    expect(result.mem.length).toEqual(resExpected.mem.length);
+    expect(result.mem).toEqual(resExpected.mem);
+    expect(result.stack.length).toEqual(resExpected.stack.length);
+    for (let i = 0; i < result.stack.length; i++) {
+        //console.log(result.stack[i].toString(16));
+        //console.log(resExpected.stack[i].toString(16));
+        expect(result.stack[i].eq(resExpected.stack[i])).toBeTruthy();
+    }
+    return result;
+};
 
 describe('single instructions', async () => {
 
-    
     describe('stop and arithmetic ops', () => {
-
         it('should STOP successfully', async () => {
             const code = STOP;
             const data = "";
@@ -1061,11 +1083,9 @@ describe('single instructions', async () => {
         });
 
     });
-    
-    
 
     describe('environmental information', () => {
-        
+
         it('should use ADDRESS successfully', async () => {
             const code = ADDRESS;
             const data = "";
@@ -1076,16 +1096,17 @@ describe('single instructions', async () => {
                 memSize: 0,
                 mem: "",
                 stack: [
-                    DEFAULT_CONTRACT_ADDRESS
+                    new BigNumber(DEFAULT_CONTRACT_ADDRESS, 16)
                 ],
             };
             await runTest(code, data, resExpected);
         });
 
         it('should use BALANCE successfully', async () => {
-            const stack_0 = '0000000000000000000000000000000000000000000000000000000000000000';
-            const code = PUSH32 + stack_0 + BALANCE;
+            const code = PUSH20 + DEFAULT_CALLER + BALANCE;
             const data = "";
+            const input = createTxInput(code, data, 500);
+            input.value = 0; // just use createTxInput to not have to set everything.
             const resExpected = {
                 errno: 0,
                 errpc: code.length / 2,
@@ -1093,10 +1114,11 @@ describe('single instructions', async () => {
                 memSize: 0,
                 mem: "",
                 stack: [
-                    new BigNumber(0)
+                    new BigNumber(500)
                 ],
             };
-            await runTest(code, data, resExpected);
+            const result = await runTestWithInput(input, resExpected);
+            //prettyPrintResults(result);
         });
 
         it('should use CALLER successfully', async () => {
@@ -1109,7 +1131,7 @@ describe('single instructions', async () => {
                 memSize: 0,
                 mem: "",
                 stack: [
-                    DEFAULT_CALLER
+                    new BigNumber(DEFAULT_CALLER, 16)
                 ],
             };
             await runTest(code, data, resExpected);
@@ -1118,6 +1140,7 @@ describe('single instructions', async () => {
         it('should use CALLVALUE successfully', async () => {
             const code = CALLVALUE;
             const data = "";
+            const input = createTxInput(code, data, 55, false);
             const resExpected = {
                 errno: 0,
                 errpc: code.length / 2,
@@ -1125,10 +1148,11 @@ describe('single instructions', async () => {
                 memSize: 0,
                 mem: "",
                 stack: [
-                    new BigNumber(0)
+                    new BigNumber(55)
                 ],
             };
-            await runTest(code, data, resExpected);
+            const result = await runTestWithInput(input, resExpected);
+            //prettyPrintResults(result);
         });
 
         it('should use CALLDATALOAD successfully within the calldata boundary, with no offset', async () => {
@@ -1353,9 +1377,8 @@ describe('single instructions', async () => {
             };
             await runTest(code, data, resExpected);
         });
-        
     });
-    
+
         describe('block information', () => {
     
             it('should use BLOCKHASH successfully', async () => {
@@ -1912,8 +1935,9 @@ describe('single instructions', async () => {
             });
     
         });
-        
+
 });
+
 
 /* TODO
 describe('precompiles', () => {
@@ -1952,276 +1976,303 @@ describe('precompiles', () => {
 
 describe('solidity contracts', () => {
 
-    it('should call test function on TestContractNoop', async () => {
-        const code = readText(path.join(BIN_OUTPUT_PATH, 'TestContractNoop.bin-runtime'));
-        const result = await execute(code, CONTRACT_TEST_SIG);
-        expect(result.errno).toBe(NO_ERROR);
-    });
+        it('should call test function on TestContractNoop', async () => {
+            const code = readText(path.join(BIN_OUTPUT_PATH, 'TestContractNoop.bin-runtime'));
+            const result = await execute(code, CONTRACT_TEST_SIG);
+            expect(result.errno).toBe(NO_ERROR);
+        });
 
-    it('should call test function on TestContractRetUint', async () => {
-        const code = readText(path.join(BIN_OUTPUT_PATH, 'TestContractRetUint.bin-runtime'));
-        const result = await execute(code, CONTRACT_TEST_SIG);
-        expect(result.errno).toBe(NO_ERROR);
-        expect(result.returnData).toBe('0000000000000000000000000000000000000000000000000000000000000005');
-    });
+        it('should call test function on TestContractRetUint', async () => {
+            const code = readText(path.join(BIN_OUTPUT_PATH, 'TestContractRetUint.bin-runtime'));
+            const result = await execute(code, CONTRACT_TEST_SIG);
+            expect(result.errno).toBe(NO_ERROR);
+            expect(result.returnData).toBe('0000000000000000000000000000000000000000000000000000000000000005');
+        });
 
-    it('should call test function on TestContractReverts', async () => {
-        const code = readText(path.join(BIN_OUTPUT_PATH, 'TestContractReverts.bin-runtime'));
-        const result = await execute(code, CONTRACT_TEST_SIG);
-        //console.log(result);
-        expect(result.errno).toBe(ERROR_STATE_REVERTED);
-        expect(result.returnData).toBe('');
-    });
+        it('should call test function on TestContractReverts', async () => {
+            const code = readText(path.join(BIN_OUTPUT_PATH, 'TestContractReverts.bin-runtime'));
+            const result = await execute(code, CONTRACT_TEST_SIG);
+            //console.log(result);
+            expect(result.errno).toBe(ERROR_STATE_REVERTED);
+            expect(result.returnData).toBe('');
+        });
 
-    it('should call test function on TestContractRevertsWithArgument', async () => {
-        const code = readText(path.join(BIN_OUTPUT_PATH, 'TestContractRevertsWithArgument.bin-runtime'));
-        const result = await execute(code, CONTRACT_TEST_SIG);
-        //console.log(result);
-        expect(result.errno).toBe(ERROR_STATE_REVERTED);
-        expect(result.returnData).toBe('08c379a0000000000000000000000000000000000000000000000000000000000000002000000000000000000000000000000000000000000000000000000000000000036162630000000000000000000000000000000000000000000000000000000000');
-    });
+        it('should call test function on TestContractRevertsWithArgument', async () => {
+            const code = readText(path.join(BIN_OUTPUT_PATH, 'TestContractRevertsWithArgument.bin-runtime'));
+            const result = await execute(code, CONTRACT_TEST_SIG);
+            //console.log(result);
+            expect(result.errno).toBe(ERROR_STATE_REVERTED);
+            expect(result.returnData).toBe('08c379a0000000000000000000000000000000000000000000000000000000000000002000000000000000000000000000000000000000000000000000000000000000036162630000000000000000000000000000000000000000000000000000000000');
+        });
 
-    it('should call test function on TestContractCallsItself', async () => {
-        const code = readText(path.join(BIN_OUTPUT_PATH, 'TestContractCallsItself.bin-runtime'));
-        const result = await execute(code, CONTRACT_TEST_SIG);
-        //console.log(result);
-        expect(result.errno).toBe(NO_ERROR);
-        expect(result.returnData).toBe('0000000000000000000000000000000000000000000000000000000000000003');
-    });
+        it('should call test function on TestContractCallsItself', async () => {
+            const code = readText(path.join(BIN_OUTPUT_PATH, 'TestContractCallsItself.bin-runtime'));
+            const result = await execute(code, CONTRACT_TEST_SIG);
+            //console.log(result);
+            expect(result.errno).toBe(NO_ERROR);
+            expect(result.returnData).toBe('0000000000000000000000000000000000000000000000000000000000000003');
+        });
 
-    it('should call test function on TestContractStorageWrite', async () => {
-        const code = readText(path.join(BIN_OUTPUT_PATH, 'TestContractStorageWrite.bin-runtime'));
-        const result = await execute(code, CONTRACT_TEST_SIG);
-        expect(result.errno).toBe(NO_ERROR);
-        const storage = result.accounts[1].storage;
-        //console.log(result);
+        it('should call test function on TestContractStorageWrite', async () => {
+            const code = readText(path.join(BIN_OUTPUT_PATH, 'TestContractStorageWrite.bin-runtime'));
+            const result = await execute(code, CONTRACT_TEST_SIG);
+            expect(result.errno).toBe(NO_ERROR);
+            const storage = result.accounts[1].storage;
+            //console.log(result);
+            //prettyPrintResults(result);
+            expect(storage.length).toBe(4);
+            expect(storage[0].address.eq(new BigNumber(0))).toBeTruthy();
+            expect(storage[0].value.eq(new BigNumber(3))).toBeTruthy();
+            expect(storage[1].address.eq(new BigNumber('290decd9548b62a8d60345a988386fc84ba6bc95484008f6362f93160ef3e563', 16))).toBeTruthy();
+            expect(storage[1].value.eq(new BigNumber(0x11))).toBeTruthy();
+            expect(storage[2].address.eq(new BigNumber('290decd9548b62a8d60345a988386fc84ba6bc95484008f6362f93160ef3e564', 16))).toBeTruthy();
+            expect(storage[2].value.eq(new BigNumber(0x22))).toBeTruthy();
+            expect(storage[3].address.eq(new BigNumber('290decd9548b62a8d60345a988386fc84ba6bc95484008f6362f93160ef3e565', 16))).toBeTruthy();
+            expect(storage[3].value.eq(new BigNumber(0x33))).toBeTruthy();
+            expect(result.returnData).toBe('');
+
+        });
+
+        it('should call test function on TestContractStorageAndInternal', async () => {
+            const code = readText(path.join(BIN_OUTPUT_PATH, 'TestContractStorageAndInternal.bin-runtime'));
+            const result = await execute(code, CONTRACT_TEST_SIG);
+            expect(result.errno).toBe(NO_ERROR);
+            const storage = result.accounts[1].storage;
+            expect(result.returnData).toBe('0000000000000000000000000000000000000000000000000000000000000009');
+            expect(storage[0].address.eq(new BigNumber(0))).toBeTruthy();
+            expect(storage[0].value.eq(new BigNumber(9))).toBeTruthy();
+        });
+
+        it('should create DeployedContractEmpty', async () => {
+            const code = readText(path.join(BIN_OUTPUT_PATH, 'DeployedContractEmpty.bin'));
+            const runtimeCode = readText(path.join(BIN_OUTPUT_PATH, 'DeployedContractEmpty.bin-runtime'));
+            const result = await execute(code, CONTRACT_TEST_SIG);
+            expect(result.returnData).toEqual(runtimeCode);
+            expect(result.errno).toBe(NO_ERROR);
+        });
+
+        it('should call test function on TestContractCreate', async () => {
+            const code = readText(path.join(BIN_OUTPUT_PATH, 'TestContractCreate.bin-runtime'));
+            const result = await execute(code, CONTRACT_TEST_SIG);
+            expect(result.errno).toBe(NO_ERROR);
+            expect(result.returnData).toBe('000000000000000000000000e795c695551b833dd8abd2bc8bf6c67051b17b44');
+        });
+
+        it('should call test function on TestContractCreateAndCall', async () => {
+            const code = readText(path.join(BIN_OUTPUT_PATH, 'TestContractCreateAndCall.bin-runtime'));
+            const result = await execute(code, CONTRACT_TEST_SIG);
+            //console.log(result);
+            expect(result.errno).toBe(NO_ERROR);
+            expect(result.returnData).toBe('0000000000000000000000000000000000000000000000000000000000000003');
+        });
+
+        it('should call test function on TestContractCreateAndStaticCall', async () => {
+            const code = readText(path.join(BIN_OUTPUT_PATH, 'TestContractCreateAndStaticCall.bin-runtime'));
+            const result = await execute(code, CONTRACT_TEST_SIG);
+            //console.log(result);
+            expect(result.errno).toBe(NO_ERROR);
+            expect(result.returnData).toBe('0000000000000000000000000000000000000000000000000000000000000003');
+        });
+
+        it('should call test function on TestContractCallchainSameContract', async () => {
+            const code = readText(path.join(BIN_OUTPUT_PATH, 'TestContractCallchainSameContract.bin-runtime'));
+            const result = await execute(code, CONTRACT_TEST_SIG);
+            //console.log(result);
+            expect(result.errno).toBe(NO_ERROR);
+            expect(result.returnData).toBe('0000000000000000000000000000000000000000000000000000000000000002');
+        });
+
+        it('should call test function on TestContractFailedAssertion', async () => {
+            const code = readText(path.join(BIN_OUTPUT_PATH, 'TestContractFailedAssertion.bin-runtime'));
+            const result = await execute(code, CONTRACT_TEST_SIG);
+            //console.log(result);
+            expect(result.errno).toBe(ERROR_INVALID_OPCODE);
+        });
+
+        it('should call test function on TestContractNoTopicEvent', async () => {
+            const code = readText(path.join(BIN_OUTPUT_PATH, 'TestContractNoTopicEvent.bin-runtime'));
+            const result = await execute(code, CONTRACT_TEST_SIG);
+            //prettyPrintResults(result);
+            expect(result.errno).toBe(NO_ERROR);
+            expect(result.logs.length).toBe(1);
+            const log = result.logs[0];
+            expect(log.account).toBe("0101010101010101010101010101010101010101");
+            expect(log.topics.length).toBe(4);
+            expect(log.topics[0].eq(new BigNumber("1732d0c17008d342618e7f03069177d8d39391d79811bb4e706d7c6c84108c0f", 16))).toBeTruthy();
+            expect(log.topics[1].eq(new BigNumber(0))).toBeTruthy();
+            expect(log.topics[2].eq(new BigNumber(0))).toBeTruthy();
+            expect(log.topics[3].eq(new BigNumber(0))).toBeTruthy();
+            expect(log.data).toBe("");
+        });
+
+        it('should call test function on TestContractOneTopicEvent', async () => {
+            const code = readText(path.join(BIN_OUTPUT_PATH, 'TestContractOneTopicEvent.bin-runtime'));
+            const result = await execute(code, CONTRACT_TEST_SIG);
+            //prettyPrintResults(result);
+            expect(result.errno).toBe(NO_ERROR);
+            expect(result.logs.length).toBe(1);
+            const log = result.logs[0];
+            expect(log.account).toBe("0101010101010101010101010101010101010101");
+            expect(log.topics.length).toBe(4);
+            expect(log.topics[0].eq(new BigNumber("624fb00c2ce79f34cb543884c3af64816dce0f4cec3d32661959e49d488a7a93", 16))).toBeTruthy();
+            expect(log.topics[1].eq(new BigNumber(5))).toBeTruthy();
+            expect(log.topics[2].eq(new BigNumber(0))).toBeTruthy();
+            expect(log.topics[3].eq(new BigNumber(0))).toBeTruthy();
+            expect(log.data).toBe("");
+        });
+
+        it('should call test function on TestContractTwoTopicsEvent', async () => {
+            const code = readText(path.join(BIN_OUTPUT_PATH, 'TestContractTwoTopicsEvent.bin-runtime'));
+            const result = await execute(code, CONTRACT_TEST_SIG);
+            //prettyPrintResults(result);
+            expect(result.errno).toBe(NO_ERROR);
+            expect(result.logs.length).toBe(1);
+            const log = result.logs[0];
+
+            expect(log.account).toBe("0101010101010101010101010101010101010101");
+            expect(log.topics.length).toBe(4);
+            expect(log.topics[0].eq(new BigNumber("ebe57242c74e694c7ec0f2fe9302812f324576f94a505b0de3f0ecb473d149bb", 16))).toBeTruthy();
+            expect(log.topics[1].eq(new BigNumber(5))).toBeTruthy();
+            expect(log.topics[2].eq(new BigNumber(6))).toBeTruthy();
+            expect(log.topics[3].eq(new BigNumber(0))).toBeTruthy();
+            expect(log.data).toBe("");
+
+        });
+
+        it('should call test function on TestContractThreeTopicsEvent', async () => {
+            const code = readText(path.join(BIN_OUTPUT_PATH, 'TestContractThreeTopicsEvent.bin-runtime'));
+            const result = await execute(code, CONTRACT_TEST_SIG);
+            //prettyPrintResults(result);
+            expect(result.errno).toBe(NO_ERROR);
+            expect(result.logs.length).toBe(1);
+            const log = result.logs[0];
+            expect(log.account).toBe("0101010101010101010101010101010101010101");
+            expect(log.topics.length).toBe(4);
+            expect(log.topics[0].eq(new BigNumber("8540fe9d62711b26f5d55a228125ce553737daafbb466fb5c89ffef0b5907d14", 16))).toBeTruthy();
+            expect(log.topics[1].eq(new BigNumber(5))).toBeTruthy();
+            expect(log.topics[2].eq(new BigNumber(6))).toBeTruthy();
+            expect(log.topics[3].eq(new BigNumber(7))).toBeTruthy();
+            expect(log.data).toBe("");
+        });
+
+        it('should call test function on TestContractDataEvent', async () => {
+            const code = readText(path.join(BIN_OUTPUT_PATH, 'TestContractDataEvent.bin-runtime'));
+            const result = await execute(code, CONTRACT_TEST_SIG);
+            //prettyPrintResults(result);
+            expect(result.errno).toBe(NO_ERROR);
+
+            expect(result.logs.length).toBe(1);
+            const log = result.logs[0];
+            expect(log.account).toBe("0101010101010101010101010101010101010101");
+            expect(log.topics.length).toBe(4);
+            expect(log.topics[0].eq(new BigNumber("7e1e31b207b8694ac24cb269143e8ba879cc2fbc6def5fae514c8783140c48dc", 16))).toBeTruthy();
+            expect(log.topics[1].eq(new BigNumber(0))).toBeTruthy();
+            expect(log.topics[2].eq(new BigNumber(0))).toBeTruthy();
+            expect(log.topics[3].eq(new BigNumber(0))).toBeTruthy();
+            expect(log.data).toBe("00000000000000000000000000000000000000000000000000000000000000040000000000000000000000000000000000000000000000000000000000000005");
+        });
+
+        it('should call test function on TestContractThreeTopicsAndDataEvent', async () => {
+            const code = readText(path.join(BIN_OUTPUT_PATH, 'TestContractThreeTopicsAndDataEvent.bin-runtime'));
+            const result = await execute(code, CONTRACT_TEST_SIG);
+            //prettyPrintResults(result);
+            expect(result.errno).toBe(NO_ERROR);
+            expect(result.logs.length).toBe(1);
+            const log = result.logs[0];
+            expect(log.account).toBe("0101010101010101010101010101010101010101");
+            expect(log.topics.length).toBe(4);
+            expect(log.topics[0].eq(new BigNumber("e9759a9398e9a2cc19ff163f90583422455643acd0b40fb4561be7d1df63b160", 16))).toBeTruthy();
+            expect(log.topics[1].eq(new BigNumber(5))).toBeTruthy();
+            expect(log.topics[2].eq(new BigNumber(6))).toBeTruthy();
+            expect(log.topics[3].eq(new BigNumber(7))).toBeTruthy();
+            expect(log.data).toBe("0000000000000000000000000101010101010101010101010101010101010101");
+        });
+
+        it('should call test function on TestContractMultipleThreeTopicsAndDataEvents', async () => {
+            const code = readText(path.join(BIN_OUTPUT_PATH, 'TestContractMultipleThreeTopicsAndDataEvents.bin-runtime'));
+            const result = await execute(code, CONTRACT_TEST_SIG);
+            //prettyPrintResults(result);
+            expect(result.errno).toBe(NO_ERROR);
+            expect(result.logs.length).toBe(2);
+            const log = result.logs[0];
+            expect(log.account).toBe("0101010101010101010101010101010101010101");
+            expect(log.topics.length).toBe(4);
+            expect(log.topics[0].eq(new BigNumber("e9759a9398e9a2cc19ff163f90583422455643acd0b40fb4561be7d1df63b160", 16))).toBeTruthy();
+            expect(log.topics[1].eq(new BigNumber(5))).toBeTruthy();
+            expect(log.topics[2].eq(new BigNumber(6))).toBeTruthy();
+            expect(log.topics[3].eq(new BigNumber(7))).toBeTruthy();
+            expect(log.data).toBe("0000000000000000000000000101010101010101010101010101010101010101");
+            const log2 = result.logs[1];
+            expect(log2.account).toBe("0101010101010101010101010101010101010101");
+            expect(log2.topics.length).toBe(4);
+            expect(log2.topics[0].eq(new BigNumber("aa2ecc4039583791812ce14fb62fff084d7d4ac354b47128d283d12b9ded2275", 16))).toBeTruthy();
+            expect(log2.topics[1].eq(new BigNumber(7))).toBeTruthy();
+            expect(log2.topics[2].eq(new BigNumber(8))).toBeTruthy();
+            expect(log2.topics[3].eq(new BigNumber(9))).toBeTruthy();
+            expect(log2.data).toBe("0000000000000000000000000101010101010101010101010101010101010101");
+        });
+
+        it('should call test function on TestContractPrecompileSha256', async () => {
+            const code = readText(path.join(BIN_OUTPUT_PATH, 'TestContractPrecompileSha256.bin-runtime'));
+            const result = await execute(code, CONTRACT_TEST_SIG);
+            //prettyPrintResults(result);
+            expect(result.errno).toBe(NO_ERROR);
+            expect(result.returnData).toBe('66840dda154e8a113c31dd0ad32f7f3a366a80e8136979d8f5a101d3d29d6f72');
+        });
+
+        it('should call test function on TestContractPrecompileRipemd160', async () => {
+            const code = readText(path.join(BIN_OUTPUT_PATH, 'TestContractPrecompileRipemd160.bin-runtime'));
+            const result = await execute(code, CONTRACT_TEST_SIG);
+            //prettyPrintResults(result);
+            expect(result.errno).toBe(NO_ERROR);
+            expect(result.returnData).toBe('c9883eece7dca619b830dc9d87e82c38478111c0000000000000000000000000');
+        });
+
+        it('should call test function on TestContractMultipleCreate', async () => {
+            const code = readText(path.join(BIN_OUTPUT_PATH, 'TestContractMultipleCreate.bin-runtime'));
+            const result = await execute(code, CONTRACT_TEST_SIG);
+            //prettyPrintResults(result);
+            expect(result.errno).toBe(NO_ERROR);
+            expect(result.returnData).toBe('0000000000000000000000000000000000000000000000000000000000000005');
+        });
+
+        it('should call test function on TestContractCreateWithConstructorParams', async () => {
+            const code = readText(path.join(BIN_OUTPUT_PATH, 'TestContractCreateWithConstructorParams.bin-runtime'));
+            const result = await execute(code, CONTRACT_TEST_SIG);
+            //prettyPrintResults(result);
+            expect(result.errno).toBe(NO_ERROR);
+            expect(result.returnData).toBe('00000000000000000000000000000000000000000000000000000000000000040000000000000000000000000000000000000000000000000000000000000005');
+        });
+
+
+    it('should call test function on TestContractCreatesPayable', async () => {
+        const code = readText(path.join(BIN_OUTPUT_PATH, 'TestContractCreatesPayable.bin-runtime'));
+        const data = CONTRACT_TEST_SIG;
+        const input = createTxInput(code, data, 3);
+        input.value = 2;
+        const result = await executeWithTxInput(input);
         //prettyPrintResults(result);
-        expect(storage.length).toBe(4);
-        expect(storage[0].address.eq(new BigNumber(0))).toBeTruthy();
-        expect(storage[0].value.eq(new BigNumber(3))).toBeTruthy();
-        expect(storage[1].address.eq(new BigNumber('290decd9548b62a8d60345a988386fc84ba6bc95484008f6362f93160ef3e563', 16))).toBeTruthy();
-        expect(storage[1].value.eq(new BigNumber(0x11))).toBeTruthy();
-        expect(storage[2].address.eq(new BigNumber('290decd9548b62a8d60345a988386fc84ba6bc95484008f6362f93160ef3e564', 16))).toBeTruthy();
-        expect(storage[2].value.eq(new BigNumber(0x22))).toBeTruthy();
-        expect(storage[3].address.eq(new BigNumber('290decd9548b62a8d60345a988386fc84ba6bc95484008f6362f93160ef3e565', 16))).toBeTruthy();
-        expect(storage[3].value.eq(new BigNumber(0x33))).toBeTruthy();
-        expect(result.returnData).toBe('');
-
-    });
-
-    it('should call test function on TestContractStorageAndInternal', async () => {
-        const code = readText(path.join(BIN_OUTPUT_PATH, 'TestContractStorageAndInternal.bin-runtime'));
-        const result = await execute(code, CONTRACT_TEST_SIG);
         expect(result.errno).toBe(NO_ERROR);
-        const storage = result.accounts[1].storage;
-        expect(result.returnData).toBe('0000000000000000000000000000000000000000000000000000000000000009');
-        expect(storage[0].address.eq(new BigNumber(0))).toBeTruthy();
-        expect(storage[0].value.eq(new BigNumber(9))).toBeTruthy();
+        expect(result.accounts.length).toBe(3);
+        // should spread the 3 wei, 1 to each account.
+        for (let acc of result.accounts) {
+            expect(acc.balance.eq(1)).toBeTruthy();
+        }
+
     });
 
-    it('should create DeployedContractEmpty', async () => {
-        const code = readText(path.join(BIN_OUTPUT_PATH, 'DeployedContractEmpty.bin'));
-        const runtimeCode = readText(path.join(BIN_OUTPUT_PATH, 'DeployedContractEmpty.bin-runtime'));
-        const result = await execute(code, CONTRACT_TEST_SIG);
-        expect(result.returnData).toEqual(runtimeCode);
-        expect(result.errno).toBe(NO_ERROR);
-    });
-
-    it('should call test function on TestContractCreate', async () => {
-        const code = readText(path.join(BIN_OUTPUT_PATH, 'TestContractCreate.bin-runtime'));
-        const result = await execute(code, CONTRACT_TEST_SIG);
-        expect(result.errno).toBe(NO_ERROR);
-        expect(result.returnData).toBe('000000000000000000000000e795c695551b833dd8abd2bc8bf6c67051b17b44');
-    });
-
-    it('should call test function on TestContractCreateAndCall', async () => {
-        const code = readText(path.join(BIN_OUTPUT_PATH, 'TestContractCreateAndCall.bin-runtime'));
-        const result = await execute(code, CONTRACT_TEST_SIG);
-        //console.log(result);
-        expect(result.errno).toBe(NO_ERROR);
-        expect(result.returnData).toBe('0000000000000000000000000000000000000000000000000000000000000003');
-    });
-
-    it('should call test function on TestContractCreateAndStaticCall', async () => {
-        const code = readText(path.join(BIN_OUTPUT_PATH, 'TestContractCreateAndStaticCall.bin-runtime'));
-        const result = await execute(code, CONTRACT_TEST_SIG);
-        //console.log(result);
-        expect(result.errno).toBe(NO_ERROR);
-        expect(result.returnData).toBe('0000000000000000000000000000000000000000000000000000000000000003');
-    });
-
-    it('should call test function on TestContractCallchainSameContract', async () => {
-        const code = readText(path.join(BIN_OUTPUT_PATH, 'TestContractCallchainSameContract.bin-runtime'));
-        const result = await execute(code, CONTRACT_TEST_SIG);
-        //console.log(result);
-        expect(result.errno).toBe(NO_ERROR);
-        expect(result.returnData).toBe('0000000000000000000000000000000000000000000000000000000000000002');
-    });
-
-    it('should call test function on TestContractFailedAssertion', async () => {
-        const code = readText(path.join(BIN_OUTPUT_PATH, 'TestContractFailedAssertion.bin-runtime'));
-        const result = await execute(code, CONTRACT_TEST_SIG);
-        //console.log(result);
-        expect(result.errno).toBe(ERROR_INVALID_OPCODE);
-    });
-
-    it('should call test function on TestContractNoTopicEvent', async () => {
-        const code = readText(path.join(BIN_OUTPUT_PATH, 'TestContractNoTopicEvent.bin-runtime'));
-        const result = await execute(code, CONTRACT_TEST_SIG);
+    it('should call test function on TestContractSelfDestructs', async () => {
+        const code = readText(path.join(BIN_OUTPUT_PATH, 'TestContractSelfDestructs.bin-runtime'));
+        const data = CONTRACT_TEST_SIG;
+        const input = createTxInput(code, data, 55);
+        const result = await executeWithTxInput(input);
         //prettyPrintResults(result);
         expect(result.errno).toBe(NO_ERROR);
-        expect(result.logs.length).toBe(1);
-        const log = result.logs[0];
-        expect(log.account).toBe("0101010101010101010101010101010101010101");
-        expect(log.topics.length).toBe(4);
-        expect(log.topics[0].eq(new BigNumber("1732d0c17008d342618e7f03069177d8d39391d79811bb4e706d7c6c84108c0f", 16))).toBeTruthy();
-        expect(log.topics[1].eq(new BigNumber(0))).toBeTruthy();
-        expect(log.topics[2].eq(new BigNumber(0))).toBeTruthy();
-        expect(log.topics[3].eq(new BigNumber(0))).toBeTruthy();
-        expect(log.data).toBe("");
+        expect(result.accounts[1].balance.eq(0)).toBeTruthy();
+        expect(result.accounts[1].destroyed).toBeTruthy();
     });
 
-    it('should call test function on TestContractOneTopicEvent', async () => {
-        const code = readText(path.join(BIN_OUTPUT_PATH, 'TestContractOneTopicEvent.bin-runtime'));
-        const result = await execute(code, CONTRACT_TEST_SIG);
-        //prettyPrintResults(result);
-        expect(result.errno).toBe(NO_ERROR);
-        expect(result.logs.length).toBe(1);
-        const log = result.logs[0];
-        expect(log.account).toBe("0101010101010101010101010101010101010101");
-        expect(log.topics.length).toBe(4);
-        expect(log.topics[0].eq(new BigNumber("624fb00c2ce79f34cb543884c3af64816dce0f4cec3d32661959e49d488a7a93", 16))).toBeTruthy();
-        expect(log.topics[1].eq(new BigNumber(5))).toBeTruthy();
-        expect(log.topics[2].eq(new BigNumber(0))).toBeTruthy();
-        expect(log.topics[3].eq(new BigNumber(0))).toBeTruthy();
-        expect(log.data).toBe("");
-    });
-
-    it('should call test function on TestContractTwoTopicsEvent', async () => {
-        const code = readText(path.join(BIN_OUTPUT_PATH, 'TestContractTwoTopicsEvent.bin-runtime'));
-        const result = await execute(code, CONTRACT_TEST_SIG);
-        //prettyPrintResults(result);
-        expect(result.errno).toBe(NO_ERROR);
-        expect(result.logs.length).toBe(1);
-        const log = result.logs[0];
-
-        expect(log.account).toBe("0101010101010101010101010101010101010101");
-        expect(log.topics.length).toBe(4);
-        expect(log.topics[0].eq(new BigNumber("ebe57242c74e694c7ec0f2fe9302812f324576f94a505b0de3f0ecb473d149bb", 16))).toBeTruthy();
-        expect(log.topics[1].eq(new BigNumber(5))).toBeTruthy();
-        expect(log.topics[2].eq(new BigNumber(6))).toBeTruthy();
-        expect(log.topics[3].eq(new BigNumber(0))).toBeTruthy();
-        expect(log.data).toBe("");
-
-    });
-
-    it('should call test function on TestContractThreeTopicsEvent', async () => {
-        const code = readText(path.join(BIN_OUTPUT_PATH, 'TestContractThreeTopicsEvent.bin-runtime'));
-        const result = await execute(code, CONTRACT_TEST_SIG);
-        //prettyPrintResults(result);
-        expect(result.errno).toBe(NO_ERROR);
-        expect(result.logs.length).toBe(1);
-        const log = result.logs[0];
-        expect(log.account).toBe("0101010101010101010101010101010101010101");
-        expect(log.topics.length).toBe(4);
-        expect(log.topics[0].eq(new BigNumber("8540fe9d62711b26f5d55a228125ce553737daafbb466fb5c89ffef0b5907d14", 16))).toBeTruthy();
-        expect(log.topics[1].eq(new BigNumber(5))).toBeTruthy();
-        expect(log.topics[2].eq(new BigNumber(6))).toBeTruthy();
-        expect(log.topics[3].eq(new BigNumber(7))).toBeTruthy();
-        expect(log.data).toBe("");
-    });
-
-    it('should call test function on TestContractDataEvent', async () => {
-        const code = readText(path.join(BIN_OUTPUT_PATH, 'TestContractDataEvent.bin-runtime'));
-        const result = await execute(code, CONTRACT_TEST_SIG);
-        //prettyPrintResults(result);
-        expect(result.errno).toBe(NO_ERROR);
-
-        expect(result.logs.length).toBe(1);
-        const log = result.logs[0];
-        expect(log.account).toBe("0101010101010101010101010101010101010101");
-        expect(log.topics.length).toBe(4);
-        expect(log.topics[0].eq(new BigNumber("7e1e31b207b8694ac24cb269143e8ba879cc2fbc6def5fae514c8783140c48dc", 16))).toBeTruthy();
-        expect(log.topics[1].eq(new BigNumber(0))).toBeTruthy();
-        expect(log.topics[2].eq(new BigNumber(0))).toBeTruthy();
-        expect(log.topics[3].eq(new BigNumber(0))).toBeTruthy();
-        expect(log.data).toBe("00000000000000000000000000000000000000000000000000000000000000040000000000000000000000000000000000000000000000000000000000000005");
-    });
-
-    it('should call test function on TestContractThreeTopicsAndDataEvent', async () => {
-        const code = readText(path.join(BIN_OUTPUT_PATH, 'TestContractThreeTopicsAndDataEvent.bin-runtime'));
-        const result = await execute(code, CONTRACT_TEST_SIG);
-        //prettyPrintResults(result);
-        expect(result.errno).toBe(NO_ERROR);
-        expect(result.logs.length).toBe(1);
-        const log = result.logs[0];
-        expect(log.account).toBe("0101010101010101010101010101010101010101");
-        expect(log.topics.length).toBe(4);
-        expect(log.topics[0].eq(new BigNumber("e9759a9398e9a2cc19ff163f90583422455643acd0b40fb4561be7d1df63b160", 16))).toBeTruthy();
-        expect(log.topics[1].eq(new BigNumber(5))).toBeTruthy();
-        expect(log.topics[2].eq(new BigNumber(6))).toBeTruthy();
-        expect(log.topics[3].eq(new BigNumber(7))).toBeTruthy();
-        expect(log.data).toBe("0000000000000000000000000101010101010101010101010101010101010101");
-    });
-
-    it('should call test function on TestContractMultipleThreeTopicsAndDataEvents', async () => {
-        const code = readText(path.join(BIN_OUTPUT_PATH, 'TestContractMultipleThreeTopicsAndDataEvents.bin-runtime'));
-        const result = await execute(code, CONTRACT_TEST_SIG);
-        //prettyPrintResults(result);
-        expect(result.errno).toBe(NO_ERROR);
-        expect(result.logs.length).toBe(2);
-        const log = result.logs[0];
-        expect(log.account).toBe("0101010101010101010101010101010101010101");
-        expect(log.topics.length).toBe(4);
-        expect(log.topics[0].eq(new BigNumber("e9759a9398e9a2cc19ff163f90583422455643acd0b40fb4561be7d1df63b160", 16))).toBeTruthy();
-        expect(log.topics[1].eq(new BigNumber(5))).toBeTruthy();
-        expect(log.topics[2].eq(new BigNumber(6))).toBeTruthy();
-        expect(log.topics[3].eq(new BigNumber(7))).toBeTruthy();
-        expect(log.data).toBe("0000000000000000000000000101010101010101010101010101010101010101");
-        const log2 = result.logs[1];
-        expect(log2.account).toBe("0101010101010101010101010101010101010101");
-        expect(log2.topics.length).toBe(4);
-        expect(log2.topics[0].eq(new BigNumber("aa2ecc4039583791812ce14fb62fff084d7d4ac354b47128d283d12b9ded2275", 16))).toBeTruthy();
-        expect(log2.topics[1].eq(new BigNumber(7))).toBeTruthy();
-        expect(log2.topics[2].eq(new BigNumber(8))).toBeTruthy();
-        expect(log2.topics[3].eq(new BigNumber(9))).toBeTruthy();
-        expect(log2.data).toBe("0000000000000000000000000101010101010101010101010101010101010101");
-    });
-
-    it('should call test function on TestContractPrecompileSha256', async () => {
-        const code = readText(path.join(BIN_OUTPUT_PATH, 'TestContractPrecompileSha256.bin-runtime'));
-        const result = await execute(code, CONTRACT_TEST_SIG);
-        //prettyPrintResults(result);
-        expect(result.errno).toBe(NO_ERROR);
-        expect(result.returnData).toBe('66840dda154e8a113c31dd0ad32f7f3a366a80e8136979d8f5a101d3d29d6f72');
-    });
-
-    it('should call test function on TestContractPrecompileRipemd160', async () => {
-        const code = readText(path.join(BIN_OUTPUT_PATH, 'TestContractPrecompileRipemd160.bin-runtime'));
-        const result = await execute(code, CONTRACT_TEST_SIG);
-        //prettyPrintResults(result);
-        expect(result.errno).toBe(NO_ERROR);
-        expect(result.returnData).toBe('c9883eece7dca619b830dc9d87e82c38478111c0000000000000000000000000');
-    });
-
-    it('should call test function on TestContractMultipleCreate', async () => {
-        const code = readText(path.join(BIN_OUTPUT_PATH, 'TestContractMultipleCreate.bin-runtime'));
-        const result = await execute(code, CONTRACT_TEST_SIG);
-        //prettyPrintResults(result);
-        expect(result.errno).toBe(NO_ERROR);
-        expect(result.returnData).toBe('0000000000000000000000000000000000000000000000000000000000000005');
-    });
-
-    it('should call test function on TestContractCreateWithConstructorParams', async () => {
-        const code = readText(path.join(BIN_OUTPUT_PATH, 'TestContractCreateWithConstructorParams.bin-runtime'));
-        const result = await execute(code, CONTRACT_TEST_SIG);
-        //prettyPrintResults(result);
-        expect(result.errno).toBe(NO_ERROR);
-        expect(result.returnData).toBe('00000000000000000000000000000000000000000000000000000000000000040000000000000000000000000000000000000000000000000000000000000005');
-    });
 });
-
-
 
 describe('solidity contracts - advanced', () => {
 

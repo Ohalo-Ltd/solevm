@@ -44,13 +44,12 @@ contract IEthereumRuntime is EVMConstants {
         uint gasPrice;
         address caller;
         uint callerBalance;
-        uint8 callerNonce;
         uint value;
         address target;
         uint targetBalance;
-        uint8 targetNonce;
         bytes targetCode;
         bytes data;
+        bool staticExec;
     }
 
     struct EVMInput {
@@ -232,7 +231,7 @@ contract EthereumRuntime is IEthereumRuntime {
             uint opcode = uint(code[pc]);
 
             if (evm.staticExec && (opcode == OP_SSTORE || opcode == OP_CREATE ||
-            (OP_LOG0 <= opcode && opcode <= OP_LOG4)))
+                    (OP_LOG0 <= opcode && opcode <= OP_LOG4)))
             {
                 errno = ERROR_ILLEGAL_WRITE_OPERATION;
                 break;
@@ -273,6 +272,7 @@ contract EthereumRuntime is IEthereumRuntime {
             }
         }
         evm.errno = errno;
+        // to be used if errno is non-zero
         evm.errpc = pc;
     }
 
@@ -284,12 +284,11 @@ contract EthereumRuntime is IEthereumRuntime {
             DEFAULT_CALLER,
             0,
             0,
-            0,
             DEFAULT_CONTRACT_ADDRESS,
             0,
-            0,
             code,
-            data
+            data,
+            false
         );
 
         Context memory context = Context(
@@ -322,19 +321,22 @@ contract EthereumRuntime is IEthereumRuntime {
         evmInput.context = context;
         evmInput.handlers = _newHandlers();
         evmInput.data = input.data;
+        evmInput.value = input.value;
 
         EVMAccounts.Account memory caller = evmInput.accounts.get(input.caller);
         caller.balance = input.callerBalance;
-        caller.nonce = uint8(input.callerNonce + 1);
+        if (input.staticExec) {
+            caller.nonce = uint8(1);
+        }
         evmInput.caller = input.caller;
 
         EVMAccounts.Account memory target = evmInput.accounts.get(input.target);
         target.balance = input.targetBalance;
-        target.nonce = input.targetNonce;
         target.code = input.targetCode;
         evmInput.target = input.target;
+        evmInput.staticExec = input.staticExec;
 
-        EVM memory evm = _call(evmInput, CallType.Call);
+        EVM memory evm = _call(evmInput, input.staticExec ? CallType.StaticCall : CallType.Call);
 
         result.stack = evm.stack.toArray();
         result.mem = evm.mem.toArray();
@@ -1245,7 +1247,14 @@ contract EthereumRuntime is IEthereumRuntime {
     }
 
     function handleSELFDESTRUCT(EVM memory state) internal pure returns (uint errno) {
-        return ERROR_INSTRUCTION_NOT_SUPPORTED;
+        if (state.stack.size < 1) {
+            return ERROR_STACK_UNDERFLOW;
+        }
+        address receiver = address(state.stack.pop());
+        uint bal = state.target.balance;
+        state.target.balance = 0;
+        state.accounts.get(receiver).balance += bal;
+        state.target.destroyed = true;
     }
 
     function _newHandlers() internal pure returns (Handlers memory handlers) {
@@ -1503,8 +1512,8 @@ contract EthereumRuntime is IEthereumRuntime {
         handlers.f[0xed] = handleINVALID;
         handlers.f[0xee] = handleINVALID;
         handlers.f[0xef] = handleINVALID;
-        handlers.f[OP_CREATE] = handleCREATE;
         // 0xfX
+        handlers.f[OP_CREATE] = handleCREATE;
         handlers.f[OP_CALL] = handleCALL;
         handlers.f[OP_CALLCODE] = handleCALLCODE;
         handlers.f[OP_RETURN] = handleRETURN;

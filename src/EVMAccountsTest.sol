@@ -52,6 +52,7 @@ contract EVMAccountsTest {
         acc2.code = new bytes(3);
         acc2.stge.store(0x05, 0x06);
         acc2.stge.store(0x07, 0x08);
+        acc2.destroyed = true;
 
         EVMAccounts.Accounts memory cpy = EVMAccounts.copy(accs);
         EVMAccounts.Account memory cAcc = accs.get(0x01);
@@ -65,6 +66,7 @@ contract EVMAccountsTest {
         assert(cAcc.code.length == 2);
         assert(cAcc.stge.load(0x01) == 0x02);
         assert(cAcc.stge.load(0x03) == 0x04);
+        assert(!cAcc.destroyed);
 
         assert(cAcc2.addr == 0x02);
         assert(cAcc2.balance == 7);
@@ -72,6 +74,7 @@ contract EVMAccountsTest {
         assert(cAcc2.code.length == 3);
         assert(cAcc2.stge.load(0x05) == 0x06);
         assert(cAcc2.stge.load(0x07) == 0x08);
+        assert(cAcc2.destroyed);
 
     }
 

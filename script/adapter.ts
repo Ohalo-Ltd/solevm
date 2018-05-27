@@ -1,44 +1,16 @@
-import {EVM_EXECUTE_SIG, SOL_ETH_BIN} from "./constants";
+import {
+    DEFAULT_CALLER,
+    DEFAULT_CONTRACT_ADDRESS,
+    EVM_EXECUTE_SIG,
+    EVM_EXECUTE_TXINPUT_SIG,
+    SOL_ETH_BIN
+} from "./constants";
 const Web3EthAbi = require('web3-eth-abi');
 import {BigNumber} from "bignumber.js";
 import {run} from "./evm";
 
 const BN_ZERO = new BigNumber(0);
 const ZERO_ACCOUNT = '0000000000000000000000000000000000000000';
-
-export const pad = (hex, numBytes) => {
-    const hl = hex.length / 2;
-    if (hl > numBytes) {
-        throw new Error("Numbytes less than string length.");
-    }
-    if (hl < numBytes) {
-        for (let i = 0; i < numBytes - hl; i++) {
-            hex = "00" + hex;
-        }
-    }
-    return hex;
-};
-
-export const numToHex = (int: number, numBytes: number) => {
-    // TODO guards
-    let hex = int.toString(16);
-    if (hex.length % 2 == 1) {
-        hex = '0' + hex;
-    }
-    return pad(hex, numBytes);
-};
-
-export const bytesHexToABI = (btsHex) => {
-    const header = numToHex(btsHex.length / 2, 32);
-    //console.log(header);
-    const btsLength = Math.floor((btsHex.length / 2 + 31) / 32) * 32;
-    const hexLength = btsLength * 2;
-    while (btsHex.length != hexLength) {
-        btsHex += "00";
-    }
-    //console.log(btsHex);
-    return header + btsHex;
-};
 
 export const decode = (res) => {
     res = res.substr(64);
@@ -78,14 +50,15 @@ export const decode = (res) => {
         }
         const balance = new BigNumber(accsArr[offset + 1]);
         const nonce = new BigNumber(accsArr[offset + 2]).toNumber();
-        const codeIdx = new BigNumber(accsArr[offset + 3]).toNumber();
-        const codeSize = new BigNumber(accsArr[offset + 4]).toNumber();
+        const destroyed = new BigNumber(accsArr[offset + 3]).toNumber() == 1;
+        const codeIdx = new BigNumber(accsArr[offset + 4]).toNumber();
+        const codeSize = new BigNumber(accsArr[offset + 5]).toNumber();
         const code = accsCode.substr(2*codeIdx, 2*codeSize);
-        const storageSize = new BigNumber(accsArr[offset + 5]).toNumber();
+        const storageSize = new BigNumber(accsArr[offset + 6]).toNumber();
         const storage = [];
         for (let j = 0; j < storageSize; j++) {
-            const address = new BigNumber(accsArr[offset + 6 + 2*j]);
-            const value = new BigNumber(accsArr[offset + 6 + 2*j + 1]);
+            const address = new BigNumber(accsArr[offset + 7 + 2*j]);
+            const value = new BigNumber(accsArr[offset + 7 + 2*j + 1]);
             if (!value.eq(BN_ZERO)) {
                 storage.push({
                     address: address,
@@ -97,11 +70,12 @@ export const decode = (res) => {
             address: addr,
             balance: balance,
             nonce: nonce,
+            destroyed: destroyed,
             code: code,
             storage: storage
         });
 
-        offset += 6 + 2*storageSize;
+        offset += 7 + 2*storageSize;
     }
 
     const logsArr = dec['7'];
@@ -174,28 +148,42 @@ export const execute = async (code, data) => {
     }
  */
 
-export const newTxInput = async () => {
+export const newDefaultTxInput = () => {
     return {
         gas: BN_ZERO,
         gasPrice: BN_ZERO,
-        caller: ZERO_ACCOUNT,
+        caller: DEFAULT_CALLER,
         callerBalance: BN_ZERO,
-        callerNonce: BN_ZERO,
         value: BN_ZERO,
-        target: ZERO_ACCOUNT,
+        target: DEFAULT_CONTRACT_ADDRESS,
         targetBalance: BN_ZERO,
-        targetNonce: BN_ZERO,
         targetCode: '',
-        targetData: ''
+        data: '',
+        staticExec: false
+    }
+};
+
+export const createTxInput = (code, data, value = 0, staticExec = false) => {
+    return {
+        gas: BN_ZERO,
+        gasPrice: BN_ZERO,
+        caller: DEFAULT_CALLER,
+        callerBalance: value, // set sending account balance to the value.
+        value: value,
+        target: DEFAULT_CONTRACT_ADDRESS,
+        targetBalance: BN_ZERO,
+        targetCode: code,
+        data: data,
+        staticExec: staticExec
     }
 };
 
 export const executeWithTxInput = async (txInput) => {
-    let calldata = EVM_EXECUTE_SIG + '0000000000000000000000000000000000000000000000000000000000000020' +
+    let calldata = EVM_EXECUTE_TXINPUT_SIG + '0000000000000000000000000000000000000000000000000000000000000020' +
         Web3EthAbi.encodeParameters(
-            ['uint256', 'uint256', 'address', 'uint256', 'uint256', 'uint256', 'uint256', 'address', 'uint256', 'uint256', 'bytes', 'bytes'],
-            [txInput.gas, txInput.gasPrice, '0x' + txInput.caller, txInput.callerBalance, txInput.callerNonce, txInput.value,
-                '0x' + txInput.target, txInput.targetBalance, txInput.targetNonce, '0x' + txInput.targetCode, '0x' + txInput.data]).substr(2);
+            ['uint256', 'uint256', 'address', 'uint256', 'uint256', 'address', 'uint256', 'bytes', 'bytes', 'bool'],
+            [txInput.gas, txInput.gasPrice, '0x' + txInput.caller, txInput.callerBalance, txInput.value,
+                '0x' + txInput.target, txInput.targetBalance, '0x' + txInput.targetCode, '0x' + txInput.data, txInput.staticExec]).substr(2);
     //console.log(calldata);
     const res = run(SOL_ETH_BIN, calldata);
     //console.log(res);
@@ -249,6 +237,7 @@ export const prettyPrintResults = (result) => {
             });
         }
         accountF['storage'] = storageF;
+        accountF['destroyed'] = account.destroyed;
         accountsF.push(accountF);
     }
     resultF['accounts'] = accountsF;

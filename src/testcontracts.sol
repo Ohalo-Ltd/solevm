@@ -281,3 +281,25 @@ contract TestContractCreateWithConstructorParams {
         return (x, y);
     }
 }
+
+
+contract DeployedContractPayable {
+    function() external payable {}
+}
+
+
+contract TestContractCreatesPayable {
+
+    constructor() public payable {}
+
+    function test() public payable {
+        address(new DeployedContractPayable()).transfer(1);
+    }
+}
+
+
+contract TestContractSelfDestructs {
+    function test() public payable {
+        selfdestruct(msg.sender);
+    }
+}

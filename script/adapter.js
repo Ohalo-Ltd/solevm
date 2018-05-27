@@ -42,37 +42,6 @@ var bignumber_js_1 = require("bignumber.js");
 var evm_1 = require("./evm");
 var BN_ZERO = new bignumber_js_1.BigNumber(0);
 var ZERO_ACCOUNT = '0000000000000000000000000000000000000000';
-exports.pad = function (hex, numBytes) {
-    var hl = hex.length / 2;
-    if (hl > numBytes) {
-        throw new Error("Numbytes less than string length.");
-    }
-    if (hl < numBytes) {
-        for (var i = 0; i < numBytes - hl; i++) {
-            hex = "00" + hex;
-        }
-    }
-    return hex;
-};
-exports.numToHex = function (int, numBytes) {
-    // TODO guards
-    var hex = int.toString(16);
-    if (hex.length % 2 == 1) {
-        hex = '0' + hex;
-    }
-    return exports.pad(hex, numBytes);
-};
-exports.bytesHexToABI = function (btsHex) {
-    var header = exports.numToHex(btsHex.length / 2, 32);
-    //console.log(header);
-    var btsLength = Math.floor((btsHex.length / 2 + 31) / 32) * 32;
-    var hexLength = btsLength * 2;
-    while (btsHex.length != hexLength) {
-        btsHex += "00";
-    }
-    //console.log(btsHex);
-    return header + btsHex;
-};
 exports.decode = function (res) {
     res = res.substr(64);
     var dec = Web3EthAbi.decodeParameters(['uint256', 'uint256', 'bytes', 'uint256[]', 'bytes', 'uint256[]', 'bytes', 'uint256[]', 'bytes'], '0x' + res);
@@ -105,14 +74,15 @@ exports.decode = function (res) {
         }
         var balance = new bignumber_js_1.BigNumber(accsArr[offset + 1]);
         var nonce = new bignumber_js_1.BigNumber(accsArr[offset + 2]).toNumber();
-        var codeIdx = new bignumber_js_1.BigNumber(accsArr[offset + 3]).toNumber();
-        var codeSize = new bignumber_js_1.BigNumber(accsArr[offset + 4]).toNumber();
+        var destroyed = new bignumber_js_1.BigNumber(accsArr[offset + 3]).toNumber() == 1;
+        var codeIdx = new bignumber_js_1.BigNumber(accsArr[offset + 4]).toNumber();
+        var codeSize = new bignumber_js_1.BigNumber(accsArr[offset + 5]).toNumber();
         var code = accsCode.substr(2 * codeIdx, 2 * codeSize);
-        var storageSize = new bignumber_js_1.BigNumber(accsArr[offset + 5]).toNumber();
+        var storageSize = new bignumber_js_1.BigNumber(accsArr[offset + 6]).toNumber();
         var storage = [];
         for (var j = 0; j < storageSize; j++) {
-            var address = new bignumber_js_1.BigNumber(accsArr[offset + 6 + 2 * j]);
-            var value = new bignumber_js_1.BigNumber(accsArr[offset + 6 + 2 * j + 1]);
+            var address = new bignumber_js_1.BigNumber(accsArr[offset + 7 + 2 * j]);
+            var value = new bignumber_js_1.BigNumber(accsArr[offset + 7 + 2 * j + 1]);
             if (!value.eq(BN_ZERO)) {
                 storage.push({
                     address: address,
@@ -124,10 +94,11 @@ exports.decode = function (res) {
             address: addr,
             balance: balance,
             nonce: nonce,
+            destroyed: destroyed,
             code: code,
             storage: storage
         });
-        offset += 6 + 2 * storageSize;
+        offset += 7 + 2 * storageSize;
     }
     var logsArr = dec['7'];
     var logsCode = '';
@@ -193,29 +164,42 @@ exports.execute = function (code, data) { return __awaiter(_this, void 0, void 0
         bytes data;
     }
  */
-exports.newTxInput = function () { return __awaiter(_this, void 0, void 0, function () {
-    return __generator(this, function (_a) {
-        return [2 /*return*/, {
-                gas: BN_ZERO,
-                gasPrice: BN_ZERO,
-                caller: ZERO_ACCOUNT,
-                callerBalance: BN_ZERO,
-                callerNonce: BN_ZERO,
-                value: BN_ZERO,
-                target: ZERO_ACCOUNT,
-                targetBalance: BN_ZERO,
-                targetNonce: BN_ZERO,
-                targetCode: '',
-                targetData: ''
-            }];
-    });
-}); };
+exports.newDefaultTxInput = function () {
+    return {
+        gas: BN_ZERO,
+        gasPrice: BN_ZERO,
+        caller: constants_1.DEFAULT_CALLER,
+        callerBalance: BN_ZERO,
+        value: BN_ZERO,
+        target: constants_1.DEFAULT_CONTRACT_ADDRESS,
+        targetBalance: BN_ZERO,
+        targetCode: '',
+        data: '',
+        staticExec: false
+    };
+};
+exports.createTxInput = function (code, data, value, staticExec) {
+    if (value === void 0) { value = 0; }
+    if (staticExec === void 0) { staticExec = false; }
+    return {
+        gas: BN_ZERO,
+        gasPrice: BN_ZERO,
+        caller: constants_1.DEFAULT_CALLER,
+        callerBalance: value,
+        value: value,
+        target: constants_1.DEFAULT_CONTRACT_ADDRESS,
+        targetBalance: BN_ZERO,
+        targetCode: code,
+        data: data,
+        staticExec: staticExec
+    };
+};
 exports.executeWithTxInput = function (txInput) { return __awaiter(_this, void 0, void 0, function () {
     var calldata, res;
     return __generator(this, function (_a) {
-        calldata = constants_1.EVM_EXECUTE_SIG + '0000000000000000000000000000000000000000000000000000000000000020' +
-            Web3EthAbi.encodeParameters(['uint256', 'uint256', 'address', 'uint256', 'uint256', 'uint256', 'uint256', 'address', 'uint256', 'uint256', 'bytes', 'bytes'], [txInput.gas, txInput.gasPrice, '0x' + txInput.caller, txInput.callerBalance, txInput.callerNonce, txInput.value,
-                '0x' + txInput.target, txInput.targetBalance, txInput.targetNonce, '0x' + txInput.targetCode, '0x' + txInput.data]).substr(2);
+        calldata = constants_1.EVM_EXECUTE_TXINPUT_SIG + '0000000000000000000000000000000000000000000000000000000000000020' +
+            Web3EthAbi.encodeParameters(['uint256', 'uint256', 'address', 'uint256', 'uint256', 'address', 'uint256', 'bytes', 'bytes', 'bool'], [txInput.gas, txInput.gasPrice, '0x' + txInput.caller, txInput.callerBalance, txInput.value,
+                '0x' + txInput.target, txInput.targetBalance, '0x' + txInput.targetCode, '0x' + txInput.data, txInput.staticExec]).substr(2);
         res = evm_1.run(constants_1.SOL_ETH_BIN, calldata);
         //console.log(res);
         if (res === '0') {
@@ -269,6 +253,7 @@ exports.prettyPrintResults = function (result) {
             });
         }
         accountF['storage'] = storageF;
+        accountF['destroyed'] = account.destroyed;
         accountsF.push(accountF);
     }
     resultF['accounts'] = accountsF;
