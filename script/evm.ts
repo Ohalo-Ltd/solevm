@@ -2,10 +2,10 @@ import child = require('child_process');
 import {CHAIN_FILE} from "./constants";
 const execSync = child.execSync;
 
-export const run = (file, input) => {
+export const run = (file: string, input: string): string => {
     const cmd = `evm --prestate ${CHAIN_FILE} --codefile ${file} --input ${input} --gas 1000000000000 run`;
     const ret = execSync(cmd);
-    //console.log(ret.toString());
+    // console.log(ret.toString());
     if (ret === null) {
         throw new Error(`Failed when running command: ${cmd}`);
     }
@@ -20,6 +20,6 @@ export const run = (file, input) => {
     return res === '0x' ? '0' : res.substr(2);
 };
 
-export const version = () => {
+export const version = (): string => {
     return execSync('evm --version').toString().trim();
 };

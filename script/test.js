@@ -93,23 +93,25 @@ exports.runTest = function (unit) {
     var failed = 0;
     test_logger_1.default.info("" + unit);
     for (var func in funcs) {
-        var fName = funcs[func].trim();
-        if (fName.length < 4 || fName.substr(0, 4) !== "test") {
-            continue;
+        if (funcs.hasOwnProperty(func)) {
+            var fName = funcs[func].trim();
+            if (fName.length < 4 || fName.substr(0, 4) !== "test") {
+                continue;
+            }
+            var result = parseData(evm_1.run(binPath, func));
+            var throws = /Throws/.test(fName);
+            var passed = true;
+            tests++;
+            if (throws && result) {
+                failed++;
+                passed = false;
+            }
+            else if (!throws && !result) {
+                failed++;
+                passed = false;
+            }
+            test_logger_1.default.testResult(fName, passed);
         }
-        var result = parseData(evm_1.run(binPath, func));
-        var throws = /Throws/.test(fName);
-        var passed = true;
-        tests++;
-        if (throws && result) {
-            failed++;
-            passed = false;
-        }
-        else if (!throws && !result) {
-            failed++;
-            passed = false;
-        }
-        test_logger_1.default.testResult(fName, passed);
     }
     test_logger_1.default.info("");
     return {

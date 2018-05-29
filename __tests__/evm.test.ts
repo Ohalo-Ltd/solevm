@@ -74,8 +74,8 @@ beforeAll(async () => {
 
 const runTest = async (code, data, resExpected) => {
     const result = await execute(code, data);
-    //console.log(result);
-    //console.log(result.stack[0].toNumber());
+    // console.log(result);
+    // console.log(result.stack[0].toNumber());
     expect(result.errno).toEqual(resExpected.errno);
     expect(result.errpc).toEqual(resExpected.errpc);
     expect(result.returnData).toEqual(resExpected.returnData);
@@ -83,8 +83,8 @@ const runTest = async (code, data, resExpected) => {
     expect(result.mem).toEqual(resExpected.mem);
     expect(result.stack.length).toEqual(resExpected.stack.length);
     for (let i = 0; i < result.stack.length; i++) {
-        //console.log(result.stack[i].toString(16));
-        //console.log(resExpected.stack[i].toString(16));
+        // console.log(result.stack[i].toString(16));
+        // console.log(resExpected.stack[i].toString(16));
         expect(result.stack[i].eq(resExpected.stack[i])).toBeTruthy();
     }
     return result;
@@ -92,8 +92,8 @@ const runTest = async (code, data, resExpected) => {
 
 const runTestWithInput = async (input, resExpected) => {
     const result = await executeWithTxInput(input);
-    //console.log(result);
-    //console.log(result.stack[0].toNumber());
+    // console.log(result);
+    // console.log(result.stack[0].toNumber());
     expect(result.errno).toEqual(resExpected.errno);
     expect(result.errpc).toEqual(resExpected.errpc);
     expect(result.returnData).toEqual(resExpected.returnData);
@@ -101,13 +101,12 @@ const runTestWithInput = async (input, resExpected) => {
     expect(result.mem).toEqual(resExpected.mem);
     expect(result.stack.length).toEqual(resExpected.stack.length);
     for (let i = 0; i < result.stack.length; i++) {
-        //console.log(result.stack[i].toString(16));
-        //console.log(resExpected.stack[i].toString(16));
+        // console.log(result.stack[i].toString(16));
+        // console.log(resExpected.stack[i].toString(16));
         expect(result.stack[i].eq(resExpected.stack[i])).toBeTruthy();
     }
     return result;
 };
-
 
 describe('single instructions', async () => {
 
@@ -371,7 +370,7 @@ describe('single instructions', async () => {
             };
             await runTest(code, data, resExpected);
         });
-        
+
         it('should SMOD a signed number successfully', async () => {
             const stack_0 = 'fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffc';
             const stack_1 = '0000000000000000000000000000000000000000000000000000000000000009';
@@ -421,7 +420,7 @@ describe('single instructions', async () => {
             };
             await runTest(code, data, resExpected);
         });
-        
+
         it('should ADDMOD successfully', async () => {
             const stack_0 = '0000000000000000000000000000000000000000000000000000000000000005';
             const stack_1 = '0000000000000000000000000000000000000000000000000000000000000004';
@@ -1107,7 +1106,7 @@ describe('single instructions', async () => {
             const code = PUSH20 + DEFAULT_CALLER + BALANCE;
             const data = "";
             const input = createTxInput(code, data, 500);
-            input.value = 0; // just use createTxInput to not have to set everything.
+            input.value = new BigNumber(0); // just use createTxInput to not have to set everything.
             const resExpected = {
                 errno: 0,
                 errpc: code.length / 2,
@@ -1119,7 +1118,7 @@ describe('single instructions', async () => {
                 ],
             };
             const result = await runTestWithInput(input, resExpected);
-            //prettyPrintResults(result);
+            // prettyPrintResults(result);
         });
 
         it('should use CALLER successfully', async () => {
@@ -1153,7 +1152,7 @@ describe('single instructions', async () => {
                 ],
             };
             const result = await runTestWithInput(input, resExpected);
-            //prettyPrintResults(result);
+            // prettyPrintResults(result);
         });
 
         it('should use CALLDATALOAD successfully within the calldata boundary, with no offset', async () => {
@@ -1380,565 +1379,563 @@ describe('single instructions', async () => {
         });
     });
 
-        describe('block information', () => {
-    
-            it('should use BLOCKHASH successfully', async () => {
-                const code = PUSH1 + '00' + BLOCKHASH;
-                const data = "";
-                const resExpected = {
-                    errno: 0,
-                    errpc: code.length / 2,
-                    returnData: "",
-                    memSize: 0,
-                    mem: "",
-                    stack: [
-                        new BigNumber(0)
-                    ],
-                };
-                await runTest(code, data, resExpected);
-            });
-    
-            it('should use COINBASE successfully', async () => {
-                const code = COINBASE;
-                const data = "";
-                const resExpected = {
-                    errno: 0,
-                    errpc: code.length / 2,
-                    returnData: "",
-                    memSize: 0,
-                    mem: "",
-                    stack: [
-                        new BigNumber(0)
-                    ],
-                };
-                await runTest(code, data, resExpected);
-            });
-    
-            it('should use TIMESTAMP successfully', async () => {
-                const code = TIMESTAMP;
-                const data = "";
-                const resExpected = {
-                    errno: 0,
-                    errpc: code.length / 2,
-                    returnData: "",
-                    memSize: 0,
-                    mem: "",
-                    stack: [
-                        new BigNumber(0)
-                    ],
-                };
-                await runTest(code, data, resExpected);
-            });
-    
-            it('should use NUMBER successfully', async () => {
-                const code = NUMBER;
-                const data = "";
-                const resExpected = {
-                    errno: 0,
-                    errpc: code.length / 2,
-                    returnData: "",
-                    memSize: 0,
-                    mem: "",
-                    stack: [
-                        new BigNumber(0)
-                    ],
-                };
-                await runTest(code, data, resExpected);
-            });
-    
-            it('should use DIFFICULTY successfully', async () => {
-                const code = DIFFICULTY;
-                const data = "";
-                const resExpected = {
-                    errno: 0,
-                    errpc: code.length / 2,
-                    returnData: "",
-                    memSize: 0,
-                    mem: "",
-                    stack: [
-                        new BigNumber(0)
-                    ],
-                };
-                await runTest(code, data, resExpected);
-            });
-    
-            it('should use GASLIMIT successfully', async () => {
-                const code = GASLIMIT;
-                const data = "";
-                const resExpected = {
-                    errno: 0,
-                    errpc: code.length / 2,
-                    returnData: "",
-                    memSize: 0,
-                    mem: "",
-                    stack: [
-                        new BigNumber(0)
-                    ],
-                };
-                await runTest(code, data, resExpected);
-            });
-    
+    describe('block information', () => {
+
+        it('should use BLOCKHASH successfully', async () => {
+            const code = PUSH1 + '00' + BLOCKHASH;
+            const data = "";
+            const resExpected = {
+                errno: 0,
+                errpc: code.length / 2,
+                returnData: "",
+                memSize: 0,
+                mem: "",
+                stack: [
+                    new BigNumber(0)
+                ],
+            };
+            await runTest(code, data, resExpected);
         });
-    
-    
-        describe('stack, memory, storage and flow ops', () => {
-    
-            it('should run push32 three times in a row then pop all three successfully', async () => {
-                const stack_0 = '0101010101010101010101010101010101010101010101010101010101010101';
-                const stack_1 = '0101010101010101010101010101010101010101010101010101010101010102';
-                const stack_2 = '0101010101010101010101010101010101010101010101010101010101010103';
-                const code = PUSH32 + stack_0 + PUSH32 + stack_1 + PUSH32 + stack_2 + POP + POP + POP;
-                const data = "";
-                const resExpected = {
-                    errno: 0,
-                    errpc: code.length / 2,
-                    returnData: "",
-                    memSize: 0,
-                    mem: "",
-                    stack: [],
-                };
-                await runTest(code, data, resExpected);
-            });
-    
-            it('should pop empty stack and result in a stack underflow', async () => {
-                const code = POP;
-                const data = "";
-                const resExpected = {
-                    errno: ERROR_STACK_UNDERFLOW,
-                    errpc: 0,
-                    returnData: "",
-                    memSize: 0,
-                    mem: "",
-                    stack: [],
-                };
-                await runTest(code, data, resExpected);
-            });
-    
-            it('should use MLOAD successfully', async () => {
-                const code = PUSH32 + '0000000000000000000000000000000000000000000000000000000000000001' + PUSH1 + '00' + MSTORE + PUSH1 + '00' + MLOAD;
-                const data = "";
-                const resExpected = {
-                    errno: 0,
-                    errpc: code.length / 2,
-                    returnData: "",
-                    memSize: 0,
-                    mem: "0000000000000000000000000000000000000000000000000000000000000001",
-                    stack: [
-                        new BigNumber(1)
-                    ],
-                };
-                await runTest(code, data, resExpected);
-            });
-    
-            it('should use MSTORE successfully', async () => {
-                const code = PUSH32 + '0000000000000000000000000000000000000000000000000000000000000001' + PUSH1 + '00' + MSTORE;
-                const data = "";
-                const resExpected = {
-                    errno: 0,
-                    errpc: code.length / 2,
-                    returnData: "",
-                    memSize: 0,
-                    mem: "0000000000000000000000000000000000000000000000000000000000000001",
-                    stack: [],
-                };
-                await runTest(code, data, resExpected);
-            });
-    
-            it('should use MSTORE8 successfully', async () => {
-                const code = PUSH32 + '8877665544332211887766554433221188776655443322118877665544332211' + PUSH1 + '00' + MSTORE8;
-                const data = "";
-                const resExpected = {
-                    errno: 0,
-                    errpc: code.length / 2,
-                    returnData: "",
-                    memSize: 0,
-                    mem: "1100000000000000000000000000000000000000000000000000000000000000",
-                    stack: [],
-                };
-                await runTest(code, data, resExpected);
-            });
-    
-            it('should use SLOAD successfully', async () => {
-                const code = PUSH1 + '02' + PUSH1 + '01' + SSTORE + PUSH1 + '01' + SLOAD;
-                const data = "";
-                const resExpected = {
-                    errno: 0,
-                    errpc: code.length / 2,
-                    returnData: "",
-                    memSize: 0,
-                    mem: "",
-                    stack: [new BigNumber(2)],
-                };
-                const result = await runTest(code, data, resExpected);
-            });
-    
-            it('should use SSTORE successfully', async () => {
-                const code = PUSH1 + '02' + PUSH1 + '01' + SSTORE;
-                const data = "";
-                const resExpected = {
-                    errno: 0,
-                    errpc: code.length / 2,
-                    returnData: "",
-                    memSize: 0,
-                    mem: "",
-                    stack: [],
-                };
-                const result = await runTest(code, data, resExpected);
-                expect(result.errno).toBe(0);
-                const storage = result.accounts[1].storage;
-                expect(storage[0].address.toNumber()).toBe(1);
-                expect(storage[0].value.toNumber()).toBe(2);
-            });
-    
-            it('should use JUMP successfully', async () => {
-                const code = PUSH1 + '05' + JUMP + PUSH1 + '05' + JUMPDEST + STOP;
-                const data = "";
-                const resExpected = {
-                    errno: 0,
-                    errpc: 6,
-                    returnData: "",
-                    memSize: 0,
-                    mem: "",
-                    stack: [],
-                };
-                await runTest(code, data, resExpected);
-            });
-    
-            it('should fail JUMP when the jump destination is invalid', async () => {
-                const code = PUSH1 + '05' + JUMP + PUSH1 + '05' + STOP;
-                const data = "";
-                const resExpected = {
-                    errno: ERROR_INVALID_JUMP_DESTINATION,
-                    errpc: 2,
-                    returnData: "",
-                    memSize: 0,
-                    mem: "",
-                    stack: [],
-                };
-                await runTest(code, data, resExpected);
-            });
-    
-            it('should use JUMPI successfully when condition is true', async () => {
-                const code = PUSH1 + '01' + PUSH1 + '07' + JUMPI + PUSH1 + '05' + JUMPDEST + STOP;
-                const data = "";
-                const resExpected = {
-                    errno: 0,
-                    errpc: 8,
-                    returnData: "",
-                    memSize: 0,
-                    mem: "",
-                    stack: [],
-                };
-                await runTest(code, data, resExpected);
-            });
-    
-            it('should use JUMPI successfully when condition is false', async () => {
-                const code = PUSH1 + '00' + PUSH1 + '07' + JUMPI + PUSH1 + '05' + JUMPDEST + STOP;
-                const data = "";
-                const resExpected = {
-                    errno: 0,
-                    errpc: 8,
-                    returnData: "",
-                    memSize: 0,
-                    mem: "",
-                    stack: [new BigNumber(5)],
-                };
-                await runTest(code, data, resExpected);
-            });
-    
-            it('should fail JUMPI when the jump destination is invalid', async () => {
-                const code = PUSH1 + '01' + PUSH1 + '07' + JUMPI + PUSH1 + '05' + STOP;
-                const data = "";
-                const resExpected = {
-                    errno: ERROR_INVALID_JUMP_DESTINATION,
-                    errpc: 4,
-                    returnData: "",
-                    memSize: 0,
-                    mem: "",
-                    stack: [],
-                };
-                await runTest(code, data, resExpected);
-            });
+
+        it('should use COINBASE successfully', async () => {
+            const code = COINBASE;
+            const data = "";
+            const resExpected = {
+                errno: 0,
+                errpc: code.length / 2,
+                returnData: "",
+                memSize: 0,
+                mem: "",
+                stack: [
+                    new BigNumber(0)
+                ],
+            };
+            await runTest(code, data, resExpected);
         });
-    
-        describe('push ops', () => {
-    
-            it('should run push32 successfully', async () => {
-                const stack_0 = '0101010101010101010101010101010101010101010101010101010101010101';
-                const code = PUSH32 + stack_0;
-                const data = "";
-                const resExpected = {
-                    errno: 0,
-                    errpc: code.length / 2,
-                    returnData: "",
-                    memSize: 0,
-                    mem: "",
-                    stack: [
-                        new BigNumber(stack_0, 16)
-                    ],
-                };
-                await runTest(code, data, resExpected);
-            });
-    
-            it('should run push32 three times in a row successfully', async () => {
-                const stack_0 = '0101010101010101010101010101010101010101010101010101010101010101';
-                const stack_1 = '0101010101010101010101010101010101010101010101010101010101010102';
-                const stack_2 = '0101010101010101010101010101010101010101010101010101010101010103';
-                const code = PUSH32 + stack_0 + PUSH32 + stack_1 + PUSH32 + stack_2;
-                const data = "";
-                const resExpected = {
-                    errno: 0,
-                    errpc: code.length / 2,
-                    returnData: "",
-                    memSize: 0,
-                    mem: "",
-                    stack: [
-                        new BigNumber(stack_0, 16),
-                        new BigNumber(stack_1, 16),
-                        new BigNumber(stack_2, 16)
-                    ],
-                };
-                await runTest(code, data, resExpected);
-            });
-    
-            it('should run push1 successfully', async () => {
-                const stack_0 = '01';
-                const code = PUSH1 + stack_0;
-                const data = "";
-                const resExpected = {
-                    errno: 0,
-                    errpc: code.length / 2,
-                    returnData: "",
-                    memSize: 0,
-                    mem: "",
-                    stack: [
-                        new BigNumber(stack_0, 16)
-                    ],
-                };
-                await runTest(code, data, resExpected);
-            });
-    
+
+        it('should use TIMESTAMP successfully', async () => {
+            const code = TIMESTAMP;
+            const data = "";
+            const resExpected = {
+                errno: 0,
+                errpc: code.length / 2,
+                returnData: "",
+                memSize: 0,
+                mem: "",
+                stack: [
+                    new BigNumber(0)
+                ],
+            };
+            await runTest(code, data, resExpected);
         });
-    
-        describe('dup ops', () => {
-    
-            it('should run dup1 successfully', async () => {
-                const stack_0 = '0101010101010101010101010101010101010101010101010101010101010101';
-                const code = PUSH32 + stack_0 + DUP1;
-                const data = "";
-                const resExpected = {
-                    errno: 0,
-                    errpc: code.length / 2,
-                    returnData: "",
-                    memSize: 0,
-                    mem: "",
-                    stack: [
-                        new BigNumber(stack_0, 16),
-                        new BigNumber(stack_0, 16)
-                    ],
-                };
-                await runTest(code, data, resExpected);
-            });
-    
-            it('should run dup16 sixteen times in a row successfully', async () => {
-                const stack_0 = '0101010101010101010101010101010101010101010101010101010101010101';
-                const stack_1 = '0101010101010101010101010101010101010101010101010101010101010102';
-                const stack_2 = '0101010101010101010101010101010101010101010101010101010101010103';
-                const stack_3 = '0101010101010101010101010101010101010101010101010101010101010104';
-                const stack_4 = '0101010101010101010101010101010101010101010101010101010101010105';
-                const stack_5 = '0101010101010101010101010101010101010101010101010101010101010106';
-                const stack_6 = '0101010101010101010101010101010101010101010101010101010101010107';
-                const stack_7 = '0101010101010101010101010101010101010101010101010101010101010108';
-                const stack_8 = '0101010101010101010101010101010101010101010101010101010101010109';
-                const stack_9 = '010101010101010101010101010101010101010101010101010101010101010a';
-                const stack_10 = '010101010101010101010101010101010101010101010101010101010101010b';
-                const stack_11 = '010101010101010101010101010101010101010101010101010101010101010c';
-                const stack_12 = '010101010101010101010101010101010101010101010101010101010101010d';
-                const stack_13 = '010101010101010101010101010101010101010101010101010101010101010e';
-                const stack_14 = '010101010101010101010101010101010101010101010101010101010101010f';
-                const stack_15 = '0101010101010101010101010101010101010101010101010101010101010110';
-                const code =
-                    PUSH32 + stack_0 +
-                    PUSH32 + stack_1 +
-                    PUSH32 + stack_2 +
-                    PUSH32 + stack_3 +
-                    PUSH32 + stack_4 +
-                    PUSH32 + stack_5 +
-                    PUSH32 + stack_6 +
-                    PUSH32 + stack_7 +
-                    PUSH32 + stack_8 +
-                    PUSH32 + stack_9 +
-                    PUSH32 + stack_10 +
-                    PUSH32 + stack_11 +
-                    PUSH32 + stack_12 +
-                    PUSH32 + stack_13 +
-                    PUSH32 + stack_14 +
-                    PUSH32 + stack_15 +
-                    DUP16 + DUP16 + DUP16 + DUP16 + DUP16 + DUP16 + DUP16 + DUP16 +
-                    DUP16 + DUP16 + DUP16 + DUP16 + DUP16 + DUP16 + DUP16 + DUP16;
-                const data = "";
-                const resExpected = {
-                    errno: 0,
-                    errpc: code.length / 2,
-                    returnData: "",
-                    memSize: 0,
-                    mem: "",
-                    stack: [
-                        new BigNumber(stack_0, 16),
-                        new BigNumber(stack_1, 16),
-                        new BigNumber(stack_2, 16),
-                        new BigNumber(stack_3, 16),
-                        new BigNumber(stack_4, 16),
-                        new BigNumber(stack_5, 16),
-                        new BigNumber(stack_6, 16),
-                        new BigNumber(stack_7, 16),
-                        new BigNumber(stack_8, 16),
-                        new BigNumber(stack_9, 16),
-                        new BigNumber(stack_10, 16),
-                        new BigNumber(stack_11, 16),
-                        new BigNumber(stack_12, 16),
-                        new BigNumber(stack_13, 16),
-                        new BigNumber(stack_14, 16),
-                        new BigNumber(stack_15, 16),
-                        new BigNumber(stack_0, 16),
-                        new BigNumber(stack_1, 16),
-                        new BigNumber(stack_2, 16),
-                        new BigNumber(stack_3, 16),
-                        new BigNumber(stack_4, 16),
-                        new BigNumber(stack_5, 16),
-                        new BigNumber(stack_6, 16),
-                        new BigNumber(stack_7, 16),
-                        new BigNumber(stack_8, 16),
-                        new BigNumber(stack_9, 16),
-                        new BigNumber(stack_10, 16),
-                        new BigNumber(stack_11, 16),
-                        new BigNumber(stack_12, 16),
-                        new BigNumber(stack_13, 16),
-                        new BigNumber(stack_14, 16),
-                        new BigNumber(stack_15, 16)
-                    ],
-                };
-                await runTest(code, data, resExpected);
-            });
-    
+
+        it('should use NUMBER successfully', async () => {
+            const code = NUMBER;
+            const data = "";
+            const resExpected = {
+                errno: 0,
+                errpc: code.length / 2,
+                returnData: "",
+                memSize: 0,
+                mem: "",
+                stack: [
+                    new BigNumber(0)
+                ],
+            };
+            await runTest(code, data, resExpected);
         });
-    
-        describe('swap ops', () => {
-    
-            it('should run swap1 successfully', async () => {
-                const stack_0 = '0101010101010101010101010101010101010101010101010101010101010101';
-                const stack_1 = '0101010101010101010101010101010101010101010101010101010101010102';
-                const code = PUSH32 + stack_0 + PUSH32 + stack_1 + SWAP1;
-                const data = "";
-                const resExpected = {
-                    errno: 0,
-                    errpc: code.length / 2,
-                    returnData: "",
-                    memSize: 0,
-                    mem: "",
-                    stack: [
-                        new BigNumber(stack_1, 16),
-                        new BigNumber(stack_0, 16)
-                    ],
-                };
-                await runTest(code, data, resExpected);
-            });
-    
-            it('should run swap1 to swap16 successfully', async () => {
-                const stack_0 = '0101010101010101010101010101010101010101010101010101010101010101';
-                const stack_1 = '0101010101010101010101010101010101010101010101010101010101010102';
-                const stack_2 = '0101010101010101010101010101010101010101010101010101010101010103';
-                const stack_3 = '0101010101010101010101010101010101010101010101010101010101010104';
-                const stack_4 = '0101010101010101010101010101010101010101010101010101010101010105';
-                const stack_5 = '0101010101010101010101010101010101010101010101010101010101010106';
-                const stack_6 = '0101010101010101010101010101010101010101010101010101010101010107';
-                const stack_7 = '0101010101010101010101010101010101010101010101010101010101010108';
-                const stack_8 = '0101010101010101010101010101010101010101010101010101010101010109';
-                const stack_9 = '010101010101010101010101010101010101010101010101010101010101010a';
-                const stack_10 = '010101010101010101010101010101010101010101010101010101010101010b';
-                const stack_11 = '010101010101010101010101010101010101010101010101010101010101010c';
-                const stack_12 = '010101010101010101010101010101010101010101010101010101010101010d';
-                const stack_13 = '010101010101010101010101010101010101010101010101010101010101010e';
-                const stack_14 = '010101010101010101010101010101010101010101010101010101010101010f';
-                const stack_15 = '0101010101010101010101010101010101010101010101010101010101010110';
-                const stack_16 = '0101010101010101010101010101010101010101010101010101010101010111';
-                const code =
-                    PUSH32 + stack_0 +
-                    PUSH32 + stack_1 +
-                    PUSH32 + stack_2 +
-                    PUSH32 + stack_3 +
-                    PUSH32 + stack_4 +
-                    PUSH32 + stack_5 +
-                    PUSH32 + stack_6 +
-                    PUSH32 + stack_7 +
-                    PUSH32 + stack_8 +
-                    PUSH32 + stack_9 +
-                    PUSH32 + stack_10 +
-                    PUSH32 + stack_11 +
-                    PUSH32 + stack_12 +
-                    PUSH32 + stack_13 +
-                    PUSH32 + stack_14 +
-                    PUSH32 + stack_15 +
-                    PUSH32 + stack_16 +
-                    SWAP1 + SWAP2 + SWAP3 + SWAP4 + SWAP5 + SWAP6 + SWAP7 + SWAP8 +
-                    SWAP9 + SWAP10 + SWAP11 + SWAP12 + SWAP13 + SWAP14 + SWAP15 + SWAP16;
-                const data = "";
-                const resExpected = {
-                    errno: 0,
-                    errpc: code.length / 2,
-                    returnData: "",
-                    memSize: 0,
-                    mem: "",
-                    stack: [
-                        new BigNumber(stack_1, 16),
-                        new BigNumber(stack_2, 16),
-                        new BigNumber(stack_3, 16),
-                        new BigNumber(stack_4, 16),
-                        new BigNumber(stack_5, 16),
-                        new BigNumber(stack_6, 16),
-                        new BigNumber(stack_7, 16),
-                        new BigNumber(stack_8, 16),
-                        new BigNumber(stack_9, 16),
-                        new BigNumber(stack_10, 16),
-                        new BigNumber(stack_11, 16),
-                        new BigNumber(stack_12, 16),
-                        new BigNumber(stack_13, 16),
-                        new BigNumber(stack_14, 16),
-                        new BigNumber(stack_15, 16),
-                        new BigNumber(stack_16, 16),
-                        new BigNumber(stack_0, 16)
-                    ],
-                };
-                await runTest(code, data, resExpected);
-            });
-    
+
+        it('should use DIFFICULTY successfully', async () => {
+            const code = DIFFICULTY;
+            const data = "";
+            const resExpected = {
+                errno: 0,
+                errpc: code.length / 2,
+                returnData: "",
+                memSize: 0,
+                mem: "",
+                stack: [
+                    new BigNumber(0)
+                ],
+            };
+            await runTest(code, data, resExpected);
         });
-    
-        describe('swap ops', () => {
-    
-            it('should run swap1 successfully', async () => {
-                const stack_0 = '0101010101010101010101010101010101010101010101010101010101010101';
-                const stack_1 = '0101010101010101010101010101010101010101010101010101010101010102';
-                const code = PUSH32 + stack_0 + PUSH32 + stack_1 + SWAP1;
-                const data = "";
-                const resExpected = {
-                    errno: 0,
-                    errpc: code.length / 2,
-                    returnData: "",
-                    memSize: 0,
-                    mem: "",
-                    stack: [
-                        new BigNumber(stack_1, 16),
-                        new BigNumber(stack_0, 16)
-                    ],
-                };
-                await runTest(code, data, resExpected);
-            });
-    
+
+        it('should use GASLIMIT successfully', async () => {
+            const code = GASLIMIT;
+            const data = "";
+            const resExpected = {
+                errno: 0,
+                errpc: code.length / 2,
+                returnData: "",
+                memSize: 0,
+                mem: "",
+                stack: [
+                    new BigNumber(0)
+                ],
+            };
+            await runTest(code, data, resExpected);
         });
+
+    });
+
+    describe('stack, memory, storage and flow ops', () => {
+
+        it('should run push32 three times in a row then pop all three successfully', async () => {
+            const stack_0 = '0101010101010101010101010101010101010101010101010101010101010101';
+            const stack_1 = '0101010101010101010101010101010101010101010101010101010101010102';
+            const stack_2 = '0101010101010101010101010101010101010101010101010101010101010103';
+            const code = PUSH32 + stack_0 + PUSH32 + stack_1 + PUSH32 + stack_2 + POP + POP + POP;
+            const data = "";
+            const resExpected = {
+                errno: 0,
+                errpc: code.length / 2,
+                returnData: "",
+                memSize: 0,
+                mem: "",
+                stack: [],
+            };
+            await runTest(code, data, resExpected);
+        });
+
+        it('should pop empty stack and result in a stack underflow', async () => {
+            const code = POP;
+            const data = "";
+            const resExpected = {
+                errno: ERROR_STACK_UNDERFLOW,
+                errpc: 0,
+                returnData: "",
+                memSize: 0,
+                mem: "",
+                stack: [],
+            };
+            await runTest(code, data, resExpected);
+        });
+
+        it('should use MLOAD successfully', async () => {
+            const code = PUSH32 + '0000000000000000000000000000000000000000000000000000000000000001' + PUSH1 + '00' + MSTORE + PUSH1 + '00' + MLOAD;
+            const data = "";
+            const resExpected = {
+                errno: 0,
+                errpc: code.length / 2,
+                returnData: "",
+                memSize: 0,
+                mem: "0000000000000000000000000000000000000000000000000000000000000001",
+                stack: [
+                    new BigNumber(1)
+                ],
+            };
+            await runTest(code, data, resExpected);
+        });
+
+        it('should use MSTORE successfully', async () => {
+            const code = PUSH32 + '0000000000000000000000000000000000000000000000000000000000000001' + PUSH1 + '00' + MSTORE;
+            const data = "";
+            const resExpected = {
+                errno: 0,
+                errpc: code.length / 2,
+                returnData: "",
+                memSize: 0,
+                mem: "0000000000000000000000000000000000000000000000000000000000000001",
+                stack: [],
+            };
+            await runTest(code, data, resExpected);
+        });
+
+        it('should use MSTORE8 successfully', async () => {
+            const code = PUSH32 + '8877665544332211887766554433221188776655443322118877665544332211' + PUSH1 + '00' + MSTORE8;
+            const data = "";
+            const resExpected = {
+                errno: 0,
+                errpc: code.length / 2,
+                returnData: "",
+                memSize: 0,
+                mem: "1100000000000000000000000000000000000000000000000000000000000000",
+                stack: [],
+            };
+            await runTest(code, data, resExpected);
+        });
+
+        it('should use SLOAD successfully', async () => {
+            const code = PUSH1 + '02' + PUSH1 + '01' + SSTORE + PUSH1 + '01' + SLOAD;
+            const data = "";
+            const resExpected = {
+                errno: 0,
+                errpc: code.length / 2,
+                returnData: "",
+                memSize: 0,
+                mem: "",
+                stack: [new BigNumber(2)],
+            };
+            const result = await runTest(code, data, resExpected);
+        });
+
+        it('should use SSTORE successfully', async () => {
+            const code = PUSH1 + '02' + PUSH1 + '01' + SSTORE;
+            const data = "";
+            const resExpected = {
+                errno: 0,
+                errpc: code.length / 2,
+                returnData: "",
+                memSize: 0,
+                mem: "",
+                stack: [],
+            };
+            const result = await runTest(code, data, resExpected);
+            expect(result.errno).toBe(0);
+            const storage = result.accounts[1].storage;
+            expect(storage[0].address.toNumber()).toBe(1);
+            expect(storage[0].value.toNumber()).toBe(2);
+        });
+
+        it('should use JUMP successfully', async () => {
+            const code = PUSH1 + '05' + JUMP + PUSH1 + '05' + JUMPDEST + STOP;
+            const data = "";
+            const resExpected = {
+                errno: 0,
+                errpc: 6,
+                returnData: "",
+                memSize: 0,
+                mem: "",
+                stack: [],
+            };
+            await runTest(code, data, resExpected);
+        });
+
+        it('should fail JUMP when the jump destination is invalid', async () => {
+            const code = PUSH1 + '05' + JUMP + PUSH1 + '05' + STOP;
+            const data = "";
+            const resExpected = {
+                errno: ERROR_INVALID_JUMP_DESTINATION,
+                errpc: 2,
+                returnData: "",
+                memSize: 0,
+                mem: "",
+                stack: [],
+            };
+            await runTest(code, data, resExpected);
+        });
+
+        it('should use JUMPI successfully when condition is true', async () => {
+            const code = PUSH1 + '01' + PUSH1 + '07' + JUMPI + PUSH1 + '05' + JUMPDEST + STOP;
+            const data = "";
+            const resExpected = {
+                errno: 0,
+                errpc: 8,
+                returnData: "",
+                memSize: 0,
+                mem: "",
+                stack: [],
+            };
+            await runTest(code, data, resExpected);
+        });
+
+        it('should use JUMPI successfully when condition is false', async () => {
+            const code = PUSH1 + '00' + PUSH1 + '07' + JUMPI + PUSH1 + '05' + JUMPDEST + STOP;
+            const data = "";
+            const resExpected = {
+                errno: 0,
+                errpc: 8,
+                returnData: "",
+                memSize: 0,
+                mem: "",
+                stack: [new BigNumber(5)],
+            };
+            await runTest(code, data, resExpected);
+        });
+
+        it('should fail JUMPI when the jump destination is invalid', async () => {
+            const code = PUSH1 + '01' + PUSH1 + '07' + JUMPI + PUSH1 + '05' + STOP;
+            const data = "";
+            const resExpected = {
+                errno: ERROR_INVALID_JUMP_DESTINATION,
+                errpc: 4,
+                returnData: "",
+                memSize: 0,
+                mem: "",
+                stack: [],
+            };
+            await runTest(code, data, resExpected);
+        });
+    });
+
+    describe('push ops', () => {
+
+        it('should run push32 successfully', async () => {
+            const stack_0 = '0101010101010101010101010101010101010101010101010101010101010101';
+            const code = PUSH32 + stack_0;
+            const data = "";
+            const resExpected = {
+                errno: 0,
+                errpc: code.length / 2,
+                returnData: "",
+                memSize: 0,
+                mem: "",
+                stack: [
+                    new BigNumber(stack_0, 16)
+                ],
+            };
+            await runTest(code, data, resExpected);
+        });
+
+        it('should run push32 three times in a row successfully', async () => {
+            const stack_0 = '0101010101010101010101010101010101010101010101010101010101010101';
+            const stack_1 = '0101010101010101010101010101010101010101010101010101010101010102';
+            const stack_2 = '0101010101010101010101010101010101010101010101010101010101010103';
+            const code = PUSH32 + stack_0 + PUSH32 + stack_1 + PUSH32 + stack_2;
+            const data = "";
+            const resExpected = {
+                errno: 0,
+                errpc: code.length / 2,
+                returnData: "",
+                memSize: 0,
+                mem: "",
+                stack: [
+                    new BigNumber(stack_0, 16),
+                    new BigNumber(stack_1, 16),
+                    new BigNumber(stack_2, 16)
+                ],
+            };
+            await runTest(code, data, resExpected);
+        });
+
+        it('should run push1 successfully', async () => {
+            const stack_0 = '01';
+            const code = PUSH1 + stack_0;
+            const data = "";
+            const resExpected = {
+                errno: 0,
+                errpc: code.length / 2,
+                returnData: "",
+                memSize: 0,
+                mem: "",
+                stack: [
+                    new BigNumber(stack_0, 16)
+                ],
+            };
+            await runTest(code, data, resExpected);
+        });
+
+    });
+
+    describe('dup ops', () => {
+
+        it('should run dup1 successfully', async () => {
+            const stack_0 = '0101010101010101010101010101010101010101010101010101010101010101';
+            const code = PUSH32 + stack_0 + DUP1;
+            const data = "";
+            const resExpected = {
+                errno: 0,
+                errpc: code.length / 2,
+                returnData: "",
+                memSize: 0,
+                mem: "",
+                stack: [
+                    new BigNumber(stack_0, 16),
+                    new BigNumber(stack_0, 16)
+                ],
+            };
+            await runTest(code, data, resExpected);
+        });
+
+        it('should run dup16 sixteen times in a row successfully', async () => {
+            const stack_0 = '0101010101010101010101010101010101010101010101010101010101010101';
+            const stack_1 = '0101010101010101010101010101010101010101010101010101010101010102';
+            const stack_2 = '0101010101010101010101010101010101010101010101010101010101010103';
+            const stack_3 = '0101010101010101010101010101010101010101010101010101010101010104';
+            const stack_4 = '0101010101010101010101010101010101010101010101010101010101010105';
+            const stack_5 = '0101010101010101010101010101010101010101010101010101010101010106';
+            const stack_6 = '0101010101010101010101010101010101010101010101010101010101010107';
+            const stack_7 = '0101010101010101010101010101010101010101010101010101010101010108';
+            const stack_8 = '0101010101010101010101010101010101010101010101010101010101010109';
+            const stack_9 = '010101010101010101010101010101010101010101010101010101010101010a';
+            const stack_10 = '010101010101010101010101010101010101010101010101010101010101010b';
+            const stack_11 = '010101010101010101010101010101010101010101010101010101010101010c';
+            const stack_12 = '010101010101010101010101010101010101010101010101010101010101010d';
+            const stack_13 = '010101010101010101010101010101010101010101010101010101010101010e';
+            const stack_14 = '010101010101010101010101010101010101010101010101010101010101010f';
+            const stack_15 = '0101010101010101010101010101010101010101010101010101010101010110';
+            const code =
+                PUSH32 + stack_0 +
+                PUSH32 + stack_1 +
+                PUSH32 + stack_2 +
+                PUSH32 + stack_3 +
+                PUSH32 + stack_4 +
+                PUSH32 + stack_5 +
+                PUSH32 + stack_6 +
+                PUSH32 + stack_7 +
+                PUSH32 + stack_8 +
+                PUSH32 + stack_9 +
+                PUSH32 + stack_10 +
+                PUSH32 + stack_11 +
+                PUSH32 + stack_12 +
+                PUSH32 + stack_13 +
+                PUSH32 + stack_14 +
+                PUSH32 + stack_15 +
+                DUP16 + DUP16 + DUP16 + DUP16 + DUP16 + DUP16 + DUP16 + DUP16 +
+                DUP16 + DUP16 + DUP16 + DUP16 + DUP16 + DUP16 + DUP16 + DUP16;
+            const data = "";
+            const resExpected = {
+                errno: 0,
+                errpc: code.length / 2,
+                returnData: "",
+                memSize: 0,
+                mem: "",
+                stack: [
+                    new BigNumber(stack_0, 16),
+                    new BigNumber(stack_1, 16),
+                    new BigNumber(stack_2, 16),
+                    new BigNumber(stack_3, 16),
+                    new BigNumber(stack_4, 16),
+                    new BigNumber(stack_5, 16),
+                    new BigNumber(stack_6, 16),
+                    new BigNumber(stack_7, 16),
+                    new BigNumber(stack_8, 16),
+                    new BigNumber(stack_9, 16),
+                    new BigNumber(stack_10, 16),
+                    new BigNumber(stack_11, 16),
+                    new BigNumber(stack_12, 16),
+                    new BigNumber(stack_13, 16),
+                    new BigNumber(stack_14, 16),
+                    new BigNumber(stack_15, 16),
+                    new BigNumber(stack_0, 16),
+                    new BigNumber(stack_1, 16),
+                    new BigNumber(stack_2, 16),
+                    new BigNumber(stack_3, 16),
+                    new BigNumber(stack_4, 16),
+                    new BigNumber(stack_5, 16),
+                    new BigNumber(stack_6, 16),
+                    new BigNumber(stack_7, 16),
+                    new BigNumber(stack_8, 16),
+                    new BigNumber(stack_9, 16),
+                    new BigNumber(stack_10, 16),
+                    new BigNumber(stack_11, 16),
+                    new BigNumber(stack_12, 16),
+                    new BigNumber(stack_13, 16),
+                    new BigNumber(stack_14, 16),
+                    new BigNumber(stack_15, 16)
+                ],
+            };
+            await runTest(code, data, resExpected);
+        });
+
+    });
+
+    describe('swap ops', () => {
+
+        it('should run swap1 successfully', async () => {
+            const stack_0 = '0101010101010101010101010101010101010101010101010101010101010101';
+            const stack_1 = '0101010101010101010101010101010101010101010101010101010101010102';
+            const code = PUSH32 + stack_0 + PUSH32 + stack_1 + SWAP1;
+            const data = "";
+            const resExpected = {
+                errno: 0,
+                errpc: code.length / 2,
+                returnData: "",
+                memSize: 0,
+                mem: "",
+                stack: [
+                    new BigNumber(stack_1, 16),
+                    new BigNumber(stack_0, 16)
+                ],
+            };
+            await runTest(code, data, resExpected);
+        });
+
+        it('should run swap1 to swap16 successfully', async () => {
+            const stack_0 = '0101010101010101010101010101010101010101010101010101010101010101';
+            const stack_1 = '0101010101010101010101010101010101010101010101010101010101010102';
+            const stack_2 = '0101010101010101010101010101010101010101010101010101010101010103';
+            const stack_3 = '0101010101010101010101010101010101010101010101010101010101010104';
+            const stack_4 = '0101010101010101010101010101010101010101010101010101010101010105';
+            const stack_5 = '0101010101010101010101010101010101010101010101010101010101010106';
+            const stack_6 = '0101010101010101010101010101010101010101010101010101010101010107';
+            const stack_7 = '0101010101010101010101010101010101010101010101010101010101010108';
+            const stack_8 = '0101010101010101010101010101010101010101010101010101010101010109';
+            const stack_9 = '010101010101010101010101010101010101010101010101010101010101010a';
+            const stack_10 = '010101010101010101010101010101010101010101010101010101010101010b';
+            const stack_11 = '010101010101010101010101010101010101010101010101010101010101010c';
+            const stack_12 = '010101010101010101010101010101010101010101010101010101010101010d';
+            const stack_13 = '010101010101010101010101010101010101010101010101010101010101010e';
+            const stack_14 = '010101010101010101010101010101010101010101010101010101010101010f';
+            const stack_15 = '0101010101010101010101010101010101010101010101010101010101010110';
+            const stack_16 = '0101010101010101010101010101010101010101010101010101010101010111';
+            const code =
+                PUSH32 + stack_0 +
+                PUSH32 + stack_1 +
+                PUSH32 + stack_2 +
+                PUSH32 + stack_3 +
+                PUSH32 + stack_4 +
+                PUSH32 + stack_5 +
+                PUSH32 + stack_6 +
+                PUSH32 + stack_7 +
+                PUSH32 + stack_8 +
+                PUSH32 + stack_9 +
+                PUSH32 + stack_10 +
+                PUSH32 + stack_11 +
+                PUSH32 + stack_12 +
+                PUSH32 + stack_13 +
+                PUSH32 + stack_14 +
+                PUSH32 + stack_15 +
+                PUSH32 + stack_16 +
+                SWAP1 + SWAP2 + SWAP3 + SWAP4 + SWAP5 + SWAP6 + SWAP7 + SWAP8 +
+                SWAP9 + SWAP10 + SWAP11 + SWAP12 + SWAP13 + SWAP14 + SWAP15 + SWAP16;
+            const data = "";
+            const resExpected = {
+                errno: 0,
+                errpc: code.length / 2,
+                returnData: "",
+                memSize: 0,
+                mem: "",
+                stack: [
+                    new BigNumber(stack_1, 16),
+                    new BigNumber(stack_2, 16),
+                    new BigNumber(stack_3, 16),
+                    new BigNumber(stack_4, 16),
+                    new BigNumber(stack_5, 16),
+                    new BigNumber(stack_6, 16),
+                    new BigNumber(stack_7, 16),
+                    new BigNumber(stack_8, 16),
+                    new BigNumber(stack_9, 16),
+                    new BigNumber(stack_10, 16),
+                    new BigNumber(stack_11, 16),
+                    new BigNumber(stack_12, 16),
+                    new BigNumber(stack_13, 16),
+                    new BigNumber(stack_14, 16),
+                    new BigNumber(stack_15, 16),
+                    new BigNumber(stack_16, 16),
+                    new BigNumber(stack_0, 16)
+                ],
+            };
+            await runTest(code, data, resExpected);
+        });
+
+    });
+
+    describe('swap ops', () => {
+
+        it('should run swap1 successfully', async () => {
+            const stack_0 = '0101010101010101010101010101010101010101010101010101010101010101';
+            const stack_1 = '0101010101010101010101010101010101010101010101010101010101010102';
+            const code = PUSH32 + stack_0 + PUSH32 + stack_1 + SWAP1;
+            const data = "";
+            const resExpected = {
+                errno: 0,
+                errpc: code.length / 2,
+                returnData: "",
+                memSize: 0,
+                mem: "",
+                stack: [
+                    new BigNumber(stack_1, 16),
+                    new BigNumber(stack_0, 16)
+                ],
+            };
+            await runTest(code, data, resExpected);
+        });
+
+    });
 
 });
-
 
 /* TODO
 describe('precompiles', () => {
@@ -1974,7 +1971,6 @@ describe('precompiles', () => {
 });
 */
 
-
 describe('solidity contracts', () => {
 
     it('should call test function on TestContractNoop', async () => {
@@ -1993,7 +1989,7 @@ describe('solidity contracts', () => {
     it('should call test function on TestContractReverts', async () => {
         const code = readText(path.join(BIN_OUTPUT_PATH, 'TestContractReverts.bin-runtime'));
         const result = await execute(code, CONTRACT_TEST_SIG);
-        //console.log(result);
+        // console.log(result);
         expect(result.errno).toBe(ERROR_STATE_REVERTED);
         expect(result.returnData).toBe('');
     });
@@ -2001,7 +1997,7 @@ describe('solidity contracts', () => {
     it('should call test function on TestContractRevertsWithArgument', async () => {
         const code = readText(path.join(BIN_OUTPUT_PATH, 'TestContractRevertsWithArgument.bin-runtime'));
         const result = await execute(code, CONTRACT_TEST_SIG);
-        //console.log(result);
+        // console.log(result);
         expect(result.errno).toBe(ERROR_STATE_REVERTED);
         expect(result.returnData).toBe('08c379a0000000000000000000000000000000000000000000000000000000000000002000000000000000000000000000000000000000000000000000000000000000036162630000000000000000000000000000000000000000000000000000000000');
     });
@@ -2009,7 +2005,7 @@ describe('solidity contracts', () => {
     it('should call test function on TestContractCallsItself', async () => {
         const code = readText(path.join(BIN_OUTPUT_PATH, 'TestContractCallsItself.bin-runtime'));
         const result = await execute(code, CONTRACT_TEST_SIG);
-        //console.log(result);
+        // console.log(result);
         expect(result.errno).toBe(NO_ERROR);
         expect(result.returnData).toBe('0000000000000000000000000000000000000000000000000000000000000003');
     });
@@ -2019,8 +2015,8 @@ describe('solidity contracts', () => {
         const result = await execute(code, CONTRACT_TEST_SIG);
         expect(result.errno).toBe(NO_ERROR);
         const storage = result.accounts[1].storage;
-        //console.log(result);
-        //prettyPrintResults(result);
+        // console.log(result);
+        // prettyPrintResults(result);
         expect(storage.length).toBe(4);
         expect(storage[0].address.eq(new BigNumber(0))).toBeTruthy();
         expect(storage[0].value.eq(new BigNumber(3))).toBeTruthy();
@@ -2062,7 +2058,7 @@ describe('solidity contracts', () => {
     it('should call test function on TestContractCreateAndCall', async () => {
         const code = readText(path.join(BIN_OUTPUT_PATH, 'TestContractCreateAndCall.bin-runtime'));
         const result = await execute(code, CONTRACT_TEST_SIG);
-        //console.log(result);
+        // console.log(result);
         expect(result.errno).toBe(NO_ERROR);
         expect(result.returnData).toBe('0000000000000000000000000000000000000000000000000000000000000003');
     });
@@ -2070,7 +2066,7 @@ describe('solidity contracts', () => {
     it('should call test function on TestContractCreateAndStaticCall', async () => {
         const code = readText(path.join(BIN_OUTPUT_PATH, 'TestContractCreateAndStaticCall.bin-runtime'));
         const result = await execute(code, CONTRACT_TEST_SIG);
-        //console.log(result);
+        // console.log(result);
         expect(result.errno).toBe(NO_ERROR);
         expect(result.returnData).toBe('0000000000000000000000000000000000000000000000000000000000000003');
     });
@@ -2078,7 +2074,7 @@ describe('solidity contracts', () => {
     it('should call test function on TestContractCallchainSameContract', async () => {
         const code = readText(path.join(BIN_OUTPUT_PATH, 'TestContractCallchainSameContract.bin-runtime'));
         const result = await execute(code, CONTRACT_TEST_SIG);
-        //console.log(result);
+        // console.log(result);
         expect(result.errno).toBe(NO_ERROR);
         expect(result.returnData).toBe('0000000000000000000000000000000000000000000000000000000000000002');
     });
@@ -2086,14 +2082,14 @@ describe('solidity contracts', () => {
     it('should call test function on TestContractFailedAssertion', async () => {
         const code = readText(path.join(BIN_OUTPUT_PATH, 'TestContractFailedAssertion.bin-runtime'));
         const result = await execute(code, CONTRACT_TEST_SIG);
-        //console.log(result);
+        // console.log(result);
         expect(result.errno).toBe(ERROR_INVALID_OPCODE);
     });
 
     it('should call test function on TestContractNoTopicEvent', async () => {
         const code = readText(path.join(BIN_OUTPUT_PATH, 'TestContractNoTopicEvent.bin-runtime'));
         const result = await execute(code, CONTRACT_TEST_SIG);
-        //prettyPrintResults(result);
+        // prettyPrintResults(result);
         expect(result.errno).toBe(NO_ERROR);
         expect(result.logs.length).toBe(1);
         const log = result.logs[0];
@@ -2109,7 +2105,7 @@ describe('solidity contracts', () => {
     it('should call test function on TestContractOneTopicEvent', async () => {
         const code = readText(path.join(BIN_OUTPUT_PATH, 'TestContractOneTopicEvent.bin-runtime'));
         const result = await execute(code, CONTRACT_TEST_SIG);
-        //prettyPrintResults(result);
+        // prettyPrintResults(result);
         expect(result.errno).toBe(NO_ERROR);
         expect(result.logs.length).toBe(1);
         const log = result.logs[0];
@@ -2125,11 +2121,10 @@ describe('solidity contracts', () => {
     it('should call test function on TestContractTwoTopicsEvent', async () => {
         const code = readText(path.join(BIN_OUTPUT_PATH, 'TestContractTwoTopicsEvent.bin-runtime'));
         const result = await execute(code, CONTRACT_TEST_SIG);
-        //prettyPrintResults(result);
+        // prettyPrintResults(result);
         expect(result.errno).toBe(NO_ERROR);
         expect(result.logs.length).toBe(1);
         const log = result.logs[0];
-
         expect(log.account).toBe("0101010101010101010101010101010101010101");
         expect(log.topics.length).toBe(4);
         expect(log.topics[0].eq(new BigNumber("ebe57242c74e694c7ec0f2fe9302812f324576f94a505b0de3f0ecb473d149bb", 16))).toBeTruthy();
@@ -2143,7 +2138,7 @@ describe('solidity contracts', () => {
     it('should call test function on TestContractThreeTopicsEvent', async () => {
         const code = readText(path.join(BIN_OUTPUT_PATH, 'TestContractThreeTopicsEvent.bin-runtime'));
         const result = await execute(code, CONTRACT_TEST_SIG);
-        //prettyPrintResults(result);
+        // prettyPrintResults(result);
         expect(result.errno).toBe(NO_ERROR);
         expect(result.logs.length).toBe(1);
         const log = result.logs[0];
@@ -2159,9 +2154,8 @@ describe('solidity contracts', () => {
     it('should call test function on TestContractDataEvent', async () => {
         const code = readText(path.join(BIN_OUTPUT_PATH, 'TestContractDataEvent.bin-runtime'));
         const result = await execute(code, CONTRACT_TEST_SIG);
-        //prettyPrintResults(result);
+        // prettyPrintResults(result);
         expect(result.errno).toBe(NO_ERROR);
-
         expect(result.logs.length).toBe(1);
         const log = result.logs[0];
         expect(log.account).toBe("0101010101010101010101010101010101010101");
@@ -2176,7 +2170,7 @@ describe('solidity contracts', () => {
     it('should call test function on TestContractThreeTopicsAndDataEvent', async () => {
         const code = readText(path.join(BIN_OUTPUT_PATH, 'TestContractThreeTopicsAndDataEvent.bin-runtime'));
         const result = await execute(code, CONTRACT_TEST_SIG);
-        //prettyPrintResults(result);
+        // prettyPrintResults(result);
         expect(result.errno).toBe(NO_ERROR);
         expect(result.logs.length).toBe(1);
         const log = result.logs[0];
@@ -2192,7 +2186,7 @@ describe('solidity contracts', () => {
     it('should call test function on TestContractMultipleThreeTopicsAndDataEvents', async () => {
         const code = readText(path.join(BIN_OUTPUT_PATH, 'TestContractMultipleThreeTopicsAndDataEvents.bin-runtime'));
         const result = await execute(code, CONTRACT_TEST_SIG);
-        //prettyPrintResults(result);
+        // prettyPrintResults(result);
         expect(result.errno).toBe(NO_ERROR);
         expect(result.logs.length).toBe(2);
         const log = result.logs[0];
@@ -2216,7 +2210,7 @@ describe('solidity contracts', () => {
     it('should call test function on TestContractPrecompileSha256', async () => {
         const code = readText(path.join(BIN_OUTPUT_PATH, 'TestContractPrecompileSha256.bin-runtime'));
         const result = await execute(code, CONTRACT_TEST_SIG);
-        //prettyPrintResults(result);
+        // prettyPrintResults(result);
         expect(result.errno).toBe(NO_ERROR);
         expect(result.returnData).toBe('66840dda154e8a113c31dd0ad32f7f3a366a80e8136979d8f5a101d3d29d6f72');
     });
@@ -2224,7 +2218,7 @@ describe('solidity contracts', () => {
     it('should call test function on TestContractPrecompileRipemd160', async () => {
         const code = readText(path.join(BIN_OUTPUT_PATH, 'TestContractPrecompileRipemd160.bin-runtime'));
         const result = await execute(code, CONTRACT_TEST_SIG);
-        //prettyPrintResults(result);
+        // prettyPrintResults(result);
         expect(result.errno).toBe(NO_ERROR);
         expect(result.returnData).toBe('c9883eece7dca619b830dc9d87e82c38478111c0000000000000000000000000');
     });
@@ -2232,7 +2226,7 @@ describe('solidity contracts', () => {
     it('should call test function on TestContractMultipleCreate', async () => {
         const code = readText(path.join(BIN_OUTPUT_PATH, 'TestContractMultipleCreate.bin-runtime'));
         const result = await execute(code, CONTRACT_TEST_SIG);
-        //prettyPrintResults(result);
+        // prettyPrintResults(result);
         expect(result.errno).toBe(NO_ERROR);
         expect(result.returnData).toBe('0000000000000000000000000000000000000000000000000000000000000005');
     });
@@ -2240,26 +2234,24 @@ describe('solidity contracts', () => {
     it('should call test function on TestContractCreateWithConstructorParams', async () => {
         const code = readText(path.join(BIN_OUTPUT_PATH, 'TestContractCreateWithConstructorParams.bin-runtime'));
         const result = await execute(code, CONTRACT_TEST_SIG);
-        //prettyPrintResults(result);
+        // prettyPrintResults(result);
         expect(result.errno).toBe(NO_ERROR);
         expect(result.returnData).toBe('00000000000000000000000000000000000000000000000000000000000000040000000000000000000000000000000000000000000000000000000000000005');
     });
-
 
     it('should call test function on TestContractCreatesPayable', async () => {
         const code = readText(path.join(BIN_OUTPUT_PATH, 'TestContractCreatesPayable.bin-runtime'));
         const data = CONTRACT_TEST_SIG;
         const input = createTxInput(code, data, 3);
-        input.value = 2;
+        input.value = new BigNumber(2);
         const result = await executeWithTxInput(input);
-        //prettyPrintResults(result);
+        // prettyPrintResults(result);
         expect(result.errno).toBe(NO_ERROR);
         expect(result.accounts.length).toBe(3);
         // should spread the 3 wei, 1 to each account.
-        for (let acc of result.accounts) {
+        for (const acc of result.accounts) {
             expect(acc.balance.eq(1)).toBeTruthy();
         }
-
     });
 
     it('should call test function on TestContractSelfDestructs', async () => {
@@ -2267,7 +2259,7 @@ describe('solidity contracts', () => {
         const data = CONTRACT_TEST_SIG;
         const input = createTxInput(code, data, 55);
         const result = await executeWithTxInput(input);
-        //prettyPrintResults(result);
+        // prettyPrintResults(result);
         expect(result.errno).toBe(NO_ERROR);
         expect(result.accounts[1].balance.eq(0)).toBeTruthy();
         expect(result.accounts[1].destroyed).toBeTruthy();
@@ -2279,7 +2271,7 @@ describe('solidity contracts', () => {
         const data = CONTRACT_TEST_SIG;
         const input = createTxInput(code, data);
         const result = await executeWithTxInput(input);
-        //prettyPrintResults(result);
+        // prettyPrintResults(result);
         expect(result.errno).toBe(NO_ERROR);
         const storage = result.accounts[3].storage;
         expect(storage[0].address.eq(0)).toBeTruthy();
@@ -2288,14 +2280,13 @@ describe('solidity contracts', () => {
         expect(storage[1].value.eq("e795c695551b833dd8abd2bc8bf6c67051b17b44", 16)).toBeTruthy();
     });
 
-
     it('should call test function on TestContractCallsC', async () => {
         // Delegatecall should set the storage in contract 'TestContractCallsD'
         const code = readText(path.join(BIN_OUTPUT_PATH, 'TestContractCallsC.bin-runtime'));
         const data = CONTRACT_TEST_SIG;
         const input = createTxInput(code, data);
         const result = await executeWithTxInput(input);
-        //prettyPrintResults(result);
+        // prettyPrintResults(result);
         expect(result.errno).toBe(NO_ERROR);
         const storage = result.accounts[2].storage;
         expect(storage[0].address.eq(0)).toBeTruthy();
@@ -2306,13 +2297,12 @@ describe('solidity contracts', () => {
 
 });
 
-
 describe('solidity contracts - advanced', () => {
 
     it('should call test function on TestContractEVMStack', async () => {
         const code = readText(path.join(BIN_OUTPUT_PATH, 'TestContractEVMStack.bin-runtime'));
         const result = await execute(code, CONTRACT_TEST_SIG);
-        //console.log(result);
+        // console.log(result);
         expect(result.errno).toBe(NO_ERROR);
     });
 });

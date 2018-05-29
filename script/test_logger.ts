@@ -3,35 +3,35 @@ import {println} from "./io";
 
 export default class TestLogger {
 
-    static _silent = false;
+    private static _silent = false;
 
-    static header(text) {
+    public static header(text: string) {
         println(chalk["cyanBright"](text));
     }
 
-    static info(text) {
+    public static info(text: string) {
         if (!TestLogger._silent) {
             println(chalk["blueBright"](text));
         }
     }
 
-    static success(text) {
+    public static success(text: string) {
         if (!TestLogger._silent) {
             println(chalk["greenBright"](text));
         }
     }
 
-    static moderate(text) {
+    public static moderate(text: string) {
         if (!TestLogger._silent) {
             println(chalk["yellowBright"](text));
         }
     }
 
-    static fail(text) {
+    public static fail(text: string) {
         println(chalk["redBright"](text));
     }
 
-    static testResult(fName, success) {
+    public static testResult(fName: string, success: boolean) {
         if (!TestLogger._silent) {
             const color = success ? "greenBright" : "redBright";
             const result = success ? "PASSED" : "FAILED";
@@ -39,17 +39,17 @@ export default class TestLogger {
         }
     }
 
-    static perfResult(fName, gas) {
+    public static perfResult(fName: string, gas: boolean) {
         if (!TestLogger._silent) {
             println(`${chalk["white"](fName)}: ${chalk["greenBright"](gas)}`);
         }
     }
 
-    static setSilent(silent) {
+    public static setSilent(silent: boolean) {
         TestLogger._silent = silent;
     }
 
-    static silent() {
+    public static silent(): boolean {
         return TestLogger._silent;
     }
 

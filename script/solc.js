@@ -82,7 +82,7 @@ exports.compile = function (filePath, outDir, optimize) { return __awaiter(_this
                 var cmd = "solc .= --evm-version constantinople --bin --bin-runtime --abi --hashes --overwrite " + (optimize ? "--optimize" : "") + " -o " + outDir + " " + filePath;
                 exec(cmd, { cwd: constants_1.ROOT_PATH }, function (err, stdout, stderr) {
                     var ret = stderr.toString();
-                    //console.log(ret);
+                    // console.log(ret);
                     if (err) {
                         reject(err);
                     }

@@ -4,13 +4,20 @@ import {ensureAndClear, parseSigFile} from "./io";
 import {compileTests} from "./solc";
 import {run} from "./evm";
 import TestLogger from "./test_logger";
+import {hasOwnProperty} from "tslint/lib/utils";
 
-export const runTests = async (tests) => {
+export interface ITestData {
+    name: string;
+    tests: number;
+    failed: number;
+}
+
+export const runTests = async (tests: [string]): Promise<boolean> => {
     ensureAndClear(BIN_OUTPUT_PATH);
     return await compileAndRunTests(tests, true);
 };
 
-export const compileAndRunTests = async (units, optimize) => {
+export const compileAndRunTests = async (units: [string], optimize: boolean): Promise<boolean> => {
     await compileTests(units, optimize);
     const results = [];
     TestLogger.header("\n");
@@ -28,14 +35,14 @@ export const compileAndRunTests = async (units, optimize) => {
     }
     TestLogger.info(`${tests} tests run:`);
     if (failed === 0) {
-        TestLogger.success("All tests PASSED")
+        TestLogger.success("All tests PASSED");
     } else {
         TestLogger.fail(`${failed} tests FAILED`);
     }
     return failed === 0;
 };
 
-export const runTest = (unit) => {
+export const runTest = (unit: string): ITestData => {
     const funcs = parseSigFile(unit);
     const binPath = path.join(BIN_OUTPUT_PATH, unit + ".bin-runtime");
     let tests = 0;
@@ -43,22 +50,24 @@ export const runTest = (unit) => {
 
     TestLogger.info(`${unit}`);
     for (const func in funcs) {
-        const fName = funcs[func].trim();
-        if (fName.length < 4 || fName.substr(0, 4) !== "test") {
-            continue;
+        if (funcs.hasOwnProperty(func)) {
+            const fName = funcs[func].trim();
+            if (fName.length < 4 || fName.substr(0, 4) !== "test") {
+                continue;
+            }
+            const result = parseData(run(binPath, func));
+            const throws = /Throws/.test(fName);
+            let passed = true;
+            tests++;
+            if (throws && result) {
+                failed++;
+                passed = false;
+            } else if (!throws && !result) {
+                failed++;
+                passed = false;
+            }
+            TestLogger.testResult(fName, passed);
         }
-        const result = parseData(run(binPath, func));
-        const throws = /Throws/.test(fName);
-        let passed = true;
-        tests++;
-        if (throws && result) {
-            failed++;
-            passed = false;
-        } else if (!throws && !result) {
-            failed++;
-            passed = false;
-        }
-        TestLogger.testResult(fName, passed);
     }
     TestLogger.info("");
     return {
@@ -68,4 +77,4 @@ export const runTest = (unit) => {
     };
 };
 
-const parseData = (output) => parseInt(output, 16) === 1;
+const parseData = (output: string): boolean => parseInt(output, 16) === 1;

@@ -7,23 +7,23 @@ import {
     CONTRACT_FILE
 } from "./constants";
 
-export const print = (text) => {
+export const print = (text: string) => {
     process.stdout.write(text);
 };
 
-export const println = (text) => {
+export const println = (text: string) => {
     process.stdout.write(text + '\n');
 };
 
-export const readText = (filePath) => {
+export const readText = (filePath: string): string => {
     return fs.readFileSync(filePath).toString();
 };
 
-export const readJSON = (filePath) => {
+export const readJSON = (filePath: string): string => {
     return JSON.parse(readText(filePath));
 };
 
-export const rmrf = (pth) => {
+export const rmrf = (pth: string) => {
     if (fs.existsSync(pth)) {
         fs.readdirSync(pth).forEach((file) => {
             const curPath = pth + "/" + file;
@@ -37,16 +37,16 @@ export const rmrf = (pth) => {
     }
 };
 
-export const ensureAndClear = (dir) => {
+export const ensureAndClear = (dir: string) => {
     rmrf(dir);
     mkdirp.sync(dir);
 };
 
-export const getContractFile = () => {
+export const getContractFile = (): string => {
     return readJSON(CONTRACT_FILE);
 };
 
-export const parseSigFile = (testName) => {
+export const parseSigFile = (testName: string) => {
     const hashes = fs.readFileSync(path.join(BIN_OUTPUT_PATH, testName + ".signatures")).toString();
     const lines = hashes.split(/\r\n|\r|\n/);
     const funcs = {};
