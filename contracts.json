@@ -1,11 +1,20 @@
 {
-    "tests": [
-      "EVMAccountsTest",
-      "EVMMemoryTest",
-      "EVMStackTest",
-      "EVMStorageTest",
-      "EVMLogsTest",
-      "EVMUtilsTest",
-      "MemOpsTest"
-    ]
+  "tests": [
+    "EVMAccountsTest",
+    "EVMMemoryTest",
+    "EVMStackTest",
+    "EVMStorageTest",
+    "EVMLogsTest",
+    "EVMUtilsTest",
+    "MemOpsTest"
+  ],
+  "perfs": [
+    "EVMAccountsPerf",
+    "EVMMemoryPerf",
+    "EVMStackPerf",
+    "EVMStoragePerf",
+    "EVMLogsPerf",
+    "MemOpsPerf",
+    "EthereumRuntimePerf"
+  ]
 }

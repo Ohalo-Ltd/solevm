@@ -48,7 +48,7 @@ library EVMMemory {
     function toArray(Memory memory self, uint start, uint len) internal pure returns (bytes memory arr) {
         arr = new bytes(len);
         uint newSize = (len + 31) / 32;
-        if(newSize >= self.cap - 1) {
+        if(newSize >= self.cap) {
             setCapacity(self, newSize + ALLOC_SIZE);
             self.size = newSize;
         }
@@ -61,7 +61,7 @@ library EVMMemory {
 
     function store8(Memory memory self, uint index, uint val) internal pure {
         uint newSize = index / WORD_SIZE + 1;
-        if(newSize >= self.cap - 1) {
+        if(newSize >= self.cap) {
             setCapacity(self, newSize + ALLOC_SIZE);
         }
         if(newSize > self.size) {

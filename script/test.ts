@@ -1,10 +1,10 @@
 import path = require('path');
 import {BIN_OUTPUT_PATH} from "./constants";
 import {ensureAndClear, parseSigFile} from "./io";
-import {compileTests} from "./solc";
 import {run} from "./evm";
 import TestLogger from "./test_logger";
 import {hasOwnProperty} from "tslint/lib/utils";
+import {compileContracts} from "./solc";
 
 export interface ITestData {
     name: string;
@@ -18,7 +18,7 @@ export const runTests = async (tests: [string]): Promise<boolean> => {
 };
 
 export const compileAndRunTests = async (units: [string], optimize: boolean): Promise<boolean> => {
-    await compileTests(units, optimize);
+    await compileContracts(units, optimize);
     const results = [];
     TestLogger.header("\n");
     TestLogger.header(`Running tests`);

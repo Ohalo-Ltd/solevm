@@ -33,6 +33,9 @@ library EVMStack {
     }
 
     function toArray(Stack memory self) internal pure returns (uint[] memory arr) {
+        if (self.size == 0) {
+            return;
+        }
         arr = new uint[](self.size);
         uint dest;
         assembly {
@@ -46,11 +49,10 @@ library EVMStack {
         if (self.size == self.cap) {
             expandCapacity(self, 32);
         }
-        uint slot = self.dataPtr + self.size*32;
+        uint slot = self.dataPtr + 32*self.size++;
         assembly {
             mstore(slot, val)
         }
-        self.size++;
     }
 
     function pop(Stack self) internal pure returns (uint) {
@@ -59,7 +61,7 @@ library EVMStack {
         uint slot = self.dataPtr + --self.size*32;
         assembly {
             data := mload(slot)
-            mstore(slot, 0)
+            mstore(slot, 0) // remove?
         }
         return data;
     }
@@ -76,11 +78,10 @@ library EVMStack {
         if (self.size == self.cap) {
             expandCapacity(self, 32);
         }
-        uint slot2 = self.dataPtr + self.size*32;
+        uint slot2 = self.dataPtr + 32*self.size++;
         assembly {
             mstore(slot2, data)
         }
-        self.size++;
     }
 
     function swap(Stack self, uint n) internal pure {

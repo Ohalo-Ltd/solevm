@@ -42,51 +42,39 @@ var io_1 = require("./io");
 var evm_1 = require("./evm");
 var test_logger_1 = require("./test_logger");
 var solc_1 = require("./solc");
-exports.runTests = function (tests) { return __awaiter(_this, void 0, void 0, function () {
+exports.runPerfs = function (perfs) { return __awaiter(_this, void 0, void 0, function () {
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
                 io_1.ensureAndClear(constants_1.BIN_OUTPUT_PATH);
-                return [4 /*yield*/, exports.compileAndRunTests(tests, true)];
-            case 1: return [2 /*return*/, _a.sent()];
+                return [4 /*yield*/, exports.compileAndRunPerfs(perfs, true)];
+            case 1:
+                _a.sent();
+                return [2 /*return*/];
         }
     });
 }); };
-exports.compileAndRunTests = function (units, optimize) { return __awaiter(_this, void 0, void 0, function () {
-    var results, _i, units_1, unit, tests, failed, _a, results_1, result;
-    return __generator(this, function (_b) {
-        switch (_b.label) {
+exports.compileAndRunPerfs = function (units, optimize) { return __awaiter(_this, void 0, void 0, function () {
+    var results, _i, units_1, unit;
+    return __generator(this, function (_a) {
+        switch (_a.label) {
             case 0: return [4 /*yield*/, solc_1.compileContracts(units, optimize)];
             case 1:
-                _b.sent();
+                _a.sent();
                 results = [];
                 test_logger_1.default.header("\n");
-                test_logger_1.default.header("Running tests");
+                test_logger_1.default.header("Running perf");
                 test_logger_1.default.header("\n");
                 for (_i = 0, units_1 = units; _i < units_1.length; _i++) {
                     unit = units_1[_i];
-                    results.push(exports.runTest(unit));
+                    results.push(exports.runPerf(unit));
                 }
                 test_logger_1.default.header("Done");
-                tests = 0;
-                failed = 0;
-                for (_a = 0, results_1 = results; _a < results_1.length; _a++) {
-                    result = results_1[_a];
-                    tests += result["tests"];
-                    failed += result["failed"];
-                }
-                test_logger_1.default.info(tests + " tests run:");
-                if (failed === 0) {
-                    test_logger_1.default.success("All tests PASSED");
-                }
-                else {
-                    test_logger_1.default.fail(failed + " tests FAILED");
-                }
-                return [2 /*return*/, failed === 0];
+                return [2 /*return*/];
         }
     });
 }); };
-exports.runTest = function (unit) {
+exports.runPerf = function (unit) {
     var funcs = io_1.parseSigFile(unit);
     var binPath = path.join(constants_1.BIN_OUTPUT_PATH, unit + ".bin-runtime");
     var tests = 0;
@@ -95,29 +83,13 @@ exports.runTest = function (unit) {
     for (var func in funcs) {
         if (funcs.hasOwnProperty(func)) {
             var fName = funcs[func].trim();
-            if (fName.length < 4 || fName.substr(0, 4) !== "test") {
+            if (fName.length < 4 || fName.substr(0, 4) !== "perf") {
                 continue;
             }
             var result = parseData(evm_1.run(binPath, func));
-            var throws = /Throws/.test(fName);
-            var passed = true;
-            tests++;
-            if (throws && result) {
-                failed++;
-                passed = false;
-            }
-            else if (!throws && !result) {
-                failed++;
-                passed = false;
-            }
-            test_logger_1.default.testResult(fName, passed);
+            test_logger_1.default.perfResult(fName, result);
         }
     }
     test_logger_1.default.info("");
-    return {
-        name: unit,
-        tests: tests,
-        failed: failed
-    };
 };
-var parseData = function (output) { return parseInt(output, 16) === 1; };
+var parseData = function (output) { return parseInt(output, 16); };

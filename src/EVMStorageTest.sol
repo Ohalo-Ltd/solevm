@@ -5,6 +5,7 @@ pragma solidity ^0.4.22;
 import {EVMStorage} from "./EVMStorage.slb";
 
 contract EVMStorageTest {
+
     using EVMStorage for EVMStorage.Storage;
     using EVMStorage for EVMStorage.Element;
 

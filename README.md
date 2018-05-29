@@ -18,6 +18,8 @@ In order to build and test the code you need go-ethereum's `evm` as well as `sol
 
 `bin/test.js` can be used to test some of the supporting contracts and libraries.
 
+`bin/perf.js` can be used to compute gas cost estimates for the runtime and supporting libraries.
+
 ### Runtime
 
 First of all, the `EthereumRuntime` code is designed to run on a constantinople net, with all constantinople features. The `genesis.json` file in the root folder can be used to configure the geth EVM (through the `--prestate` option).

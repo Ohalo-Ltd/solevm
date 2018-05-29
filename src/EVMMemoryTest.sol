@@ -214,4 +214,5 @@ contract EVMMemoryTest {
         assert(mem.size == 500000);
         assert(mem.cap == 500064);
     }
+
 }

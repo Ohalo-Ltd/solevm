@@ -6,18 +6,15 @@ import {
 
 const exec = child.exec;
 
-export const compileTests = async (tests: [string], optimize: boolean) => {
-    for (const test of tests) {
-        await compileTest(test, optimize);
+export const compileContracts = async (contracts: [string], optimize: boolean) => {
+    for (const ctrct of contracts) {
+        console.log(`Compiling contract: ${ctrct}`);
+        const filePath = path.join(SRC_PATH, ctrct + ".sol");
+        await compile(filePath, BIN_OUTPUT_PATH, optimize);
+        console.log(`Done`);
     }
 };
 
-export const compileTest = async (test: string, optimize: boolean) => {
-    console.log(`Compiling test: ${test}`);
-    const filePath = path.join(SRC_PATH, test + ".sol");
-    await compile(filePath, BIN_OUTPUT_PATH, optimize);
-    console.log(`Done`);
-};
 
 export const compile = async (filePath: string, outDir: string, optimize: boolean): Promise<any> => {
     return new Promise((resolve, reject) => {

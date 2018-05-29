@@ -39,7 +39,7 @@ export default class TestLogger {
         }
     }
 
-    public static perfResult(fName: string, gas: boolean) {
+    public static perfResult(fName: string, gas: number) {
         if (!TestLogger._silent) {
             println(`${chalk["white"](fName)}: ${chalk["greenBright"](gas)}`);
         }

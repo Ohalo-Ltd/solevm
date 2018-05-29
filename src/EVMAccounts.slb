@@ -106,6 +106,9 @@ library EVMAccounts {
     }
 
     function toArray(Accounts memory self) internal pure returns (uint[] memory arr, bytes memory code) {
+        if (self.size == 0) {
+            return;
+        }
         Account[] memory accs = new Account[](self.size);
         uint totalSize;
         Element memory e = self.head;
