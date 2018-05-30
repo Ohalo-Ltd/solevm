@@ -262,6 +262,7 @@ contract EthereumRuntime is IEthereumRuntime {
                     evm.n = opcode - OP_LOG0;
                     errno = handleLOG(evm);
                 } else if (opcode == OP_PC) {
+                    evm.pc = pc;
                     errno = handlePC(evm);
                 } else {
                     errno = evm.handlers.f[opcode](evm);
@@ -1006,7 +1007,7 @@ contract EthereumRuntime is IEthereumRuntime {
         if (state.stack.size == MAX_STACK_SIZE) {
             return ERROR_STACK_OVERFLOW;
         }
-        state.stack.push(state.mem.size);
+        state.stack.push(32*state.mem.size);
     }
 
     function handleGAS(EVM memory state) internal pure returns (uint errno) {

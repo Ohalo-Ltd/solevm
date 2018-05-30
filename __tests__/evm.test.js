@@ -1604,6 +1604,28 @@ describe('single instructions', function () { return __awaiter(_this, void 0, vo
                     }
                 });
             }); });
+            it('should use BALANCE with too few params, resulting in a stack underflow', function () { return __awaiter(_this, void 0, void 0, function () {
+                var code, data, resExpected;
+                return __generator(this, function (_a) {
+                    switch (_a.label) {
+                        case 0:
+                            code = constants_1.BALANCE;
+                            data = "";
+                            resExpected = {
+                                errno: constants_1.ERROR_STACK_UNDERFLOW,
+                                errpc: 0,
+                                returnData: "",
+                                memSize: 0,
+                                mem: "",
+                                stack: [],
+                            };
+                            return [4 /*yield*/, runTest(code, data, resExpected)];
+                        case 1:
+                            _a.sent();
+                            return [2 /*return*/];
+                    }
+                });
+            }); });
             it('should use CALLER successfully', function () { return __awaiter(_this, void 0, void 0, function () {
                 var code, data, resExpected;
                 return __generator(this, function (_a) {
@@ -1728,7 +1750,128 @@ describe('single instructions', function () { return __awaiter(_this, void 0, vo
                     }
                 });
             }); });
-            it('should use CALLDATASIZE successfully', function () { return __awaiter(_this, void 0, void 0, function () {
+            it('should use CALLDATALOAD successfully within the calldata boundary, with offset', function () { return __awaiter(_this, void 0, void 0, function () {
+                var stack_0, code, data, resExpected;
+                return __generator(this, function (_a) {
+                    switch (_a.label) {
+                        case 0:
+                            stack_0 = '0000000000000000000000000000000000000000000000000000000000000020';
+                            code = constants_1.PUSH32 + stack_0 + constants_1.CALLDATALOAD;
+                            data = "00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001";
+                            resExpected = {
+                                errno: 0,
+                                errpc: code.length / 2,
+                                returnData: "",
+                                memSize: 0,
+                                mem: "",
+                                stack: [
+                                    new bignumber_js_1.BigNumber(1)
+                                ],
+                            };
+                            return [4 /*yield*/, runTest(code, data, resExpected)];
+                        case 1:
+                            _a.sent();
+                            return [2 /*return*/];
+                    }
+                });
+            }); });
+            it('should use CALLDATALOAD successfully outside the calldata boundary, with offset', function () { return __awaiter(_this, void 0, void 0, function () {
+                var stack_0, code, data, resExpected;
+                return __generator(this, function (_a) {
+                    switch (_a.label) {
+                        case 0:
+                            stack_0 = '0000000000000000000000000000000000000000000000000000000000000020';
+                            code = constants_1.PUSH32 + stack_0 + constants_1.CALLDATALOAD;
+                            data = "";
+                            resExpected = {
+                                errno: 0,
+                                errpc: code.length / 2,
+                                returnData: "",
+                                memSize: 0,
+                                mem: "",
+                                stack: [
+                                    new bignumber_js_1.BigNumber(0)
+                                ],
+                            };
+                            return [4 /*yield*/, runTest(code, data, resExpected)];
+                        case 1:
+                            _a.sent();
+                            return [2 /*return*/];
+                    }
+                });
+            }); });
+            it('should use CALLDATALOAD successfully partially inside the calldata boundary, with offset', function () { return __awaiter(_this, void 0, void 0, function () {
+                var stack_0, code, data, resExpected;
+                return __generator(this, function (_a) {
+                    switch (_a.label) {
+                        case 0:
+                            stack_0 = '0000000000000000000000000000000000000000000000000000000000000020';
+                            code = constants_1.PUSH32 + stack_0 + constants_1.CALLDATALOAD;
+                            data = "000000000000000000000000000000000000000000000000000000000000000001";
+                            resExpected = {
+                                errno: 0,
+                                errpc: code.length / 2,
+                                returnData: "",
+                                memSize: 0,
+                                mem: "",
+                                stack: [
+                                    new bignumber_js_1.BigNumber('0100000000000000000000000000000000000000000000000000000000000000', 16)
+                                ],
+                            };
+                            return [4 /*yield*/, runTest(code, data, resExpected)];
+                        case 1:
+                            _a.sent();
+                            return [2 /*return*/];
+                    }
+                });
+            }); });
+            it('should use CALLDATALOAD with too few params, resulting in a stack underflow', function () { return __awaiter(_this, void 0, void 0, function () {
+                var code, data, resExpected;
+                return __generator(this, function (_a) {
+                    switch (_a.label) {
+                        case 0:
+                            code = constants_1.CALLDATALOAD;
+                            data = "";
+                            resExpected = {
+                                errno: constants_1.ERROR_STACK_UNDERFLOW,
+                                errpc: 0,
+                                returnData: "",
+                                memSize: 0,
+                                mem: "",
+                                stack: [],
+                            };
+                            return [4 /*yield*/, runTest(code, data, resExpected)];
+                        case 1:
+                            _a.sent();
+                            return [2 /*return*/];
+                    }
+                });
+            }); });
+            it('should use CALLDATASIZE successfully when zero', function () { return __awaiter(_this, void 0, void 0, function () {
+                var code, data, resExpected;
+                return __generator(this, function (_a) {
+                    switch (_a.label) {
+                        case 0:
+                            code = constants_1.CALLDATASIZE;
+                            data = "";
+                            resExpected = {
+                                errno: 0,
+                                errpc: code.length / 2,
+                                returnData: "",
+                                memSize: 0,
+                                mem: "",
+                                stack: [
+                                    new bignumber_js_1.BigNumber(0)
+                                ],
+                            };
+                            return [4 /*yield*/, runTest(code, data, resExpected)];
+                        case 1:
+                            _a.sent();
+                            return [2 /*return*/];
+                    }
+                });
+            }); });
+            it('should use CALLDATASIZE successfully when non-zero', function () { return __awaiter(_this, void 0, void 0, function () {
                 var code, data, resExpected;
                 return __generator(this, function (_a) {
                     switch (_a.label) {
@@ -1752,6 +1895,28 @@ describe('single instructions', function () { return __awaiter(_this, void 0, vo
                     }
                 });
             }); });
+            it('should use CALLDATACOPY successfully with zero bytes copied', function () { return __awaiter(_this, void 0, void 0, function () {
+                var code, data, resExpected;
+                return __generator(this, function (_a) {
+                    switch (_a.label) {
+                        case 0:
+                            code = constants_1.PUSH1 + '00' + constants_1.PUSH1 + '00' + constants_1.PUSH1 + '00' + constants_1.CALLDATACOPY;
+                            data = "";
+                            resExpected = {
+                                errno: 0,
+                                errpc: code.length / 2,
+                                returnData: "",
+                                memSize: 32,
+                                mem: "",
+                                stack: [],
+                            };
+                            return [4 /*yield*/, runTest(code, data, resExpected)];
+                        case 1:
+                            _a.sent();
+                            return [2 /*return*/];
+                    }
+                });
+            }); });
             it('should use CALLDATACOPY successfully', function () { return __awaiter(_this, void 0, void 0, function () {
                 var code, data, resExpected;
                 return __generator(this, function (_a) {
@@ -1766,6 +1931,31 @@ describe('single instructions', function () { return __awaiter(_this, void 0, vo
                                 memSize: 32,
                                 mem: "0000000000000000020202020202020203030303030303030000000000000000",
                                 stack: [],
+                            };
+                            return [4 /*yield*/, runTest(code, data, resExpected)];
+                        case 1:
+                            _a.sent();
+                            return [2 /*return*/];
+                    }
+                });
+            }); });
+            it('should use CALLDATACOPY with too few params, resulting in a stack underflow', function () { return __awaiter(_this, void 0, void 0, function () {
+                var code, data, resExpected;
+                return __generator(this, function (_a) {
+                    switch (_a.label) {
+                        case 0:
+                            code = constants_1.PUSH1 + '00' + constants_1.PUSH1 + '00' + constants_1.CALLDATACOPY;
+                            data = "";
+                            resExpected = {
+                                errno: constants_1.ERROR_STACK_UNDERFLOW,
+                                errpc: 4,
+                                returnData: "",
+                                memSize: 0,
+                                mem: "",
+                                stack: [
+                                    new bignumber_js_1.BigNumber(0),
+                                    new bignumber_js_1.BigNumber(0)
+                                ],
                             };
                             return [4 /*yield*/, runTest(code, data, resExpected)];
                         case 1:
@@ -1798,6 +1988,28 @@ describe('single instructions', function () { return __awaiter(_this, void 0, vo
                     }
                 });
             }); });
+            it('should use CODECOPY successfully with zero size', function () { return __awaiter(_this, void 0, void 0, function () {
+                var code, data, resExpected;
+                return __generator(this, function (_a) {
+                    switch (_a.label) {
+                        case 0:
+                            code = constants_1.PUSH1 + '00' + constants_1.PUSH1 + '00' + constants_1.PUSH1 + '00' + constants_1.CODECOPY;
+                            data = "";
+                            resExpected = {
+                                errno: 0,
+                                errpc: code.length / 2,
+                                returnData: "",
+                                memSize: 0,
+                                mem: "",
+                                stack: [],
+                            };
+                            return [4 /*yield*/, runTest(code, data, resExpected)];
+                        case 1:
+                            _a.sent();
+                            return [2 /*return*/];
+                    }
+                });
+            }); });
             it('should use CODECOPY successfully', function () { return __awaiter(_this, void 0, void 0, function () {
                 var code, data, resExpected;
                 return __generator(this, function (_a) {
@@ -1812,6 +2024,31 @@ describe('single instructions', function () { return __awaiter(_this, void 0, vo
                                 memSize: 32,
                                 mem: code + "00000000000000000000000000000000000000000000000000",
                                 stack: [],
+                            };
+                            return [4 /*yield*/, runTest(code, data, resExpected)];
+                        case 1:
+                            _a.sent();
+                            return [2 /*return*/];
+                    }
+                });
+            }); });
+            it('should use CODECOPY with too few params, resulting in a stack underflow', function () { return __awaiter(_this, void 0, void 0, function () {
+                var code, data, resExpected;
+                return __generator(this, function (_a) {
+                    switch (_a.label) {
+                        case 0:
+                            code = constants_1.PUSH1 + '00' + constants_1.PUSH1 + '00' + constants_1.CODECOPY;
+                            data = "";
+                            resExpected = {
+                                errno: constants_1.ERROR_STACK_UNDERFLOW,
+                                errpc: 4,
+                                returnData: "",
+                                memSize: 0,
+                                mem: "",
+                                stack: [
+                                    new bignumber_js_1.BigNumber(0),
+                                    new bignumber_js_1.BigNumber(0)
+                                ],
                             };
                             return [4 /*yield*/, runTest(code, data, resExpected)];
                         case 1:
@@ -1844,150 +2081,9 @@ describe('single instructions', function () { return __awaiter(_this, void 0, vo
                     }
                 });
             }); });
-            it('should use BLOCKHASH successfully', function () { return __awaiter(_this, void 0, void 0, function () {
-                var code, data, resExpected;
-                return __generator(this, function (_a) {
-                    switch (_a.label) {
-                        case 0:
-                            code = constants_1.PUSH1 + '00' + constants_1.BLOCKHASH;
-                            data = "";
-                            resExpected = {
-                                errno: 0,
-                                errpc: code.length / 2,
-                                returnData: "",
-                                memSize: 0,
-                                mem: "",
-                                stack: [
-                                    new bignumber_js_1.BigNumber(0)
-                                ],
-                            };
-                            return [4 /*yield*/, runTest(code, data, resExpected)];
-                        case 1:
-                            _a.sent();
-                            return [2 /*return*/];
-                    }
-                });
-            }); });
-            it('should use COINBASE successfully', function () { return __awaiter(_this, void 0, void 0, function () {
-                var code, data, resExpected;
-                return __generator(this, function (_a) {
-                    switch (_a.label) {
-                        case 0:
-                            code = constants_1.COINBASE;
-                            data = "";
-                            resExpected = {
-                                errno: 0,
-                                errpc: code.length / 2,
-                                returnData: "",
-                                memSize: 0,
-                                mem: "",
-                                stack: [
-                                    new bignumber_js_1.BigNumber(0)
-                                ],
-                            };
-                            return [4 /*yield*/, runTest(code, data, resExpected)];
-                        case 1:
-                            _a.sent();
-                            return [2 /*return*/];
-                    }
-                });
-            }); });
-            it('should use TIMESTAMP successfully', function () { return __awaiter(_this, void 0, void 0, function () {
-                var code, data, resExpected;
-                return __generator(this, function (_a) {
-                    switch (_a.label) {
-                        case 0:
-                            code = constants_1.TIMESTAMP;
-                            data = "";
-                            resExpected = {
-                                errno: 0,
-                                errpc: code.length / 2,
-                                returnData: "",
-                                memSize: 0,
-                                mem: "",
-                                stack: [
-                                    new bignumber_js_1.BigNumber(0)
-                                ],
-                            };
-                            return [4 /*yield*/, runTest(code, data, resExpected)];
-                        case 1:
-                            _a.sent();
-                            return [2 /*return*/];
-                    }
-                });
-            }); });
-            it('should use NUMBER successfully', function () { return __awaiter(_this, void 0, void 0, function () {
-                var code, data, resExpected;
-                return __generator(this, function (_a) {
-                    switch (_a.label) {
-                        case 0:
-                            code = constants_1.NUMBER;
-                            data = "";
-                            resExpected = {
-                                errno: 0,
-                                errpc: code.length / 2,
-                                returnData: "",
-                                memSize: 0,
-                                mem: "",
-                                stack: [
-                                    new bignumber_js_1.BigNumber(0)
-                                ],
-                            };
-                            return [4 /*yield*/, runTest(code, data, resExpected)];
-                        case 1:
-                            _a.sent();
-                            return [2 /*return*/];
-                    }
-                });
-            }); });
-            it('should use DIFFICULTY successfully', function () { return __awaiter(_this, void 0, void 0, function () {
-                var code, data, resExpected;
-                return __generator(this, function (_a) {
-                    switch (_a.label) {
-                        case 0:
-                            code = constants_1.DIFFICULTY;
-                            data = "";
-                            resExpected = {
-                                errno: 0,
-                                errpc: code.length / 2,
-                                returnData: "",
-                                memSize: 0,
-                                mem: "",
-                                stack: [
-                                    new bignumber_js_1.BigNumber(0)
-                                ],
-                            };
-                            return [4 /*yield*/, runTest(code, data, resExpected)];
-                        case 1:
-                            _a.sent();
-                            return [2 /*return*/];
-                    }
-                });
-            }); });
-            it('should use GASLIMIT successfully', function () { return __awaiter(_this, void 0, void 0, function () {
-                var code, data, resExpected;
-                return __generator(this, function (_a) {
-                    switch (_a.label) {
-                        case 0:
-                            code = constants_1.GASLIMIT;
-                            data = "";
-                            resExpected = {
-                                errno: 0,
-                                errpc: code.length / 2,
-                                returnData: "",
-                                memSize: 0,
-                                mem: "",
-                                stack: [
-                                    new bignumber_js_1.BigNumber(0)
-                                ],
-                            };
-                            return [4 /*yield*/, runTest(code, data, resExpected)];
-                        case 1:
-                            _a.sent();
-                            return [2 /*return*/];
-                    }
-                });
-            }); });
+            // TODO EXTCODESIZE, EXTCODECOPY, RETURNDATASIZE, RETURNDATACOPY
+            // These should maybe be done directly in solidity
+            // There are tests for returndata in solidity contract tests.
         });
         describe('block information', function () {
             it('should use BLOCKHASH successfully', function () { return __awaiter(_this, void 0, void 0, function () {
@@ -2006,6 +2102,28 @@ describe('single instructions', function () { return __awaiter(_this, void 0, vo
                                 stack: [
                                     new bignumber_js_1.BigNumber(0)
                                 ],
+                            };
+                            return [4 /*yield*/, runTest(code, data, resExpected)];
+                        case 1:
+                            _a.sent();
+                            return [2 /*return*/];
+                    }
+                });
+            }); });
+            it('should use BLOCKHASH with too few params, resulting in a stack underflow', function () { return __awaiter(_this, void 0, void 0, function () {
+                var code, data, resExpected;
+                return __generator(this, function (_a) {
+                    switch (_a.label) {
+                        case 0:
+                            code = constants_1.BLOCKHASH;
+                            data = "";
+                            resExpected = {
+                                errno: constants_1.ERROR_STACK_UNDERFLOW,
+                                errpc: 0,
+                                returnData: "",
+                                memSize: 0,
+                                mem: "",
+                                stack: [],
                             };
                             return [4 /*yield*/, runTest(code, data, resExpected)];
                         case 1:
@@ -2136,7 +2254,7 @@ describe('single instructions', function () { return __awaiter(_this, void 0, vo
             }); });
         });
         describe('stack, memory, storage and flow ops', function () {
-            it('should run push32 three times in a row then pop all three successfully', function () { return __awaiter(_this, void 0, void 0, function () {
+            it('should run PUSH32 three times in a row then pop all three successfully', function () { return __awaiter(_this, void 0, void 0, function () {
                 var stack_0, stack_1, stack_2, code, data, resExpected;
                 return __generator(this, function (_a) {
                     switch (_a.label) {
@@ -2161,7 +2279,7 @@ describe('single instructions', function () { return __awaiter(_this, void 0, vo
                     }
                 });
             }); });
-            it('should pop empty stack and result in a stack underflow', function () { return __awaiter(_this, void 0, void 0, function () {
+            it('should POP empty stack and result in a stack underflow', function () { return __awaiter(_this, void 0, void 0, function () {
                 var code, data, resExpected;
                 return __generator(this, function (_a) {
                     switch (_a.label) {
@@ -2343,6 +2461,28 @@ describe('single instructions', function () { return __awaiter(_this, void 0, vo
                     }
                 });
             }); });
+            it('should use JUMP with too few params, resulting in a stack underflow', function () { return __awaiter(_this, void 0, void 0, function () {
+                var code, data, resExpected;
+                return __generator(this, function (_a) {
+                    switch (_a.label) {
+                        case 0:
+                            code = constants_1.JUMP;
+                            data = "";
+                            resExpected = {
+                                errno: constants_1.ERROR_STACK_UNDERFLOW,
+                                errpc: 0,
+                                returnData: "",
+                                memSize: 0,
+                                mem: "",
+                                stack: [],
+                            };
+                            return [4 /*yield*/, runTest(code, data, resExpected)];
+                        case 1:
+                            _a.sent();
+                            return [2 /*return*/];
+                    }
+                });
+            }); });
             it('should use JUMPI successfully when condition is true', function () { return __awaiter(_this, void 0, void 0, function () {
                 var code, data, resExpected;
                 return __generator(this, function (_a) {
@@ -2409,9 +2549,153 @@ describe('single instructions', function () { return __awaiter(_this, void 0, vo
                     }
                 });
             }); });
+            it('should use JUMPI with too few params, resulting in a stack underflow', function () { return __awaiter(_this, void 0, void 0, function () {
+                var code, data, resExpected;
+                return __generator(this, function (_a) {
+                    switch (_a.label) {
+                        case 0:
+                            code = constants_1.PUSH1 + '00' + constants_1.JUMPI;
+                            data = "";
+                            resExpected = {
+                                errno: constants_1.ERROR_STACK_UNDERFLOW,
+                                errpc: 2,
+                                returnData: "",
+                                memSize: 0,
+                                mem: "",
+                                stack: [
+                                    new bignumber_js_1.BigNumber(0)
+                                ],
+                            };
+                            return [4 /*yield*/, runTest(code, data, resExpected)];
+                        case 1:
+                            _a.sent();
+                            return [2 /*return*/];
+                    }
+                });
+            }); });
+            it('should use PC successfully', function () { return __awaiter(_this, void 0, void 0, function () {
+                var code, data, resExpected;
+                return __generator(this, function (_a) {
+                    switch (_a.label) {
+                        case 0:
+                            code = constants_1.PC + constants_1.PC + constants_1.PC;
+                            data = "";
+                            resExpected = {
+                                errno: 0,
+                                errpc: code.length / 2,
+                                returnData: "",
+                                memSize: 0,
+                                mem: "",
+                                stack: [
+                                    new bignumber_js_1.BigNumber(0),
+                                    new bignumber_js_1.BigNumber(1),
+                                    new bignumber_js_1.BigNumber(2)
+                                ],
+                            };
+                            return [4 /*yield*/, runTest(code, data, resExpected)];
+                        case 1:
+                            _a.sent();
+                            return [2 /*return*/];
+                    }
+                });
+            }); });
+            it('should use MSIZE successfully when memory is empty', function () { return __awaiter(_this, void 0, void 0, function () {
+                var code, data, resExpected;
+                return __generator(this, function (_a) {
+                    switch (_a.label) {
+                        case 0:
+                            code = constants_1.MSIZE;
+                            data = "";
+                            resExpected = {
+                                errno: 0,
+                                errpc: code.length / 2,
+                                returnData: "",
+                                memSize: 0,
+                                mem: "",
+                                stack: [
+                                    new bignumber_js_1.BigNumber(0)
+                                ],
+                            };
+                            return [4 /*yield*/, runTest(code, data, resExpected)];
+                        case 1:
+                            _a.sent();
+                            return [2 /*return*/];
+                    }
+                });
+            }); });
+            it('should use MSIZE successfully when memory is non-empty', function () { return __awaiter(_this, void 0, void 0, function () {
+                var code, data, resExpected;
+                return __generator(this, function (_a) {
+                    switch (_a.label) {
+                        case 0:
+                            code = constants_1.PUSH1 + '01' + constants_1.PUSH1 + '00' + constants_1.MSTORE + constants_1.MSIZE;
+                            data = "";
+                            resExpected = {
+                                errno: 0,
+                                errpc: code.length / 2,
+                                returnData: "",
+                                memSize: 32,
+                                mem: "0000000000000000000000000000000000000000000000000000000000000001",
+                                stack: [
+                                    new bignumber_js_1.BigNumber(32)
+                                ],
+                            };
+                            return [4 /*yield*/, runTest(code, data, resExpected)];
+                        case 1:
+                            _a.sent();
+                            return [2 /*return*/];
+                    }
+                });
+            }); });
+            it('should use GAS successfully', function () { return __awaiter(_this, void 0, void 0, function () {
+                var code, data, resExpected;
+                return __generator(this, function (_a) {
+                    switch (_a.label) {
+                        case 0:
+                            code = constants_1.GAS;
+                            data = "";
+                            resExpected = {
+                                errno: 0,
+                                errpc: code.length / 2,
+                                returnData: "",
+                                memSize: 0,
+                                mem: "",
+                                stack: [
+                                    new bignumber_js_1.BigNumber(0)
+                                ],
+                            };
+                            return [4 /*yield*/, runTest(code, data, resExpected)];
+                        case 1:
+                            _a.sent();
+                            return [2 /*return*/];
+                    }
+                });
+            }); });
+            it('should use JUMPDEST successfully', function () { return __awaiter(_this, void 0, void 0, function () {
+                var code, data, resExpected;
+                return __generator(this, function (_a) {
+                    switch (_a.label) {
+                        case 0:
+                            code = constants_1.JUMPDEST;
+                            data = "";
+                            resExpected = {
+                                errno: 0,
+                                errpc: code.length / 2,
+                                returnData: "",
+                                memSize: 0,
+                                mem: "",
+                                stack: [],
+                            };
+                            return [4 /*yield*/, runTest(code, data, resExpected)];
+                        case 1:
+                            _a.sent();
+                            return [2 /*return*/];
+                    }
+                });
+            }); });
         });
         describe('push ops', function () {
-            it('should run push32 successfully', function () { return __awaiter(_this, void 0, void 0, function () {
+            it('should run PUSH32 successfully', function () { return __awaiter(_this, void 0, void 0, function () {
                 var stack_0, code, data, resExpected;
                 return __generator(this, function (_a) {
                     switch (_a.label) {
@@ -2436,7 +2720,7 @@ describe('single instructions', function () { return __awaiter(_this, void 0, vo
                     }
                 });
             }); });
-            it('should run push32 three times in a row successfully', function () { return __awaiter(_this, void 0, void 0, function () {
+            it('should run PUSH32 three times in a row successfully', function () { return __awaiter(_this, void 0, void 0, function () {
                 var stack_0, stack_1, stack_2, code, data, resExpected;
                 return __generator(this, function (_a) {
                     switch (_a.label) {
@@ -2465,7 +2749,7 @@ describe('single instructions', function () { return __awaiter(_this, void 0, vo
                     }
                 });
             }); });
-            it('should run push1 successfully', function () { return __awaiter(_this, void 0, void 0, function () {
+            it('should run PUSH1 successfully', function () { return __awaiter(_this, void 0, void 0, function () {
                 var stack_0, code, data, resExpected;
                 return __generator(this, function (_a) {
                     switch (_a.label) {
@@ -2492,7 +2776,7 @@ describe('single instructions', function () { return __awaiter(_this, void 0, vo
             }); });
         });
         describe('dup ops', function () {
-            it('should run dup1 successfully', function () { return __awaiter(_this, void 0, void 0, function () {
+            it('should run DUP1 successfully', function () { return __awaiter(_this, void 0, void 0, function () {
                 var stack_0, code, data, resExpected;
                 return __generator(this, function (_a) {
                     switch (_a.label) {
@@ -2518,7 +2802,7 @@ describe('single instructions', function () { return __awaiter(_this, void 0, vo
                     }
                 });
             }); });
-            it('should run dup16 sixteen times in a row successfully', function () { return __awaiter(_this, void 0, void 0, function () {
+            it('should run DUP16 sixteen times in a row successfully', function () { return __awaiter(_this, void 0, void 0, function () {
                 var stack_0, stack_1, stack_2, stack_3, stack_4, stack_5, stack_6, stack_7, stack_8, stack_9, stack_10, stack_11, stack_12, stack_13, stack_14, stack_15, code, data, resExpected;
                 return __generator(this, function (_a) {
                     switch (_a.label) {
@@ -2608,7 +2892,7 @@ describe('single instructions', function () { return __awaiter(_this, void 0, vo
             }); });
         });
         describe('swap ops', function () {
-            it('should run swap1 successfully', function () { return __awaiter(_this, void 0, void 0, function () {
+            it('should run SWAP1 successfully', function () { return __awaiter(_this, void 0, void 0, function () {
                 var stack_0, stack_1, code, data, resExpected;
                 return __generator(this, function (_a) {
                     switch (_a.label) {
@@ -2635,7 +2919,7 @@ describe('single instructions', function () { return __awaiter(_this, void 0, vo
                     }
                 });
             }); });
-            it('should run swap1 to swap16 successfully', function () { return __awaiter(_this, void 0, void 0, function () {
+            it('should run SWAP1 to swap16 successfully', function () { return __awaiter(_this, void 0, void 0, function () {
                 var stack_0, stack_1, stack_2, stack_3, stack_4, stack_5, stack_6, stack_7, stack_8, stack_9, stack_10, stack_11, stack_12, stack_13, stack_14, stack_15, stack_16, code, data, resExpected;
                 return __generator(this, function (_a) {
                     switch (_a.label) {
@@ -2712,7 +2996,7 @@ describe('single instructions', function () { return __awaiter(_this, void 0, vo
             }); });
         });
         describe('swap ops', function () {
-            it('should run swap1 successfully', function () { return __awaiter(_this, void 0, void 0, function () {
+            it('should run SWAP1 successfully', function () { return __awaiter(_this, void 0, void 0, function () {
                 var stack_0, stack_1, code, data, resExpected;
                 return __generator(this, function (_a) {
                     switch (_a.label) {

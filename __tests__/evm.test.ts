@@ -21,12 +21,12 @@ import {
     EQ, ERROR_INVALID_JUMP_DESTINATION, ERROR_INVALID_OPCODE, ERROR_STACK_UNDERFLOW,
     ERROR_STATE_REVERTED,
     EVM_EXECUTE_SIG,
-    EXP, GASLIMIT, GASPRICE, GT, ISZERO,
+    EXP, GAS, GASLIMIT, GASPRICE, GT, ISZERO,
     JUMP,
     JUMPDEST,
     JUMPI,
     LT, MLOAD,
-    MOD,
+    MOD, MSIZE,
     MSTORE, MSTORE8,
     MUL, MULMOD,
     NO_ERROR, NOT, NUMBER, OR,
@@ -1121,6 +1121,20 @@ describe('single instructions', async () => {
             // prettyPrintResults(result);
         });
 
+        it('should use BALANCE with too few params, resulting in a stack underflow', async () => {
+            const code = BALANCE;
+            const data = "";
+            const resExpected = {
+                errno: ERROR_STACK_UNDERFLOW,
+                errpc: 0,
+                returnData: "",
+                memSize: 0,
+                mem: "",
+                stack: [],
+            };
+            await runTest(code, data, resExpected);
+        });
+
         it('should use CALLER successfully', async () => {
             const code = CALLER;
             const data = "";
@@ -1206,7 +1220,88 @@ describe('single instructions', async () => {
             await runTest(code, data, resExpected);
         });
 
-        it('should use CALLDATASIZE successfully', async () => {
+        it('should use CALLDATALOAD successfully within the calldata boundary, with offset', async () => {
+            const stack_0 = '0000000000000000000000000000000000000000000000000000000000000020';
+            const code = PUSH32 + stack_0 + CALLDATALOAD;
+            const data = "00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001";
+            const resExpected = {
+                errno: 0,
+                errpc: code.length / 2,
+                returnData: "",
+                memSize: 0,
+                mem: "",
+                stack: [
+                    new BigNumber(1)
+                ],
+            };
+            await runTest(code, data, resExpected);
+        });
+
+        it('should use CALLDATALOAD successfully outside the calldata boundary, with offset', async () => {
+            const stack_0 = '0000000000000000000000000000000000000000000000000000000000000020';
+            const code = PUSH32 + stack_0 + CALLDATALOAD;
+            const data = "";
+            const resExpected = {
+                errno: 0,
+                errpc: code.length / 2,
+                returnData: "",
+                memSize: 0,
+                mem: "",
+                stack: [
+                    new BigNumber(0)
+                ],
+            };
+            await runTest(code, data, resExpected);
+        });
+
+        it('should use CALLDATALOAD successfully partially inside the calldata boundary, with offset', async () => {
+            const stack_0 = '0000000000000000000000000000000000000000000000000000000000000020';
+            const code = PUSH32 + stack_0 + CALLDATALOAD;
+            const data = "000000000000000000000000000000000000000000000000000000000000000001";
+            const resExpected = {
+                errno: 0,
+                errpc: code.length / 2,
+                returnData: "",
+                memSize: 0,
+                mem: "",
+                stack: [
+                    new BigNumber('0100000000000000000000000000000000000000000000000000000000000000', 16)
+                ],
+            };
+            await runTest(code, data, resExpected);
+        });
+
+        it('should use CALLDATALOAD with too few params, resulting in a stack underflow', async () => {
+            const code = CALLDATALOAD;
+            const data = "";
+            const resExpected = {
+                errno: ERROR_STACK_UNDERFLOW,
+                errpc: 0,
+                returnData: "",
+                memSize: 0,
+                mem: "",
+                stack: [],
+            };
+            await runTest(code, data, resExpected);
+        });
+
+        it('should use CALLDATASIZE successfully when zero', async () => {
+            const code = CALLDATASIZE;
+            const data = "";
+            const resExpected = {
+                errno: 0,
+                errpc: code.length / 2,
+                returnData: "",
+                memSize: 0,
+                mem: "",
+                stack: [
+                    new BigNumber(0)
+                ],
+            };
+            await runTest(code, data, resExpected);
+        });
+
+        it('should use CALLDATASIZE successfully when non-zero', async () => {
             const code = CALLDATASIZE;
             const data = "01010101010101";
             const resExpected = {
@@ -1222,6 +1317,20 @@ describe('single instructions', async () => {
             await runTest(code, data, resExpected);
         });
 
+        it('should use CALLDATACOPY successfully with zero bytes copied', async () => {
+            const code = PUSH1 + '00' + PUSH1 + '00' + PUSH1 + '00' + CALLDATACOPY;
+            const data = "";
+            const resExpected = {
+                errno: 0,
+                errpc: code.length / 2,
+                returnData: "",
+                memSize: 32,
+                mem: "",
+                stack: [],
+            };
+            await runTest(code, data, resExpected);
+        });
+
         it('should use CALLDATACOPY successfully', async () => {
             const code = PUSH1 + '10' + PUSH1 + '08' + PUSH1 + '08' + CALLDATACOPY;
             const data = "0101010101010101020202020202020203030303030303030404040404040404";
@@ -1232,6 +1341,23 @@ describe('single instructions', async () => {
                 memSize: 32,
                 mem: "0000000000000000020202020202020203030303030303030000000000000000",
                 stack: [],
+            };
+            await runTest(code, data, resExpected);
+        });
+
+        it('should use CALLDATACOPY with too few params, resulting in a stack underflow', async () => {
+            const code = PUSH1 + '00' + PUSH1 + '00' + CALLDATACOPY;
+            const data = "";
+            const resExpected = {
+                errno: ERROR_STACK_UNDERFLOW,
+                errpc: 4,
+                returnData: "",
+                memSize: 0,
+                mem: "",
+                stack: [
+                    new BigNumber(0),
+                    new BigNumber(0)
+                ],
             };
             await runTest(code, data, resExpected);
         });
@@ -1252,6 +1378,20 @@ describe('single instructions', async () => {
             await runTest(code, data, resExpected);
         });
 
+        it('should use CODECOPY successfully with zero size', async () => {
+            const code = PUSH1 + '00' + PUSH1 + '00' + PUSH1 + '00' + CODECOPY;
+            const data = "";
+            const resExpected = {
+                errno: 0,
+                errpc: code.length / 2,
+                returnData: "",
+                memSize: 0,
+                mem: "",
+                stack: [],
+            };
+            await runTest(code, data, resExpected);
+        });
+
         it('should use CODECOPY successfully', async () => {
             const code = PUSH1 + '07' + PUSH1 + '00' + PUSH1 + '00' + CODECOPY;
             const data = "";
@@ -1262,6 +1402,23 @@ describe('single instructions', async () => {
                 memSize: 32,
                 mem: code + "00000000000000000000000000000000000000000000000000",
                 stack: [],
+            };
+            await runTest(code, data, resExpected);
+        });
+
+        it('should use CODECOPY with too few params, resulting in a stack underflow', async () => {
+            const code = PUSH1 + '00' + PUSH1 + '00' + CODECOPY;
+            const data = "";
+            const resExpected = {
+                errno: ERROR_STACK_UNDERFLOW,
+                errpc: 4,
+                returnData: "",
+                memSize: 0,
+                mem: "",
+                stack: [
+                    new BigNumber(0),
+                    new BigNumber(0)
+                ],
             };
             await runTest(code, data, resExpected);
         });
@@ -1282,101 +1439,11 @@ describe('single instructions', async () => {
             await runTest(code, data, resExpected);
         });
 
-        it('should use BLOCKHASH successfully', async () => {
-            const code = PUSH1 + '00' + BLOCKHASH;
-            const data = "";
-            const resExpected = {
-                errno: 0,
-                errpc: code.length / 2,
-                returnData: "",
-                memSize: 0,
-                mem: "",
-                stack: [
-                    new BigNumber(0)
-                ],
-            };
-            await runTest(code, data, resExpected);
-        });
+        // TODO EXTCODESIZE, EXTCODECOPY, RETURNDATASIZE, RETURNDATACOPY
+        // These should maybe be done directly in solidity
+        // There are tests for returndata in solidity contract tests.
 
-        it('should use COINBASE successfully', async () => {
-            const code = COINBASE;
-            const data = "";
-            const resExpected = {
-                errno: 0,
-                errpc: code.length / 2,
-                returnData: "",
-                memSize: 0,
-                mem: "",
-                stack: [
-                    new BigNumber(0)
-                ],
-            };
-            await runTest(code, data, resExpected);
-        });
 
-        it('should use TIMESTAMP successfully', async () => {
-            const code = TIMESTAMP;
-            const data = "";
-            const resExpected = {
-                errno: 0,
-                errpc: code.length / 2,
-                returnData: "",
-                memSize: 0,
-                mem: "",
-                stack: [
-                    new BigNumber(0)
-                ],
-            };
-            await runTest(code, data, resExpected);
-        });
-
-        it('should use NUMBER successfully', async () => {
-            const code = NUMBER;
-            const data = "";
-            const resExpected = {
-                errno: 0,
-                errpc: code.length / 2,
-                returnData: "",
-                memSize: 0,
-                mem: "",
-                stack: [
-                    new BigNumber(0)
-                ],
-            };
-            await runTest(code, data, resExpected);
-        });
-
-        it('should use DIFFICULTY successfully', async () => {
-            const code = DIFFICULTY;
-            const data = "";
-            const resExpected = {
-                errno: 0,
-                errpc: code.length / 2,
-                returnData: "",
-                memSize: 0,
-                mem: "",
-                stack: [
-                    new BigNumber(0)
-                ],
-            };
-            await runTest(code, data, resExpected);
-        });
-
-        it('should use GASLIMIT successfully', async () => {
-            const code = GASLIMIT;
-            const data = "";
-            const resExpected = {
-                errno: 0,
-                errpc: code.length / 2,
-                returnData: "",
-                memSize: 0,
-                mem: "",
-                stack: [
-                    new BigNumber(0)
-                ],
-            };
-            await runTest(code, data, resExpected);
-        });
     });
 
     describe('block information', () => {
@@ -1393,6 +1460,20 @@ describe('single instructions', async () => {
                 stack: [
                     new BigNumber(0)
                 ],
+            };
+            await runTest(code, data, resExpected);
+        });
+
+        it('should use BLOCKHASH with too few params, resulting in a stack underflow', async () => {
+            const code = BLOCKHASH;
+            const data = "";
+            const resExpected = {
+                errno: ERROR_STACK_UNDERFLOW,
+                errpc: 0,
+                returnData: "",
+                memSize: 0,
+                mem: "",
+                stack: [],
             };
             await runTest(code, data, resExpected);
         });
@@ -1481,7 +1562,7 @@ describe('single instructions', async () => {
 
     describe('stack, memory, storage and flow ops', () => {
 
-        it('should run push32 three times in a row then pop all three successfully', async () => {
+        it('should run PUSH32 three times in a row then pop all three successfully', async () => {
             const stack_0 = '0101010101010101010101010101010101010101010101010101010101010101';
             const stack_1 = '0101010101010101010101010101010101010101010101010101010101010102';
             const stack_2 = '0101010101010101010101010101010101010101010101010101010101010103';
@@ -1498,7 +1579,7 @@ describe('single instructions', async () => {
             await runTest(code, data, resExpected);
         });
 
-        it('should pop empty stack and result in a stack underflow', async () => {
+        it('should POP empty stack and result in a stack underflow', async () => {
             const code = POP;
             const data = "";
             const resExpected = {
@@ -1616,6 +1697,20 @@ describe('single instructions', async () => {
             await runTest(code, data, resExpected);
         });
 
+        it('should use JUMP with too few params, resulting in a stack underflow', async () => {
+            const code = JUMP;
+            const data = "";
+            const resExpected = {
+                errno: ERROR_STACK_UNDERFLOW,
+                errpc: 0,
+                returnData: "",
+                memSize: 0,
+                mem: "",
+                stack: [],
+            };
+            await runTest(code, data, resExpected);
+        });
+
         it('should use JUMPI successfully when condition is true', async () => {
             const code = PUSH1 + '01' + PUSH1 + '07' + JUMPI + PUSH1 + '05' + JUMPDEST + STOP;
             const data = "";
@@ -1657,11 +1752,108 @@ describe('single instructions', async () => {
             };
             await runTest(code, data, resExpected);
         });
+
+        it('should use JUMPI with too few params, resulting in a stack underflow', async () => {
+            const code = PUSH1 + '00' + JUMPI;
+            const data = "";
+            const resExpected = {
+                errno: ERROR_STACK_UNDERFLOW,
+                errpc: 2,
+                returnData: "",
+                memSize: 0,
+                mem: "",
+                stack: [
+                    new BigNumber(0)
+                ],
+            };
+            await runTest(code, data, resExpected);
+        });
+
+        it('should use PC successfully', async () => {
+            const code = PC + PC + PC;
+            const data = "";
+            const resExpected = {
+                errno: 0,
+                errpc: code.length / 2,
+                returnData: "",
+                memSize: 0,
+                mem: "",
+                stack: [
+                    new BigNumber(0),
+                    new BigNumber(1),
+                    new BigNumber(2)
+                ],
+            };
+            await runTest(code, data, resExpected);
+        });
+
+        it('should use MSIZE successfully when memory is empty', async () => {
+            const code = MSIZE;
+            const data = "";
+            const resExpected = {
+                errno: 0,
+                errpc: code.length / 2,
+                returnData: "",
+                memSize: 0,
+                mem: "",
+                stack: [
+                    new BigNumber(0)
+                ],
+            };
+            await runTest(code, data, resExpected);
+        });
+
+        it('should use MSIZE successfully when memory is non-empty', async () => {
+            const code = PUSH1 + '01' + PUSH1 + '00' + MSTORE + MSIZE;
+            const data = "";
+            const resExpected = {
+                errno: 0,
+                errpc: code.length / 2,
+                returnData: "",
+                memSize: 32,
+                mem: "0000000000000000000000000000000000000000000000000000000000000001",
+                stack: [
+                    new BigNumber(32)
+                ],
+            };
+            await runTest(code, data, resExpected);
+        });
+
+        it('should use GAS successfully', async () => {
+            const code = GAS;
+            const data = "";
+            const resExpected = {
+                errno: 0,
+                errpc: code.length / 2,
+                returnData: "",
+                memSize: 0,
+                mem: "",
+                stack: [
+                    new BigNumber(0)
+                ],
+            };
+            await runTest(code, data, resExpected);
+        });
+
+        it('should use JUMPDEST successfully', async () => {
+            const code = JUMPDEST;
+            const data = "";
+            const resExpected = {
+                errno: 0,
+                errpc: code.length / 2,
+                returnData: "",
+                memSize: 0,
+                mem: "",
+                stack: [],
+            };
+            await runTest(code, data, resExpected);
+        });
+
     });
 
     describe('push ops', () => {
 
-        it('should run push32 successfully', async () => {
+        it('should run PUSH32 successfully', async () => {
             const stack_0 = '0101010101010101010101010101010101010101010101010101010101010101';
             const code = PUSH32 + stack_0;
             const data = "";
@@ -1678,7 +1870,7 @@ describe('single instructions', async () => {
             await runTest(code, data, resExpected);
         });
 
-        it('should run push32 three times in a row successfully', async () => {
+        it('should run PUSH32 three times in a row successfully', async () => {
             const stack_0 = '0101010101010101010101010101010101010101010101010101010101010101';
             const stack_1 = '0101010101010101010101010101010101010101010101010101010101010102';
             const stack_2 = '0101010101010101010101010101010101010101010101010101010101010103';
@@ -1699,7 +1891,7 @@ describe('single instructions', async () => {
             await runTest(code, data, resExpected);
         });
 
-        it('should run push1 successfully', async () => {
+        it('should run PUSH1 successfully', async () => {
             const stack_0 = '01';
             const code = PUSH1 + stack_0;
             const data = "";
@@ -1720,7 +1912,7 @@ describe('single instructions', async () => {
 
     describe('dup ops', () => {
 
-        it('should run dup1 successfully', async () => {
+        it('should run DUP1 successfully', async () => {
             const stack_0 = '0101010101010101010101010101010101010101010101010101010101010101';
             const code = PUSH32 + stack_0 + DUP1;
             const data = "";
@@ -1738,7 +1930,7 @@ describe('single instructions', async () => {
             await runTest(code, data, resExpected);
         });
 
-        it('should run dup16 sixteen times in a row successfully', async () => {
+        it('should run DUP16 sixteen times in a row successfully', async () => {
             const stack_0 = '0101010101010101010101010101010101010101010101010101010101010101';
             const stack_1 = '0101010101010101010101010101010101010101010101010101010101010102';
             const stack_2 = '0101010101010101010101010101010101010101010101010101010101010103';
@@ -1823,7 +2015,7 @@ describe('single instructions', async () => {
 
     describe('swap ops', () => {
 
-        it('should run swap1 successfully', async () => {
+        it('should run SWAP1 successfully', async () => {
             const stack_0 = '0101010101010101010101010101010101010101010101010101010101010101';
             const stack_1 = '0101010101010101010101010101010101010101010101010101010101010102';
             const code = PUSH32 + stack_0 + PUSH32 + stack_1 + SWAP1;
@@ -1842,7 +2034,7 @@ describe('single instructions', async () => {
             await runTest(code, data, resExpected);
         });
 
-        it('should run swap1 to swap16 successfully', async () => {
+        it('should run SWAP1 to swap16 successfully', async () => {
             const stack_0 = '0101010101010101010101010101010101010101010101010101010101010101';
             const stack_1 = '0101010101010101010101010101010101010101010101010101010101010102';
             const stack_2 = '0101010101010101010101010101010101010101010101010101010101010103';
@@ -1914,7 +2106,7 @@ describe('single instructions', async () => {
 
     describe('swap ops', () => {
 
-        it('should run swap1 successfully', async () => {
+        it('should run SWAP1 successfully', async () => {
             const stack_0 = '0101010101010101010101010101010101010101010101010101010101010101';
             const stack_1 = '0101010101010101010101010101010101010101010101010101010101010102';
             const code = PUSH32 + stack_0 + PUSH32 + stack_1 + SWAP1;
