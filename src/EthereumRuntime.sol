@@ -65,6 +65,18 @@ contract IEthereumRuntime is EVMConstants {
         bool staticExec;
     }
 
+    struct EVMCreateInput {
+        uint64 gas;
+        uint value;
+        bytes code;
+        address caller;
+        address target;
+        Context context;
+        EVMAccounts.Accounts accounts;
+        EVMLogs.Logs logs;
+        Handlers handlers;
+    }
+
     struct Result {
         uint errno;
         uint errpc;
@@ -85,6 +97,7 @@ contract IEthereumRuntime is EVMConstants {
     struct EVM {
         uint64 gas;
         uint value;
+        bytes code;
         bytes data;
         bytes lastRet;
         bytes returnData;
@@ -163,12 +176,12 @@ contract EthereumRuntime is IEthereumRuntime {
             if (evm.target.code.length == 0) {
                 return;
             }
+            evm.code = evm.target.code;
             _run(evm);
         }
     }
 
-    function _create(EVMInput memory evmInput) internal pure returns (EVM memory evm, address addr) {
-        assert(!evmInput.staticExec);
+    function _create(EVMCreateInput memory evmInput) internal pure returns (EVM memory evm, address addr) {
         evm.context = evmInput.context;
         evm.handlers = evmInput.handlers;
         evm.accounts = evmInput.accounts.copy();
@@ -189,21 +202,19 @@ contract EthereumRuntime is IEthereumRuntime {
         }
 
         address newAddress = EVMUtils.newAddress(evm.caller.addr, evm.caller.nonce);
+        EVMAccounts.Account memory newAcc = evm.accounts.get(newAddress);
 
         // TODO
-        if (evm.accounts.get(newAddress).nonce != 0) {
+        if (newAcc.nonce != 0) {
             evm.errno = ERROR_CONTRACT_CREATION_COLLISION;
             return;
         }
-
-        EVMAccounts.Account memory newAcc = evm.accounts.get(newAddress);
-        newAcc.code = evmInput.data;
 
         evm.caller.balance -= evm.value;
         newAcc.balance += evm.value;
 
         evm.target = newAcc;
-
+        evm.code = evmInput.code;
         _run(evm);
 
         // TODO
@@ -223,7 +234,7 @@ contract EthereumRuntime is IEthereumRuntime {
         uint pc = 0;
         uint pcNext = 0;
         uint errno = NO_ERROR;
-        bytes memory code = evm.target.code;
+        bytes memory code = evm.code;
 
         evm.stack = EVMStack.newStack();
         evm.mem = EVMMemory.newMemory();
@@ -232,7 +243,7 @@ contract EthereumRuntime is IEthereumRuntime {
             uint opcode = uint(code[pc]);
 
             if (evm.staticExec && (opcode == OP_SSTORE || opcode == OP_CREATE ||
-                    (OP_LOG0 <= opcode && opcode <= OP_LOG4)))
+            (OP_LOG0 <= opcode && opcode <= OP_LOG4)))
             {
                 errno = ERROR_ILLEGAL_WRITE_OPERATION;
                 break;
@@ -808,7 +819,7 @@ contract EthereumRuntime is IEthereumRuntime {
         if (state.stack.size == MAX_STACK_SIZE) {
             return ERROR_STACK_OVERFLOW;
         }
-        state.stack.push(state.target.code.length);
+        state.stack.push(state.code.length);
     }
 
     function handleCODECOPY(EVM memory state) internal pure returns (uint errno) {
@@ -818,10 +829,10 @@ contract EthereumRuntime is IEthereumRuntime {
         uint mAddr = state.stack.pop();
         uint cAddr = state.stack.pop();
         uint len = state.stack.pop();
-        if (cAddr + len > state.target.code.length) {
+        if (cAddr + len > state.code.length) {
             return ERROR_INDEX_OOB;
         }
-        state.mem.storeBytes(state.target.code, cAddr, mAddr, len);
+        state.mem.storeBytes(state.code, cAddr, mAddr, len);
     }
 
     function handleGASPRICE(EVM memory state) internal pure returns (uint errno) {
@@ -974,7 +985,7 @@ contract EthereumRuntime is IEthereumRuntime {
             return ERROR_STACK_UNDERFLOW;
         }
         uint dest = state.stack.pop();
-        if (dest >= state.target.code.length || uint(state.target.code[dest]) != OP_JUMPDEST) {
+        if (dest >= state.code.length || uint(state.code[dest]) != OP_JUMPDEST) {
             return ERROR_INVALID_JUMP_DESTINATION;
         }
         state.pc = dest;
@@ -990,7 +1001,7 @@ contract EthereumRuntime is IEthereumRuntime {
             state.pc = state.pc + 1;
             return;
         }
-        if (dest >= state.target.code.length || uint(state.target.code[dest]) != OP_JUMPDEST) {
+        if (dest >= state.code.length || uint(state.code[dest]) != OP_JUMPDEST) {
             return ERROR_INVALID_JUMP_DESTINATION;
         }
         state.pc = dest;
@@ -1007,7 +1018,7 @@ contract EthereumRuntime is IEthereumRuntime {
         if (state.stack.size == MAX_STACK_SIZE) {
             return ERROR_STACK_OVERFLOW;
         }
-        state.stack.push(32*state.mem.size);
+        state.stack.push(32 * state.mem.size);
     }
 
     function handleGAS(EVM memory state) internal pure returns (uint errno) {
@@ -1027,10 +1038,10 @@ contract EthereumRuntime is IEthereumRuntime {
         if (state.stack.size == MAX_STACK_SIZE) {
             return ERROR_STACK_OVERFLOW;
         }
-        if (state.pc + state.n > state.target.code.length) {
+        if (state.pc + state.n > state.code.length) {
             return ERROR_INDEX_OOB;
         }
-        state.stack.push(EVMUtils.toUint(state.target.code, state.pc + 1, state.n));
+        state.stack.push(EVMUtils.toUint(state.code, state.pc + 1, state.n));
     }
 
     // 0x8X
@@ -1081,10 +1092,10 @@ contract EthereumRuntime is IEthereumRuntime {
         uint value = state.stack.pop();
         uint memPos = state.stack.pop();
         uint size = state.stack.pop();
-        EVMInput memory input;
-        // input.gas = gas; TODO
+        EVMCreateInput memory input;
+        // TODO gas
         input.value = value;
-        input.data = state.mem.toArray(memPos, size);
+        input.code = state.mem.toArray(memPos, size);
         input.caller = state.target.addr;
         input.context = state.context;
         input.accounts = state.accounts;
@@ -1098,6 +1109,9 @@ contract EthereumRuntime is IEthereumRuntime {
         } else {
             state.stack.push(uint(newAddress));
             state.accounts = retEvm.accounts;
+            state.caller = state.accounts.get(state.caller.addr);
+            state.target = state.accounts.get(state.target.addr);
+            state.logs = retEvm.logs;
         }
 
     }

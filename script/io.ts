@@ -19,7 +19,7 @@ export const readText = (filePath: string): string => {
     return fs.readFileSync(filePath).toString();
 };
 
-export const readJSON = (filePath: string): string => {
+export const readJSON = (filePath: string): any => {
     return JSON.parse(readText(filePath));
 };
 

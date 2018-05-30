@@ -14,10 +14,10 @@ import {
     BIN_OUTPUT_PATH, BLOCKHASH, BYTE, CALLDATACOPY,
     CALLDATALOAD,
     CALLDATASIZE, CALLER, CALLVALUE, CODECOPY, CODESIZE, COINBASE,
-    CONTRACT_TEST_SIG, DEFAULT_CALLER, DEFAULT_CONTRACT_ADDRESS, DIFFICULTY,
+    CONTRACT_TEST_SIG, CREATE, DEFAULT_CALLER, DEFAULT_CONTRACT_ADDRESS, DIFFICULTY,
     DIV,
     DUP1,
-    DUP16,
+    DUP16, DUP3,
     EQ, ERROR_INVALID_JUMP_DESTINATION, ERROR_INVALID_OPCODE, ERROR_STACK_UNDERFLOW,
     ERROR_STATE_REVERTED,
     EVM_EXECUTE_SIG,
@@ -35,7 +35,7 @@ import {
     PUSH1, PUSH2, PUSH20,
     PUSH29,
     PUSH32,
-    PUSH4,
+    PUSH4, PUSH5,
     RETURN,
     REVERT,
     ROOT_PATH,
@@ -74,6 +74,7 @@ beforeAll(async () => {
 
 const runTest = async (code, data, resExpected) => {
     const result = await execute(code, data);
+    // prettyPrintResults(result);
     // console.log(result);
     // console.log(result.stack[0].toNumber());
     expect(result.errno).toEqual(resExpected.errno);
@@ -2123,6 +2124,47 @@ describe('single instructions', async () => {
                 ],
             };
             await runTest(code, data, resExpected);
+        });
+
+    });
+
+    describe('system ops', () => {
+
+        it('should run CREATE successfully', async () => {
+            // CREATE with code that returns '00'. Third account should have '00' as code.
+            const code = PUSH32 + '60016000f3000000000000000000000000000000000000000000000000000000' + PUSH1 + '00' + MSTORE + PUSH1 + '05' + PUSH1 + '00' + PUSH1 + '00' + CREATE;
+            const data = '';
+            const resExpected = {
+                errno: 0,
+                errpc: code.length / 2,
+                returnData: "",
+                memSize: 32,
+                mem: "60016000f3000000000000000000000000000000000000000000000000000000",
+                stack: [
+                    new BigNumber("e795c695551b833dd8abd2bc8bf6c67051b17b44", 16)
+                ],
+            };
+            const result = await runTest(code, data, resExpected);
+            expect(result.accounts[2].code === "00");
+        });
+
+        it('should run CREATE twice, first failed, and only one account should be created', async () => {
+            // CREATE failed contract, then a successful one.
+            const code = PUSH32 + 'fe00000000000000000000000000000000000000000000000000000000000000' + PUSH1 + '00' + MSTORE + PUSH1 + '05' + PUSH1 + '00' + PUSH1 + '00' + CREATE + PUSH32 + '60016000f3000000000000000000000000000000000000000000000000000000' + PUSH1 + '00' + MSTORE + PUSH1 + '05' + PUSH1 + '00' + PUSH1 + '00' + CREATE;
+            const data = '';
+            const resExpected = {
+                errno: 0,
+                errpc: code.length / 2,
+                returnData: "",
+                memSize: 32,
+                mem: "60016000f3000000000000000000000000000000000000000000000000000000",
+                stack: [
+                    new BigNumber(0),
+                    new BigNumber("e795c695551b833dd8abd2bc8bf6c67051b17b44", 16)
+                ],
+            };
+            const result = await runTest(code, data, resExpected);
+            expect(result.accounts[2].code === "00");
         });
 
     });

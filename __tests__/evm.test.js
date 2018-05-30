@@ -68,6 +68,7 @@ var runTest = function (code, data, resExpected) { return __awaiter(_this, void 
             case 0: return [4 /*yield*/, adapter_1.execute(code, data)];
             case 1:
                 result = _a.sent();
+                // prettyPrintResults(result);
                 // console.log(result);
                 // console.log(result.stack[0].toNumber());
                 expect(result.errno).toEqual(resExpected.errno);
@@ -3019,6 +3020,59 @@ describe('single instructions', function () { return __awaiter(_this, void 0, vo
                             return [4 /*yield*/, runTest(code, data, resExpected)];
                         case 1:
                             _a.sent();
+                            return [2 /*return*/];
+                    }
+                });
+            }); });
+        });
+        describe('system ops', function () {
+            it('should run CREATE successfully', function () { return __awaiter(_this, void 0, void 0, function () {
+                var code, data, resExpected, result;
+                return __generator(this, function (_a) {
+                    switch (_a.label) {
+                        case 0:
+                            code = constants_1.PUSH32 + '60016000f3000000000000000000000000000000000000000000000000000000' + constants_1.PUSH1 + '00' + constants_1.MSTORE + constants_1.PUSH1 + '05' + constants_1.PUSH1 + '00' + constants_1.PUSH1 + '00' + constants_1.CREATE;
+                            data = '';
+                            resExpected = {
+                                errno: 0,
+                                errpc: code.length / 2,
+                                returnData: "",
+                                memSize: 32,
+                                mem: "60016000f3000000000000000000000000000000000000000000000000000000",
+                                stack: [
+                                    new bignumber_js_1.BigNumber("e795c695551b833dd8abd2bc8bf6c67051b17b44", 16)
+                                ],
+                            };
+                            return [4 /*yield*/, runTest(code, data, resExpected)];
+                        case 1:
+                            result = _a.sent();
+                            expect(result.accounts[2].code === "00");
+                            return [2 /*return*/];
+                    }
+                });
+            }); });
+            it('should run CREATE twice, first failed, and only one account should be created', function () { return __awaiter(_this, void 0, void 0, function () {
+                var code, data, resExpected, result;
+                return __generator(this, function (_a) {
+                    switch (_a.label) {
+                        case 0:
+                            code = constants_1.PUSH32 + 'fe00000000000000000000000000000000000000000000000000000000000000' + constants_1.PUSH1 + '00' + constants_1.MSTORE + constants_1.PUSH1 + '05' + constants_1.PUSH1 + '00' + constants_1.PUSH1 + '00' + constants_1.CREATE + constants_1.PUSH32 + '60016000f3000000000000000000000000000000000000000000000000000000' + constants_1.PUSH1 + '00' + constants_1.MSTORE + constants_1.PUSH1 + '05' + constants_1.PUSH1 + '00' + constants_1.PUSH1 + '00' + constants_1.CREATE;
+                            data = '';
+                            resExpected = {
+                                errno: 0,
+                                errpc: code.length / 2,
+                                returnData: "",
+                                memSize: 32,
+                                mem: "60016000f3000000000000000000000000000000000000000000000000000000",
+                                stack: [
+                                    new bignumber_js_1.BigNumber(0),
+                                    new bignumber_js_1.BigNumber("e795c695551b833dd8abd2bc8bf6c67051b17b44", 16)
+                                ],
+                            };
+                            return [4 /*yield*/, runTest(code, data, resExpected)];
+                        case 1:
+                            result = _a.sent();
+                            expect(result.accounts[2].code === "00");
                             return [2 /*return*/];
                     }
                 });
