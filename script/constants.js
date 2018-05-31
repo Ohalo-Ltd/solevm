@@ -9,12 +9,15 @@ exports.CHAIN_FILE = path.join(exports.ROOT_PATH, "genesis.json");
 exports.CONTRACT_FILE = path.join(exports.ROOT_PATH, "contracts.json");
 exports.SOL_ETH_SRC = path.join(exports.SRC_PATH, "EthereumRuntime.sol");
 exports.SOL_ETH_BIN = path.join(exports.BIN_OUTPUT_PATH, "EthereumRuntime.bin-runtime");
+exports.SOL_ETH_DEBUG_SRC = path.join(exports.SRC_PATH, "EthereumRuntimeDebug.sol");
+exports.SOL_ETH_DEBUG_BIN = path.join(exports.BIN_OUTPUT_PATH, "EthereumRuntimeDebug.bin-runtime");
 exports.EVM_EXECUTE_SIG = '1f6a1eb9';
 exports.EVM_EXECUTE_TXINPUT_SIG = '3edd9a51';
+exports.EVM_EXECUTE_PREIMAGE_SIG = '63bffc4d';
 exports.CONTRACT_TEST_SIG = 'f8a8fd6d';
 exports.TEST_CONTRACT_PATH = path.join(exports.ROOT_PATH, '__tests__', 'testcontracts.sol');
-exports.DEFAULT_CALLER = '1234567812345678123456781234567812345678';
-exports.DEFAULT_CONTRACT_ADDRESS = '0101010101010101010101010101010101010101';
+exports.DEFAULT_CALLER = 'cd1722f2947def4cf144679da39c4c32bdc35681';
+exports.DEFAULT_CONTRACT_ADDRESS = '0f572e5295c57f15886f9b263e2f6d2d6c7b5ec6';
 // Errors
 exports.NO_ERROR = 0;
 exports.ERROR_STACK_OVERFLOW = 0x01;

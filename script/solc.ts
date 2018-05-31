@@ -21,7 +21,6 @@ export const compile = async (filePath: string, outDir: string, optimize: boolea
         const cmd = `solc .= --evm-version constantinople --bin --bin-runtime --abi --hashes --overwrite ${optimize ? "--optimize" : ""} -o ${outDir} ${filePath}`;
         exec(cmd, {cwd: ROOT_PATH}, (err, stdout, stderr) => {
             const ret = stderr.toString();
-            // console.log(ret);
             if (err) {
                 reject(err);
             } else {

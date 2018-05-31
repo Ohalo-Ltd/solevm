@@ -1,3 +1,4 @@
+#!/usr/bin/env node
 "use strict";
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -36,47 +37,24 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 };
 var _this = this;
 Object.defineProperty(exports, "__esModule", { value: true });
-var path = require("path");
-var child = require("child_process");
-var constants_1 = require("./constants");
-var exec = child.exec;
-exports.compileContracts = function (contracts, optimize) { return __awaiter(_this, void 0, void 0, function () {
-    var _i, contracts_1, ctrct, filePath;
+var solc_1 = require("../script/solc");
+var constants_1 = require("../script/constants");
+(function () { return __awaiter(_this, void 0, void 0, function () {
+    var error_1;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
-                _i = 0, contracts_1 = contracts;
-                _a.label = 1;
+                _a.trys.push([0, 2, , 3]);
+                return [4 /*yield*/, solc_1.compile(constants_1.SOL_ETH_DEBUG_SRC, constants_1.BIN_OUTPUT_PATH, true)];
             case 1:
-                if (!(_i < contracts_1.length)) return [3 /*break*/, 4];
-                ctrct = contracts_1[_i];
-                console.log("Compiling contract: " + ctrct);
-                filePath = path.join(constants_1.SRC_PATH, ctrct + ".sol");
-                return [4 /*yield*/, exports.compile(filePath, constants_1.BIN_OUTPUT_PATH, optimize)];
-            case 2:
                 _a.sent();
-                console.log("Done");
-                _a.label = 3;
-            case 3:
-                _i++;
-                return [3 /*break*/, 1];
-            case 4: return [2 /*return*/];
+                return [3 /*break*/, 3];
+            case 2:
+                error_1 = _a.sent();
+                console.log(error_1.message);
+                process.exit(error_1);
+                return [3 /*break*/, 3];
+            case 3: return [2 /*return*/];
         }
     });
-}); };
-exports.compile = function (filePath, outDir, optimize) { return __awaiter(_this, void 0, void 0, function () {
-    return __generator(this, function (_a) {
-        return [2 /*return*/, new Promise(function (resolve, reject) {
-                var cmd = "solc .= --evm-version constantinople --bin --bin-runtime --abi --hashes --overwrite " + (optimize ? "--optimize" : "") + " -o " + outDir + " " + filePath;
-                exec(cmd, { cwd: constants_1.ROOT_PATH }, function (err, stdout, stderr) {
-                    var ret = stderr.toString();
-                    if (err) {
-                        reject(err);
-                    }
-                    else {
-                        resolve();
-                    }
-                });
-            })];
-    });
-}); };
+}); })();

@@ -2141,7 +2141,7 @@ describe('single instructions', async () => {
                 memSize: 32,
                 mem: "60016000f3000000000000000000000000000000000000000000000000000000",
                 stack: [
-                    new BigNumber("e795c695551b833dd8abd2bc8bf6c67051b17b44", 16)
+                    new BigNumber("c8a5de6331e2e7b12771c579467b1c7d1b506d71", 16)
                 ],
             };
             const result = await runTest(code, data, resExpected);
@@ -2160,7 +2160,7 @@ describe('single instructions', async () => {
                 mem: "60016000f3000000000000000000000000000000000000000000000000000000",
                 stack: [
                     new BigNumber(0),
-                    new BigNumber("e795c695551b833dd8abd2bc8bf6c67051b17b44", 16)
+                    new BigNumber("c8a5de6331e2e7b12771c579467b1c7d1b506d71", 16)
                 ],
             };
             const result = await runTest(code, data, resExpected);
@@ -2286,7 +2286,7 @@ describe('solidity contracts', () => {
         const code = readText(path.join(BIN_OUTPUT_PATH, 'TestContractCreate.bin-runtime'));
         const result = await execute(code, CONTRACT_TEST_SIG);
         expect(result.errno).toBe(NO_ERROR);
-        expect(result.returnData).toBe('000000000000000000000000e795c695551b833dd8abd2bc8bf6c67051b17b44');
+        expect(result.returnData).toBe('000000000000000000000000c8a5de6331e2e7b12771c579467b1c7d1b506d71');
     });
 
     it('should call test function on TestContractCreateAndCall', async () => {
@@ -2327,7 +2327,7 @@ describe('solidity contracts', () => {
         expect(result.errno).toBe(NO_ERROR);
         expect(result.logs.length).toBe(1);
         const log = result.logs[0];
-        expect(log.account).toBe("0101010101010101010101010101010101010101");
+        expect(log.account).toBe("0f572e5295c57f15886f9b263e2f6d2d6c7b5ec6");
         expect(log.topics.length).toBe(4);
         expect(log.topics[0].eq(new BigNumber("1732d0c17008d342618e7f03069177d8d39391d79811bb4e706d7c6c84108c0f", 16))).toBeTruthy();
         expect(log.topics[1].eq(new BigNumber(0))).toBeTruthy();
@@ -2343,7 +2343,7 @@ describe('solidity contracts', () => {
         expect(result.errno).toBe(NO_ERROR);
         expect(result.logs.length).toBe(1);
         const log = result.logs[0];
-        expect(log.account).toBe("0101010101010101010101010101010101010101");
+        expect(log.account).toBe("0f572e5295c57f15886f9b263e2f6d2d6c7b5ec6");
         expect(log.topics.length).toBe(4);
         expect(log.topics[0].eq(new BigNumber("624fb00c2ce79f34cb543884c3af64816dce0f4cec3d32661959e49d488a7a93", 16))).toBeTruthy();
         expect(log.topics[1].eq(new BigNumber(5))).toBeTruthy();
@@ -2359,7 +2359,7 @@ describe('solidity contracts', () => {
         expect(result.errno).toBe(NO_ERROR);
         expect(result.logs.length).toBe(1);
         const log = result.logs[0];
-        expect(log.account).toBe("0101010101010101010101010101010101010101");
+        expect(log.account).toBe("0f572e5295c57f15886f9b263e2f6d2d6c7b5ec6");
         expect(log.topics.length).toBe(4);
         expect(log.topics[0].eq(new BigNumber("ebe57242c74e694c7ec0f2fe9302812f324576f94a505b0de3f0ecb473d149bb", 16))).toBeTruthy();
         expect(log.topics[1].eq(new BigNumber(5))).toBeTruthy();
@@ -2376,7 +2376,7 @@ describe('solidity contracts', () => {
         expect(result.errno).toBe(NO_ERROR);
         expect(result.logs.length).toBe(1);
         const log = result.logs[0];
-        expect(log.account).toBe("0101010101010101010101010101010101010101");
+        expect(log.account).toBe("0f572e5295c57f15886f9b263e2f6d2d6c7b5ec6");
         expect(log.topics.length).toBe(4);
         expect(log.topics[0].eq(new BigNumber("8540fe9d62711b26f5d55a228125ce553737daafbb466fb5c89ffef0b5907d14", 16))).toBeTruthy();
         expect(log.topics[1].eq(new BigNumber(5))).toBeTruthy();
@@ -2392,7 +2392,7 @@ describe('solidity contracts', () => {
         expect(result.errno).toBe(NO_ERROR);
         expect(result.logs.length).toBe(1);
         const log = result.logs[0];
-        expect(log.account).toBe("0101010101010101010101010101010101010101");
+        expect(log.account).toBe("0f572e5295c57f15886f9b263e2f6d2d6c7b5ec6");
         expect(log.topics.length).toBe(4);
         expect(log.topics[0].eq(new BigNumber("7e1e31b207b8694ac24cb269143e8ba879cc2fbc6def5fae514c8783140c48dc", 16))).toBeTruthy();
         expect(log.topics[1].eq(new BigNumber(0))).toBeTruthy();
@@ -2408,13 +2408,13 @@ describe('solidity contracts', () => {
         expect(result.errno).toBe(NO_ERROR);
         expect(result.logs.length).toBe(1);
         const log = result.logs[0];
-        expect(log.account).toBe("0101010101010101010101010101010101010101");
+        expect(log.account).toBe("0f572e5295c57f15886f9b263e2f6d2d6c7b5ec6");
         expect(log.topics.length).toBe(4);
         expect(log.topics[0].eq(new BigNumber("e9759a9398e9a2cc19ff163f90583422455643acd0b40fb4561be7d1df63b160", 16))).toBeTruthy();
         expect(log.topics[1].eq(new BigNumber(5))).toBeTruthy();
         expect(log.topics[2].eq(new BigNumber(6))).toBeTruthy();
         expect(log.topics[3].eq(new BigNumber(7))).toBeTruthy();
-        expect(log.data).toBe("0000000000000000000000000101010101010101010101010101010101010101");
+        expect(log.data).toBe("0000000000000000000000000f572e5295c57f15886f9b263e2f6d2d6c7b5ec6");
     });
 
     it('should call test function on TestContractMultipleThreeTopicsAndDataEvents', async () => {
@@ -2424,21 +2424,21 @@ describe('solidity contracts', () => {
         expect(result.errno).toBe(NO_ERROR);
         expect(result.logs.length).toBe(2);
         const log = result.logs[0];
-        expect(log.account).toBe("0101010101010101010101010101010101010101");
+        expect(log.account).toBe("0f572e5295c57f15886f9b263e2f6d2d6c7b5ec6");
         expect(log.topics.length).toBe(4);
         expect(log.topics[0].eq(new BigNumber("e9759a9398e9a2cc19ff163f90583422455643acd0b40fb4561be7d1df63b160", 16))).toBeTruthy();
         expect(log.topics[1].eq(new BigNumber(5))).toBeTruthy();
         expect(log.topics[2].eq(new BigNumber(6))).toBeTruthy();
         expect(log.topics[3].eq(new BigNumber(7))).toBeTruthy();
-        expect(log.data).toBe("0000000000000000000000000101010101010101010101010101010101010101");
+        expect(log.data).toBe("0000000000000000000000000f572e5295c57f15886f9b263e2f6d2d6c7b5ec6");
         const log2 = result.logs[1];
-        expect(log2.account).toBe("0101010101010101010101010101010101010101");
+        expect(log2.account).toBe("0f572e5295c57f15886f9b263e2f6d2d6c7b5ec6");
         expect(log2.topics.length).toBe(4);
         expect(log2.topics[0].eq(new BigNumber("aa2ecc4039583791812ce14fb62fff084d7d4ac354b47128d283d12b9ded2275", 16))).toBeTruthy();
         expect(log2.topics[1].eq(new BigNumber(7))).toBeTruthy();
         expect(log2.topics[2].eq(new BigNumber(8))).toBeTruthy();
         expect(log2.topics[3].eq(new BigNumber(9))).toBeTruthy();
-        expect(log2.data).toBe("0000000000000000000000000101010101010101010101010101010101010101");
+        expect(log2.data).toBe("0000000000000000000000000f572e5295c57f15886f9b263e2f6d2d6c7b5ec6");
     });
 
     it('should call test function on TestContractPrecompileSha256', async () => {
@@ -2511,7 +2511,8 @@ describe('solidity contracts', () => {
         expect(storage[0].address.eq(0)).toBeTruthy();
         expect(storage[0].value.eq(5)).toBeTruthy();
         expect(storage[1].address.eq(1)).toBeTruthy();
-        expect(storage[1].value.eq("e795c695551b833dd8abd2bc8bf6c67051b17b44", 16)).toBeTruthy();
+        console.log(storage[1].value.toString(16));
+        expect(storage[1].value.eq("c8a5de6331e2e7b12771c579467b1c7d1b506d71", 16)).toBeTruthy();
     });
 
     it('should call test function on TestContractCallsC', async () => {
@@ -2526,7 +2527,7 @@ describe('solidity contracts', () => {
         expect(storage[0].address.eq(0)).toBeTruthy();
         expect(storage[0].value.eq(5)).toBeTruthy();
         expect(storage[1].address.eq(1)).toBeTruthy();
-        expect(storage[1].value.eq("101010101010101010101010101010101010101", 16)).toBeTruthy();
+        expect(storage[1].value.eq("0f572e5295c57f15886f9b263e2f6d2d6c7b5ec6", 16)).toBeTruthy();
     });
 
 });

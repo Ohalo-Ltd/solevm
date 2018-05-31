@@ -19,8 +19,8 @@ contract IEthereumRuntime is EVMConstants {
         CallCode
     }
 
-    address constant DEFAULT_CONTRACT_ADDRESS = 0x0101010101010101010101010101010101010101;
-    address constant DEFAULT_CALLER = 0x1234567812345678123456781234567812345678;
+    address constant DEFAULT_CONTRACT_ADDRESS = 0x0f572e5295c57f15886f9b263e2f6d2d6c7b5ec6;
+    address constant DEFAULT_CALLER = 0xcd1722f2947def4cf144679da39c4c32bdc35681;
 
     using EVMAccounts for EVMAccounts.Accounts;
     using EVMAccounts for EVMAccounts.Account;
@@ -28,6 +28,8 @@ contract IEthereumRuntime is EVMConstants {
     using EVMMemory for EVMMemory.Memory;
     using EVMStack for EVMStack.Stack;
     using EVMLogs for EVMLogs.Logs;
+
+    // ************* Used as input/output *************
 
     struct Context {
         address origin;
@@ -52,6 +54,20 @@ contract IEthereumRuntime is EVMConstants {
         bool staticExec;
     }
 
+    struct Result {
+        uint errno;
+        uint errpc;
+        bytes returnData;
+        uint[] stack;
+        bytes mem;
+        uint[] accounts;
+        bytes accountsCode;
+        uint[] logs;
+        bytes logsData;
+    }
+
+    // ************* Only used internally *************
+
     struct EVMInput {
         uint64 gas;
         uint value;
@@ -75,18 +91,6 @@ contract IEthereumRuntime is EVMConstants {
         EVMAccounts.Accounts accounts;
         EVMLogs.Logs logs;
         Handlers handlers;
-    }
-
-    struct Result {
-        uint errno;
-        uint errpc;
-        bytes returnData;
-        uint[] stack;
-        bytes mem;
-        uint[] accounts;
-        bytes accountsCode;
-        uint[] logs;
-        bytes logsData;
     }
 
     struct Handlers {
@@ -121,13 +125,13 @@ contract IEthereumRuntime is EVMConstants {
         Handlers handlers;
     }
 
-    // Execute the given code and call-data.
-    function execute(bytes memory code, bytes memory data) public pure returns (Result memory state);
+    // Execute the EVM with the given code and call-data.
+    function execute(bytes memory code, bytes memory data) public pure returns (Result memory result);
 
-    // Execute the given transaction.
+    // Execute the EVM with the given transaction input.
     function execute(TxInput memory input) public pure returns (Result memory result);
 
-    // Execute the given transaction in the given context.
+    // Execute the EVM with the given transaction input and context.
     function execute(TxInput memory input, Context memory context) public pure returns (Result memory result);
 
 }
@@ -177,7 +181,10 @@ contract EthereumRuntime is IEthereumRuntime {
                 return;
             }
             evm.code = evm.target.code;
-            _run(evm);
+
+            evm.stack = EVMStack.newStack();
+            evm.mem = EVMMemory.newMemory();
+            _run(evm, 0);
         }
     }
 
@@ -215,7 +222,9 @@ contract EthereumRuntime is IEthereumRuntime {
 
         evm.target = newAcc;
         evm.code = evmInput.code;
-        _run(evm);
+        evm.stack = EVMStack.newStack();
+        evm.mem = EVMMemory.newMemory();
+        _run(evm, 0);
 
         // TODO
         if (evm.errno != NO_ERROR) {
@@ -229,15 +238,11 @@ contract EthereumRuntime is IEthereumRuntime {
         addr = newAddress;
     }
 
-    function _run(EVM memory evm) internal pure {
+    function _run(EVM memory evm, uint pc) internal pure {
 
-        uint pc = 0;
         uint pcNext = 0;
         uint errno = NO_ERROR;
         bytes memory code = evm.code;
-
-        evm.stack = EVMStack.newStack();
-        evm.mem = EVMMemory.newMemory();
 
         while (errno == NO_ERROR && pc < code.length) {
             uint opcode = uint(code[pc]);

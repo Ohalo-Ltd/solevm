@@ -40,8 +40,149 @@ var constants_1 = require("./constants");
 var Web3EthAbi = require("web3-eth-abi");
 var bignumber_js_1 = require("bignumber.js");
 var evm_1 = require("./evm");
-var BN_ZERO = new bignumber_js_1.BigNumber(0);
-var ZERO_ACCOUNT = '0000000000000000000000000000000000000000';
+exports.BN_ZERO = new bignumber_js_1.BigNumber(0);
+exports.ZERO_ACCOUNT = '0000000000000000000000000000000000000000';
+exports.newDefaultTxInput = function () {
+    return {
+        gas: 0,
+        gasPrice: 0,
+        caller: constants_1.DEFAULT_CALLER,
+        callerBalance: exports.BN_ZERO,
+        value: exports.BN_ZERO,
+        target: constants_1.DEFAULT_CONTRACT_ADDRESS,
+        targetBalance: exports.BN_ZERO,
+        targetCode: '',
+        data: '',
+        staticExec: false
+    };
+};
+exports.createTxInput = function (code, data, value, staticExec) {
+    if (value === void 0) { value = 0; }
+    if (staticExec === void 0) { staticExec = false; }
+    return {
+        gas: 0,
+        gasPrice: 0,
+        caller: constants_1.DEFAULT_CALLER,
+        callerBalance: new bignumber_js_1.BigNumber(value),
+        value: new bignumber_js_1.BigNumber(value),
+        target: constants_1.DEFAULT_CONTRACT_ADDRESS,
+        targetBalance: exports.BN_ZERO,
+        targetCode: code,
+        data: data,
+        staticExec: staticExec
+    };
+};
+exports.encodeAccount = function (account) {
+    return exports.encodeAccounts([account]);
+};
+exports.encodeAccounts = function (accounts) {
+    var accountsOut = [];
+    var accountsCode = '';
+    var codeOffset = 0;
+    for (var _i = 0, accounts_1 = accounts; _i < accounts_1.length; _i++) {
+        var account = accounts_1[_i];
+        console.log(account);
+        accountsOut.push(new bignumber_js_1.BigNumber(account.address, 16));
+        accountsOut.push(account.balance);
+        accountsOut.push(new bignumber_js_1.BigNumber(account.nonce));
+        accountsOut.push(new bignumber_js_1.BigNumber(account.destroyed ? new bignumber_js_1.BigNumber(1) : exports.BN_ZERO));
+        accountsOut.push(new bignumber_js_1.BigNumber(codeOffset / 2));
+        accountsOut.push(new bignumber_js_1.BigNumber(account.code.length / 2));
+        accountsOut.push(new bignumber_js_1.BigNumber(account.storage.length));
+        for (var _a = 0, _b = account.storage; _a < _b.length; _a++) {
+            var entry = _b[_a];
+            accountsOut.push(entry.address);
+            accountsOut.push(entry.value);
+        }
+        codeOffset += account.code.length;
+        accountsCode += account.code;
+    }
+    return {
+        accounts: accountsOut,
+        accountsCode: accountsCode
+    };
+};
+exports.encodeLog = function (log) {
+    return exports.encodeLogs([log]);
+};
+exports.encodeLogs = function (logs) {
+    var logsOut = [];
+    var logsData = '';
+    var dataOffset = 0;
+    for (var _i = 0, logs_1 = logs; _i < logs_1.length; _i++) {
+        var log = logs_1[_i];
+        logsOut.push(new bignumber_js_1.BigNumber(log.account, 16));
+        logsOut.push(new bignumber_js_1.BigNumber(log.topics[0]));
+        logsOut.push(new bignumber_js_1.BigNumber(log.topics[1]));
+        logsOut.push(new bignumber_js_1.BigNumber(log.topics[2]));
+        logsOut.push(new bignumber_js_1.BigNumber(log.topics[3]));
+        logsOut.push(new bignumber_js_1.BigNumber(dataOffset / 2));
+        logsOut.push(new bignumber_js_1.BigNumber(log.data.length / 2));
+        dataOffset += log.data.length;
+        logsData += log.data;
+    }
+    return {
+        logs: logsOut,
+        logsData: logsData
+    };
+};
+exports.newPreImage = function () {
+    return {
+        gas: 0,
+        value: exports.BN_ZERO,
+        code: '',
+        data: '',
+        caller: exports.ZERO_ACCOUNT,
+        target: exports.ZERO_ACCOUNT,
+        staticExec: false,
+        stack: [],
+        mem: '',
+        pc: 0,
+        accounts: [],
+        accountsCode: '',
+        logs: [],
+        logsData: ''
+    };
+};
+exports.newDefaultPreImage = function (code, data, value, transferred) {
+    if (transferred === void 0) { transferred = true; }
+    var caller = {
+        address: constants_1.DEFAULT_CALLER,
+        nonce: 0,
+        balance: transferred ? exports.BN_ZERO : value,
+        destroyed: false,
+        code: '',
+        storage: []
+    };
+    var target = {
+        address: constants_1.DEFAULT_CONTRACT_ADDRESS,
+        nonce: 0,
+        balance: transferred ? value : exports.BN_ZERO,
+        destroyed: false,
+        code: code,
+        storage: []
+    };
+    var accs = [];
+    accs.push(caller);
+    accs.push(target);
+    var encAcc = exports.encodeAccounts(accs);
+    return {
+        gas: 0,
+        value: value,
+        code: code,
+        data: data,
+        caller: constants_1.DEFAULT_CALLER,
+        target: constants_1.DEFAULT_CONTRACT_ADDRESS,
+        staticExec: false,
+        stack: [],
+        mem: '',
+        pc: 0,
+        accounts: encAcc.accounts,
+        accountsCode: encAcc.accountsCode,
+        logs: [],
+        logsData: ''
+    };
+};
 exports.decode = function (res) {
     res = res.substr(64);
     var dec = Web3EthAbi.decodeParameters(['uint256', 'uint256', 'bytes', 'uint256[]', 'bytes', 'uint256[]', 'bytes', 'uint256[]', 'bytes'], '0x' + res);
@@ -66,7 +207,7 @@ exports.decode = function (res) {
         accsCode = dec['6'].substr(2);
     }
     // console.log(accsArr.length);
-    var accs = [];
+    var accounts = [];
     var offset = 0;
     while (offset < accsArr.length) {
         var addr = new bignumber_js_1.BigNumber(accsArr[offset]).toString(16);
@@ -84,14 +225,14 @@ exports.decode = function (res) {
         for (var j = 0; j < storageSize; j++) {
             var address = new bignumber_js_1.BigNumber(accsArr[offset + 7 + 2 * j]);
             var value = new bignumber_js_1.BigNumber(accsArr[offset + 7 + 2 * j + 1]);
-            if (!value.eq(BN_ZERO)) {
+            if (!value.eq(exports.BN_ZERO)) {
                 storage.push({
                     address: address,
                     value: value
                 });
             }
         }
-        accs.push({
+        accounts.push({
             address: addr,
             balance: balance,
             nonce: nonce,
@@ -134,7 +275,7 @@ exports.decode = function (res) {
         returnData: returnData,
         stack: stack,
         mem: mem,
-        accounts: accs,
+        accounts: accounts,
         logs: logs
     };
 };
@@ -150,36 +291,6 @@ exports.execute = function (code, data) { return __awaiter(_this, void 0, void 0
         return [2 /*return*/, exports.decode(res)];
     });
 }); };
-exports.newDefaultTxInput = function () {
-    return {
-        gas: 0,
-        gasPrice: 0,
-        caller: constants_1.DEFAULT_CALLER,
-        callerBalance: BN_ZERO,
-        value: BN_ZERO,
-        target: constants_1.DEFAULT_CONTRACT_ADDRESS,
-        targetBalance: BN_ZERO,
-        targetCode: '',
-        data: '',
-        staticExec: false
-    };
-};
-exports.createTxInput = function (code, data, value, staticExec) {
-    if (value === void 0) { value = 0; }
-    if (staticExec === void 0) { staticExec = false; }
-    return {
-        gas: 0,
-        gasPrice: 0,
-        caller: constants_1.DEFAULT_CALLER,
-        callerBalance: new bignumber_js_1.BigNumber(value),
-        value: new bignumber_js_1.BigNumber(value),
-        target: constants_1.DEFAULT_CONTRACT_ADDRESS,
-        targetBalance: BN_ZERO,
-        targetCode: code,
-        data: data,
-        staticExec: staticExec
-    };
-};
 exports.executeWithTxInput = function (txInput) { return __awaiter(_this, void 0, void 0, function () {
     var calldata, res;
     return __generator(this, function (_a) {
@@ -187,6 +298,25 @@ exports.executeWithTxInput = function (txInput) { return __awaiter(_this, void 0
             Web3EthAbi.encodeParameters(['uint256', 'uint256', 'address', 'uint256', 'uint256', 'address', 'uint256', 'bytes', 'bytes', 'bool'], [txInput.gas, txInput.gasPrice, '0x' + txInput.caller, txInput.callerBalance, txInput.value,
                 '0x' + txInput.target, txInput.targetBalance, '0x' + txInput.targetCode, '0x' + txInput.data, txInput.staticExec]).substr(2);
         res = evm_1.run(constants_1.SOL_ETH_BIN, calldata);
+        // console.log(res);
+        if (res === '0') {
+            throw new Error("Error when executing - no return data.");
+        }
+        return [2 /*return*/, exports.decode(res)];
+    });
+}); };
+exports.executeWithPreImage = function (preImage) { return __awaiter(_this, void 0, void 0, function () {
+    var calldata, res;
+    return __generator(this, function (_a) {
+        console.log(preImage);
+        calldata = constants_1.EVM_EXECUTE_PREIMAGE_SIG + '0000000000000000000000000000000000000000000000000000000000000020' +
+            Web3EthAbi.encodeParameters(['uint256', 'uint256', 'bytes', 'bytes', 'address', 'address', 'bool', 'uint256[]', 'bytes', 'uint', 'uint256[]', 'bytes', 'uint256[]', 'bytes'], [
+                preImage.gas, preImage.value, '0x' + preImage.code, '0x' + preImage.data,
+                '0x' + preImage.caller, '0x' + preImage.target, preImage.staticExec,
+                preImage.stack, '0x' + preImage.mem, preImage.pc, preImage.accounts,
+                '0x' + preImage.accountsCode, preImage.logs, '0x' + preImage.logsData
+            ]).substr(2);
+        res = evm_1.run(constants_1.SOL_ETH_DEBUG_BIN, calldata);
         // console.log(res);
         if (res === '0') {
             throw new Error("Error when executing - no return data.");

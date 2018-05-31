@@ -9,14 +9,17 @@ export const CHAIN_FILE = path.join(ROOT_PATH, "genesis.json");
 export const CONTRACT_FILE = path.join(ROOT_PATH, "contracts.json");
 export const SOL_ETH_SRC = path.join(SRC_PATH, "EthereumRuntime.sol");
 export const SOL_ETH_BIN = path.join(BIN_OUTPUT_PATH, "EthereumRuntime.bin-runtime");
+export const SOL_ETH_DEBUG_SRC = path.join(SRC_PATH, "EthereumRuntimeDebug.sol");
+export const SOL_ETH_DEBUG_BIN = path.join(BIN_OUTPUT_PATH, "EthereumRuntimeDebug.bin-runtime");
 export const EVM_EXECUTE_SIG = '1f6a1eb9';
 export const EVM_EXECUTE_TXINPUT_SIG = '3edd9a51';
+export const EVM_EXECUTE_PREIMAGE_SIG = '63bffc4d';
 export const CONTRACT_TEST_SIG = 'f8a8fd6d';
 
 export const TEST_CONTRACT_PATH = path.join(ROOT_PATH, '__tests__', 'testcontracts.sol');
 
-export const DEFAULT_CALLER = '1234567812345678123456781234567812345678';
-export const DEFAULT_CONTRACT_ADDRESS = '0101010101010101010101010101010101010101';
+export const DEFAULT_CALLER = 'cd1722f2947def4cf144679da39c4c32bdc35681';
+export const DEFAULT_CONTRACT_ADDRESS = '0f572e5295c57f15886f9b263e2f6d2d6c7b5ec6';
 // Errors
 
 export const NO_ERROR = 0;

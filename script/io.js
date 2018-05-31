@@ -56,3 +56,21 @@ exports.parseSigFile = function (testName) {
     }
     return funcs;
 };
+exports.filesInFolder = function (folderPath, extension) {
+    var stat = fs.statSync(folderPath);
+    if (!stat.isDirectory()) {
+        throw new Error("Not a directory: " + folderPath);
+    }
+    var files = [];
+    fs.readdirSync(folderPath).forEach(function (file) {
+        var fPath = path.join(folderPath, file);
+        var stat = fs.statSync(fPath);
+        if (!stat.isDirectory()) {
+            if (extension != "" && path.extname(file) == extension) {
+                files.push(fPath);
+            }
+        }
+        //console.log(fPath);
+    });
+    return files;
+};

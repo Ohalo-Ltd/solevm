@@ -65,3 +65,23 @@ export const parseSigFile = (testName: string) => {
     }
     return funcs;
 };
+
+export const filesInFolder = (folderPath: string, extension: string): [string] => {
+    const stat = fs.statSync(folderPath);
+    if (!stat.isDirectory()) {
+        throw new Error("Not a directory: " + folderPath);
+    }
+    const files = [] as [string];
+    fs.readdirSync(folderPath).forEach(file => {
+        const fPath = path.join(folderPath, file);
+        const stat = fs.statSync(fPath);
+        if (!stat.isDirectory()) {
+            if (extension != "" && path.extname(file) == extension) {
+                files.push(fPath);
+            }
+        }
+        //console.log(fPath);
+    });
+    return files;
+};
+

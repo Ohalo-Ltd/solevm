@@ -32,6 +32,19 @@ library EVMStack {
         stk.dataPtr = MemOps.allocate32(INITIAL_CAP);
     }
 
+    function fromArray(uint[] memory sArr) internal pure returns (Stack memory stk) {
+        stk.size = sArr.length;
+        stk.cap = sArr.length + INITIAL_CAP;
+        stk.dataPtr = MemOps.allocate32(sArr.length + INITIAL_CAP);
+        for (uint i = 0; i < sArr.length; i++) {
+            uint val = sArr[i];
+            uint slot = stk.dataPtr + 32*i;
+            assembly {
+                mstore(slot, val)
+            }
+        }
+    }
+
     function toArray(Stack memory self) internal pure returns (uint[] memory arr) {
         if (self.size == 0) {
             return;

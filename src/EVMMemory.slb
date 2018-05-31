@@ -30,10 +30,23 @@ library EVMMemory {
         self.cap = cap;
     }
 
-    function newMemory() internal pure returns (Memory memory dua) {
-        dua.size = 0;
-        dua.cap = ALLOC_SIZE;
-        dua.dataPtr = MemOps.allocate32(ALLOC_SIZE);
+    function newMemory() internal pure returns (Memory memory mem) {
+        mem.size = 0;
+        mem.cap = ALLOC_SIZE;
+        mem.dataPtr = MemOps.allocate32(ALLOC_SIZE);
+    }
+
+    function fromArray(bytes memory memIn) internal pure returns (Memory memory mem) {
+        assert(memIn.length % 32 == 0);
+        mem.size = memIn.length / 32;
+        mem.cap = mem.size + ALLOC_SIZE;
+        mem.dataPtr = MemOps.allocate32(mem.cap);
+        uint dest = mem.dataPtr;
+        uint src;
+        assembly {
+            src := add(memIn, 0x20)
+        }
+        MemOps.memcopy32(src, dest, mem.size);
     }
 
     function toArray(Memory memory self) internal pure returns (bytes memory arr) {

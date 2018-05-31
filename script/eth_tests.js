@@ -36,47 +36,65 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 };
 var _this = this;
 Object.defineProperty(exports, "__esModule", { value: true });
+var io_1 = require("./io");
 var path = require("path");
-var child = require("child_process");
-var constants_1 = require("./constants");
-var exec = child.exec;
-exports.compileContracts = function (contracts, optimize) { return __awaiter(_this, void 0, void 0, function () {
-    var _i, contracts_1, ctrct, filePath;
+var adapter_1 = require("./adapter");
+var bignumber_js_1 = require("bignumber.js");
+exports.readVMTests = function (testDir) {
+    var tests = {};
+    var vmTestDir = path.join(testDir, "VMTests");
+    var arithFiles = io_1.filesInFolder(path.join(vmTestDir, 'vmArithmeticTest'), '.json');
+    var arithObjs = [];
+    for (var _i = 0, arithFiles_1 = arithFiles; _i < arithFiles_1.length; _i++) {
+        var af = arithFiles_1[_i];
+        arithObjs.push(io_1.readJSON(af));
+    }
+    tests["vmArithmeticTest"] = arithObjs;
+    var bLogFiles = io_1.filesInFolder(path.join(vmTestDir, 'vmBitwiseLogicOperation'), '.json');
+    var bLogObjs = [];
+    for (var _a = 0, bLogFiles_1 = bLogFiles; _a < bLogFiles_1.length; _a++) {
+        var bf = bLogFiles_1[_a];
+        bLogObjs.push(io_1.readJSON(bf));
+    }
+    tests["vmBitwiseLogicOperation"] = arithObjs;
+    return tests;
+};
+exports.runVMTest = function (testObj) { return __awaiter(_this, void 0, void 0, function () {
+    var txInput, exec, result;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
-                _i = 0, contracts_1 = contracts;
-                _a.label = 1;
+                txInput = adapter_1.newDefaultTxInput();
+                exec = testObj.exec;
+                if (!exec.caller || exec.caller.length < 2) {
+                    throw new Error("No caller address");
+                }
+                txInput.caller = exec.caller.substr(2);
+                if (!exec.address || exec.address.length < 2) {
+                    throw new Error("No target address");
+                }
+                txInput.target = exec.address.substr(2);
+                if (exec.value && exec.value.length >= 2) {
+                    txInput.value = new bignumber_js_1.BigNumber(exec.value.substr(2), 16);
+                    txInput.callerBalance = txInput.value;
+                }
+                if (exec.code && exec.code.length > 2) {
+                    txInput.targetCode = exec.code.substr(2);
+                }
+                else {
+                    txInput.targetCode = '';
+                }
+                if (exec.data && exec.data.length > 2) {
+                    txInput.data = exec.data.substr(2);
+                }
+                else {
+                    txInput.data = '';
+                }
+                return [4 /*yield*/, adapter_1.executeWithTxInput(txInput)];
             case 1:
-                if (!(_i < contracts_1.length)) return [3 /*break*/, 4];
-                ctrct = contracts_1[_i];
-                console.log("Compiling contract: " + ctrct);
-                filePath = path.join(constants_1.SRC_PATH, ctrct + ".sol");
-                return [4 /*yield*/, exports.compile(filePath, constants_1.BIN_OUTPUT_PATH, optimize)];
-            case 2:
-                _a.sent();
-                console.log("Done");
-                _a.label = 3;
-            case 3:
-                _i++;
-                return [3 /*break*/, 1];
-            case 4: return [2 /*return*/];
+                result = _a.sent();
+                adapter_1.prettyPrintResults(result);
+                return [2 /*return*/];
         }
-    });
-}); };
-exports.compile = function (filePath, outDir, optimize) { return __awaiter(_this, void 0, void 0, function () {
-    return __generator(this, function (_a) {
-        return [2 /*return*/, new Promise(function (resolve, reject) {
-                var cmd = "solc .= --evm-version constantinople --bin --bin-runtime --abi --hashes --overwrite " + (optimize ? "--optimize" : "") + " -o " + outDir + " " + filePath;
-                exec(cmd, { cwd: constants_1.ROOT_PATH }, function (err, stdout, stderr) {
-                    var ret = stderr.toString();
-                    if (err) {
-                        reject(err);
-                    }
-                    else {
-                        resolve();
-                    }
-                });
-            })];
     });
 }); };
