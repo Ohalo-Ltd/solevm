@@ -68,6 +68,13 @@ contract IEthereumRuntime is EVMConstants {
 
     // ************* Only used internally *************
 
+    struct Instruction {
+        function(EVM memory) internal pure returns (uint) handler;
+        uint stackIn;
+        uint stackOut;
+        uint gas;
+    }
+
     struct EVMInput {
         uint64 gas;
         uint value;
@@ -94,7 +101,7 @@ contract IEthereumRuntime is EVMConstants {
     }
 
     struct Handlers {
-        function(EVM memory) internal pure returns (uint)[256] f;
+        Instruction[256] ins;
         function(bytes memory input) internal pure returns (bytes memory ret, uint errno)[9] p;
     }
 
@@ -244,6 +251,7 @@ contract EthereumRuntime is IEthereumRuntime {
         uint errno = NO_ERROR;
         bytes memory code = evm.code;
 
+
         while (errno == NO_ERROR && pc < code.length) {
             uint opcode = uint(code[pc]);
 
@@ -254,6 +262,8 @@ contract EthereumRuntime is IEthereumRuntime {
                 break;
             }
 
+            Instruction memory ins = evm.handlers.ins[opcode];
+
             if (OP_PUSH1 <= opcode && opcode <= OP_PUSH32) {
                 evm.pc = pc;
                 uint n = opcode - OP_PUSH1 + 1;
@@ -262,10 +272,10 @@ contract EthereumRuntime is IEthereumRuntime {
                 pcNext = pc + n + 1;
             } else if (opcode == OP_JUMP || opcode == OP_JUMPI) {
                 evm.pc = pc;
-                errno = evm.handlers.f[opcode](evm);
+                errno = ins.handler(evm);
                 pcNext = evm.pc;
             } else if (opcode == OP_RETURN || opcode == OP_REVERT || opcode == OP_STOP || opcode == OP_SELFDESTRUCT) {
-                errno = evm.handlers.f[opcode](evm);
+                errno = ins.handler(evm);
                 break;
             } else {
                 if (OP_DUP1 <= opcode && opcode <= OP_DUP16) {
@@ -281,7 +291,7 @@ contract EthereumRuntime is IEthereumRuntime {
                     evm.pc = pc;
                     errno = handlePC(evm);
                 } else {
-                    errno = evm.handlers.f[opcode](evm);
+                    errno = ins.handler(evm);
                 }
                 pcNext = pc + 1;
             }
@@ -1286,279 +1296,287 @@ contract EthereumRuntime is IEthereumRuntime {
         state.target.destroyed = true;
     }
 
+    // Since reference types can't be constant.
     function _newHandlers() internal pure returns (Handlers memory handlers) {
-        handlers.f[OP_STOP] = handleSTOP;
-        // 0x0X
-        handlers.f[OP_ADD] = handleADD;
-        handlers.f[OP_MUL] = handleMUL;
-        handlers.f[OP_SUB] = handleSUB;
-        handlers.f[OP_DIV] = handleDIV;
-        handlers.f[OP_SDIV] = handleSDIV;
-        handlers.f[OP_MOD] = handleMOD;
-        handlers.f[OP_SMOD] = handleSMOD;
-        handlers.f[OP_ADDMOD] = handleADDMOD;
-        handlers.f[OP_MULMOD] = handleMULMOD;
-        handlers.f[OP_EXP] = handleEXP;
-        handlers.f[OP_SIGNEXTEND] = handleSIGNEXTEND;
-        handlers.f[0x0c] = handleINVALID;
-        handlers.f[0x0d] = handleINVALID;
-        handlers.f[0x0e] = handleINVALID;
-        handlers.f[0x0f] = handleINVALID;
-        handlers.f[OP_LT] = handleLT;
-        // 0x1X
-        handlers.f[OP_GT] = handleGT;
-        handlers.f[OP_SLT] = handleSLT;
-        handlers.f[OP_SGT] = handleSGT;
-        handlers.f[OP_EQ] = handleEQ;
-        handlers.f[OP_ISZERO] = handleISZERO;
-        handlers.f[OP_AND] = handleAND;
-        handlers.f[OP_OR] = handleOR;
-        handlers.f[OP_XOR] = handleXOR;
-        handlers.f[OP_NOT] = handleNOT;
-        handlers.f[OP_BYTE] = handleBYTE;
-        handlers.f[OP_SHL] = handleSHL;
-        handlers.f[OP_SHR] = handleSHR;
-        handlers.f[OP_SAR] = handleSAR;
-        handlers.f[0x1e] = handleINVALID;
-        handlers.f[0x1f] = handleINVALID;
-        handlers.f[OP_SHA3] = handleSHA3;
-        // 0x2X
-        handlers.f[0x21] = handleINVALID;
-        handlers.f[0x22] = handleINVALID;
-        handlers.f[0x23] = handleINVALID;
-        handlers.f[0x24] = handleINVALID;
-        handlers.f[0x25] = handleINVALID;
-        handlers.f[0x26] = handleINVALID;
-        handlers.f[0x27] = handleINVALID;
-        handlers.f[0x28] = handleINVALID;
-        handlers.f[0x29] = handleINVALID;
-        handlers.f[0x2a] = handleINVALID;
-        handlers.f[0x2b] = handleINVALID;
-        handlers.f[0x2c] = handleINVALID;
-        handlers.f[0x2d] = handleINVALID;
-        handlers.f[0x2e] = handleINVALID;
-        handlers.f[0x2f] = handleINVALID;
-        handlers.f[OP_ADDRESS] = handleADDRESS;
-        // 0x3X
-        handlers.f[OP_BALANCE] = handleBALANCE;
-        handlers.f[OP_ORIGIN] = handleORIGIN;
-        handlers.f[OP_CALLER] = handleCALLER;
-        handlers.f[OP_CALLVALUE] = handleCALLVALUE;
-        handlers.f[OP_CALLDATALOAD] = handleCALLDATALOAD;
-        handlers.f[OP_CALLDATASIZE] = handleCALLDATASIZE;
-        handlers.f[OP_CALLDATACOPY] = handleCALLDATACOPY;
-        handlers.f[OP_CODESIZE] = handleCODESIZE;
-        handlers.f[OP_CODECOPY] = handleCODECOPY;
-        handlers.f[OP_GASPRICE] = handleGASPRICE;
-        handlers.f[OP_EXTCODESIZE] = handleEXTCODESIZE;
-        handlers.f[OP_EXTCODECOPY] = handleEXTCODECOPY;
-        handlers.f[OP_RETURNDATASIZE] = handleRETURNDATASIZE;
-        handlers.f[OP_RETURNDATACOPY] = handleRETURNDATACOPY;
-        handlers.f[0x3f] = handleINVALID;
-        handlers.f[OP_BLOCKHASH] = handleBLOCKHASH;
-        // 0x4X
-        handlers.f[OP_COINBASE] = handleCOINBASE;
-        handlers.f[OP_TIMESTAMP] = handleTIMESTAMP;
-        handlers.f[OP_NUMBER] = handleNUMBER;
-        handlers.f[OP_DIFFICULTY] = handleDIFFICULTY;
-        handlers.f[OP_GASLIMIT] = handleGASLIMIT;
-        handlers.f[0x46] = handleINVALID;
-        handlers.f[0x47] = handleINVALID;
-        handlers.f[0x48] = handleINVALID;
-        handlers.f[0x49] = handleINVALID;
-        handlers.f[0x4a] = handleINVALID;
-        handlers.f[0x4b] = handleINVALID;
-        handlers.f[0x4c] = handleINVALID;
-        handlers.f[0x4d] = handleINVALID;
-        handlers.f[0x4e] = handleINVALID;
-        handlers.f[0x4f] = handleINVALID;
-        // 0x5X
-        handlers.f[OP_POP] = handlePOP;
-        handlers.f[OP_MLOAD] = handleMLOAD;
-        handlers.f[OP_MSTORE] = handleMSTORE;
-        handlers.f[OP_MSTORE8] = handleMSTORE8;
-        handlers.f[OP_SLOAD] = handleSLOAD;
-        handlers.f[OP_SSTORE] = handleSSTORE;
-        handlers.f[OP_JUMP] = handleJUMP;
-        handlers.f[OP_JUMPI] = handleJUMPI;
-        handlers.f[OP_PC] = handlePC;
-        handlers.f[OP_MSIZE] = handleMSIZE;
-        handlers.f[OP_GAS] = handleGAS;
-        handlers.f[OP_JUMPDEST] = handleJUMPDEST;
-        handlers.f[0x5c] = handleINVALID;
-        handlers.f[0x5d] = handleINVALID;
-        handlers.f[0x5e] = handleINVALID;
-        handlers.f[0x5f] = handleINVALID;
-        handlers.f[OP_PUSH1] = handlePUSH;
-        // 0x6X, 0x7X
-        handlers.f[OP_PUSH2] = handlePUSH;
-        handlers.f[OP_PUSH3] = handlePUSH;
-        handlers.f[OP_PUSH4] = handlePUSH;
-        handlers.f[OP_PUSH5] = handlePUSH;
-        handlers.f[OP_PUSH6] = handlePUSH;
-        handlers.f[OP_PUSH7] = handlePUSH;
-        handlers.f[OP_PUSH8] = handlePUSH;
-        handlers.f[OP_PUSH9] = handlePUSH;
-        handlers.f[OP_PUSH10] = handlePUSH;
-        handlers.f[OP_PUSH11] = handlePUSH;
-        handlers.f[OP_PUSH12] = handlePUSH;
-        handlers.f[OP_PUSH13] = handlePUSH;
-        handlers.f[OP_PUSH14] = handlePUSH;
-        handlers.f[OP_PUSH15] = handlePUSH;
-        handlers.f[OP_PUSH16] = handlePUSH;
-        handlers.f[OP_PUSH17] = handlePUSH;
-        handlers.f[OP_PUSH18] = handlePUSH;
-        handlers.f[OP_PUSH19] = handlePUSH;
-        handlers.f[OP_PUSH20] = handlePUSH;
-        handlers.f[OP_PUSH21] = handlePUSH;
-        handlers.f[OP_PUSH22] = handlePUSH;
-        handlers.f[OP_PUSH23] = handlePUSH;
-        handlers.f[OP_PUSH24] = handlePUSH;
-        handlers.f[OP_PUSH25] = handlePUSH;
-        handlers.f[OP_PUSH26] = handlePUSH;
-        handlers.f[OP_PUSH27] = handlePUSH;
-        handlers.f[OP_PUSH28] = handlePUSH;
-        handlers.f[OP_PUSH29] = handlePUSH;
-        handlers.f[OP_PUSH30] = handlePUSH;
-        handlers.f[OP_PUSH31] = handlePUSH;
-        handlers.f[OP_PUSH32] = handlePUSH;
-        handlers.f[OP_DUP1] = handleDUP;
-        // 0x8X
-        handlers.f[OP_DUP2] = handleDUP;
-        handlers.f[OP_DUP3] = handleDUP;
-        handlers.f[OP_DUP4] = handleDUP;
-        handlers.f[OP_DUP5] = handleDUP;
-        handlers.f[OP_DUP6] = handleDUP;
-        handlers.f[OP_DUP7] = handleDUP;
-        handlers.f[OP_DUP8] = handleDUP;
-        handlers.f[OP_DUP9] = handleDUP;
-        handlers.f[OP_DUP10] = handleDUP;
-        handlers.f[OP_DUP11] = handleDUP;
-        handlers.f[OP_DUP12] = handleDUP;
-        handlers.f[OP_DUP13] = handleDUP;
-        handlers.f[OP_DUP14] = handleDUP;
-        handlers.f[OP_DUP15] = handleDUP;
-        handlers.f[OP_DUP16] = handleDUP;
-        handlers.f[OP_SWAP1] = handleSWAP;
-        // 0x9X
-        handlers.f[OP_SWAP2] = handleSWAP;
-        handlers.f[OP_SWAP3] = handleSWAP;
-        handlers.f[OP_SWAP4] = handleSWAP;
-        handlers.f[OP_SWAP5] = handleSWAP;
-        handlers.f[OP_SWAP6] = handleSWAP;
-        handlers.f[OP_SWAP7] = handleSWAP;
-        handlers.f[OP_SWAP8] = handleSWAP;
-        handlers.f[OP_SWAP9] = handleSWAP;
-        handlers.f[OP_SWAP10] = handleSWAP;
-        handlers.f[OP_SWAP11] = handleSWAP;
-        handlers.f[OP_SWAP12] = handleSWAP;
-        handlers.f[OP_SWAP13] = handleSWAP;
-        handlers.f[OP_SWAP14] = handleSWAP;
-        handlers.f[OP_SWAP15] = handleSWAP;
-        handlers.f[OP_SWAP16] = handleSWAP;
-        handlers.f[OP_LOG0] = handleLOG;
-        // 0xaX
-        handlers.f[OP_LOG1] = handleLOG;
-        handlers.f[OP_LOG2] = handleLOG;
-        handlers.f[OP_LOG3] = handleLOG;
-        handlers.f[OP_LOG4] = handleLOG;
-        handlers.f[0xa5] = handleINVALID;
-        handlers.f[0xa6] = handleINVALID;
-        handlers.f[0xa7] = handleINVALID;
-        handlers.f[0xa8] = handleINVALID;
-        handlers.f[0xa9] = handleINVALID;
-        handlers.f[0xaa] = handleINVALID;
-        handlers.f[0xab] = handleINVALID;
-        handlers.f[0xac] = handleINVALID;
-        handlers.f[0xad] = handleINVALID;
-        handlers.f[0xae] = handleINVALID;
-        handlers.f[0xaf] = handleINVALID;
-        handlers.f[0xb0] = handleINVALID;
-        // 0xbX
-        handlers.f[0xb1] = handleINVALID;
-        handlers.f[0xb2] = handleINVALID;
-        handlers.f[0xb3] = handleINVALID;
-        handlers.f[0xb4] = handleINVALID;
-        handlers.f[0xb5] = handleINVALID;
-        handlers.f[0xb6] = handleINVALID;
-        handlers.f[0xb7] = handleINVALID;
-        handlers.f[0xb8] = handleINVALID;
-        handlers.f[0xb9] = handleINVALID;
-        handlers.f[0xba] = handleINVALID;
-        handlers.f[0xbb] = handleINVALID;
-        handlers.f[0xbc] = handleINVALID;
-        handlers.f[0xbd] = handleINVALID;
-        handlers.f[0xbe] = handleINVALID;
-        handlers.f[0xbf] = handleINVALID;
-        handlers.f[0xc0] = handleINVALID;
-        // 0xcX
-        handlers.f[0xc1] = handleINVALID;
-        handlers.f[0xc2] = handleINVALID;
-        handlers.f[0xc3] = handleINVALID;
-        handlers.f[0xc4] = handleINVALID;
-        handlers.f[0xc5] = handleINVALID;
-        handlers.f[0xc6] = handleINVALID;
-        handlers.f[0xc7] = handleINVALID;
-        handlers.f[0xc8] = handleINVALID;
-        handlers.f[0xc9] = handleINVALID;
-        handlers.f[0xca] = handleINVALID;
-        handlers.f[0xcb] = handleINVALID;
-        handlers.f[0xcc] = handleINVALID;
-        handlers.f[0xcd] = handleINVALID;
-        handlers.f[0xce] = handleINVALID;
-        handlers.f[0xcf] = handleINVALID;
-        handlers.f[0xd0] = handleINVALID;
-        // 0xdX
-        handlers.f[0xd1] = handleINVALID;
-        handlers.f[0xd2] = handleINVALID;
-        handlers.f[0xd3] = handleINVALID;
-        handlers.f[0xd4] = handleINVALID;
-        handlers.f[0xd5] = handleINVALID;
-        handlers.f[0xd6] = handleINVALID;
-        handlers.f[0xd7] = handleINVALID;
-        handlers.f[0xd8] = handleINVALID;
-        handlers.f[0xd9] = handleINVALID;
-        handlers.f[0xda] = handleINVALID;
-        handlers.f[0xdb] = handleINVALID;
-        handlers.f[0xdc] = handleINVALID;
-        handlers.f[0xdd] = handleINVALID;
-        handlers.f[0xde] = handleINVALID;
-        handlers.f[0xdf] = handleINVALID;
-        handlers.f[0xe0] = handleINVALID;
-        // 0xeX
-        handlers.f[0xe1] = handleINVALID;
-        handlers.f[0xe2] = handleINVALID;
-        handlers.f[0xe3] = handleINVALID;
-        handlers.f[0xe4] = handleINVALID;
-        handlers.f[0xe5] = handleINVALID;
-        handlers.f[0xe6] = handleINVALID;
-        handlers.f[0xe7] = handleINVALID;
-        handlers.f[0xe8] = handleINVALID;
-        handlers.f[0xe9] = handleINVALID;
-        handlers.f[0xea] = handleINVALID;
-        handlers.f[0xeb] = handleINVALID;
-        handlers.f[0xec] = handleINVALID;
-        handlers.f[0xed] = handleINVALID;
-        handlers.f[0xee] = handleINVALID;
-        handlers.f[0xef] = handleINVALID;
-        // 0xfX
-        handlers.f[OP_CREATE] = handleCREATE;
-        handlers.f[OP_CALL] = handleCALL;
-        handlers.f[OP_CALLCODE] = handleCALLCODE;
-        handlers.f[OP_RETURN] = handleRETURN;
-        handlers.f[OP_DELEGATECALL] = handleDELEGATECALL;
-        handlers.f[0xf5] = handleINVALID;
-        handlers.f[0xf6] = handleINVALID;
-        handlers.f[0xf7] = handleINVALID;
-        handlers.f[0xf8] = handleINVALID;
-        handlers.f[0xf9] = handleINVALID;
-        handlers.f[OP_STATICCALL] = handleSTATICCALL;
-        handlers.f[0xfb] = handleINVALID;
-        handlers.f[0xfc] = handleINVALID;
-        handlers.f[OP_REVERT] = handleREVERT;
-        handlers.f[OP_INVALID] = handleINVALID;
-        handlers.f[OP_SELFDESTRUCT] = handleSELFDESTRUCT;
+        Instruction memory inv = Instruction(handleINVALID, 0, 0, 0);
+        Instruction memory push = Instruction(handlePUSH, 0, 1, GAS_VERYLOW);
+        Instruction memory dup = Instruction(handleDUP, 0, 1, GAS_VERYLOW);
+        Instruction memory swap = Instruction(handleSWAP, 0, 0, GAS_VERYLOW);
 
+        handlers.ins = [
+        // 0x0X
+        Instruction(handleSTOP, 0, 0, GAS_ZERO),
+        Instruction(handleADD, 2, 1, GAS_VERYLOW),
+        Instruction(handleMUL, 2, 1, GAS_LOW),
+        Instruction(handleSUB, 2, 1, GAS_VERYLOW),
+        Instruction(handleDIV, 2, 1, GAS_LOW),
+        Instruction(handleSDIV, 2, 1, GAS_LOW),
+        Instruction(handleMOD, 2, 1, GAS_LOW),
+        Instruction(handleSMOD, 2, 1, GAS_LOW),
+        Instruction(handleADDMOD, 3, 1, GAS_MID),
+        Instruction(handleMULMOD, 3, 1, GAS_MID),
+        Instruction(handleEXP, 2, 1, GAS_EXP),
+        Instruction(handleSIGNEXTEND, 0, 0, GAS_LOW),
+        inv,
+        inv,
+        inv,
+        inv,
+        // 0x1X
+        Instruction(handleLT, 2, 1, GAS_VERYLOW),
+        Instruction(handleGT, 2, 1, GAS_VERYLOW),
+        Instruction(handleSLT, 2, 1, GAS_VERYLOW),
+        Instruction(handleSGT, 2, 1, GAS_VERYLOW),
+        Instruction(handleEQ, 2, 1, GAS_VERYLOW),
+        Instruction(handleISZERO, 1, 1, GAS_VERYLOW),
+        Instruction(handleAND, 2, 1, GAS_VERYLOW),
+        Instruction(handleOR, 2, 1, GAS_VERYLOW),
+        Instruction(handleXOR, 2, 1, GAS_VERYLOW),
+        Instruction(handleNOT, 1, 1, GAS_VERYLOW),
+        Instruction(handleBYTE, 2, 1, GAS_VERYLOW),
+        Instruction(handleSHL, 2, 1, GAS_VERYLOW),
+        Instruction(handleSHR, 2, 1, GAS_VERYLOW),
+        Instruction(handleSAR, 2, 1, GAS_VERYLOW),
+        inv,
+        inv,
+        // 0x2X
+        Instruction(handleSHA3, 2, 1, GAS_SHA3),
+        inv,
+        inv,
+        inv,
+        inv,
+        inv,
+        inv,
+        inv,
+        inv,
+        inv,
+        inv,
+        inv,
+        inv,
+        inv,
+        inv,
+        inv,
+        // 0x3X
+        Instruction(handleADDRESS, 0, 1, GAS_BASE),
+        Instruction(handleBALANCE, 1, 1, GAS_BALANCE),
+        Instruction(handleORIGIN, 0, 1, GAS_BASE),
+        Instruction(handleCALLER, 0, 1, GAS_BASE),
+        Instruction(handleCALLVALUE, 0, 1, GAS_BASE),
+        Instruction(handleCALLDATALOAD, 1, 1, GAS_VERYLOW),
+        Instruction(handleCALLDATASIZE, 0, 1, GAS_BASE),
+        Instruction(handleCALLDATACOPY, 3, 0, GAS_VERYLOW),
+        Instruction(handleCODESIZE, 0, 1, GAS_BASE),
+        Instruction(handleCODECOPY, 3, 0, GAS_VERYLOW),
+        Instruction(handleGASPRICE, 0, 1, GAS_BASE),
+        Instruction(handleEXTCODESIZE, 1, 1, GAS_EXTCODE),
+        Instruction(handleEXTCODECOPY, 4, 0, GAS_EXTCODE),
+        Instruction(handleRETURNDATASIZE, 0, 1, GAS_BASE),
+        Instruction(handleRETURNDATACOPY, 3, 0, GAS_VERYLOW),
+        inv,
+        // 0x4X
+        Instruction(handleBLOCKHASH, 1, 1, GAS_BLOCKHASH),
+        Instruction(handleCOINBASE, 0, 1, GAS_BASE),
+        Instruction(handleTIMESTAMP, 0, 1, GAS_BASE),
+        Instruction(handleNUMBER, 0, 1, GAS_BASE),
+        Instruction(handleDIFFICULTY, 0, 1, GAS_BASE),
+        Instruction(handleGASLIMIT, 0, 1, GAS_BASE),
+        inv,
+        inv,
+        inv,
+        inv,
+        inv,
+        inv,
+        inv,
+        inv,
+        inv,
+        inv,
+        // 0x5X
+        Instruction(handlePOP, 1, 0, GAS_BASE),
+        Instruction(handleMLOAD, 1, 1, GAS_VERYLOW),
+        Instruction(handleMSTORE, 2, 0, GAS_VERYLOW),
+        Instruction(handleMSTORE8, 2, 0, GAS_VERYLOW),
+        Instruction(handleSLOAD, 1, 1, GAS_SLOAD),
+        Instruction(handleSSTORE, 2, 0, GAS_ZERO),
+        Instruction(handleJUMP, 1, 0, GAS_MID),
+        Instruction(handleJUMPI, 2, 0, GAS_HIGH),
+        Instruction(handlePC, 0, 1, GAS_BASE),
+        Instruction(handleMSIZE, 0, 1, GAS_BASE),
+        Instruction(handleGAS, 0, 1, GAS_BASE),
+        Instruction(handleJUMPDEST, 0, 0, GAS_JUMPDEST),
+        inv,
+        inv,
+        inv,
+        inv,
+        // 0x6X
+        push,
+        push,
+        push,
+        push,
+        push,
+        push,
+        push,
+        push,
+        push,
+        push,
+        push,
+        push,
+        push,
+        push,
+        push,
+        push,
+        // 0x7X
+        push,
+        push,
+        push,
+        push,
+        push,
+        push,
+        push,
+        push,
+        push,
+        push,
+        push,
+        push,
+        push,
+        push,
+        push,
+        push,
+        // 0x8X
+        dup,
+        dup,
+        dup,
+        dup,
+        dup,
+        dup,
+        dup,
+        dup,
+        dup,
+        dup,
+        dup,
+        dup,
+        dup,
+        dup,
+        dup,
+        dup,
+        // 0x9X
+        swap,
+        swap,
+        swap,
+        swap,
+        swap,
+        swap,
+        swap,
+        swap,
+        swap,
+        swap,
+        swap,
+        swap,
+        swap,
+        swap,
+        swap,
+        swap,
+        // 0xaX
+        Instruction(handleLOG, 2, 0, GAS_LOG),
+        Instruction(handleLOG, 3, 0, GAS_LOG + GAS_LOGTOPIC),
+        Instruction(handleLOG, 4, 0, GAS_LOG + 2*GAS_LOGTOPIC),
+        Instruction(handleLOG, 5, 0, GAS_LOG + 3*GAS_LOGTOPIC),
+        Instruction(handleLOG, 6, 0, GAS_LOG + 4*GAS_LOGTOPIC),
+        inv,
+        inv,
+        inv,
+        inv,
+        inv,
+        inv,
+        inv,
+        inv,
+        inv,
+        inv,
+        inv,
+        // 0xbX
+        inv,
+        inv,
+        inv,
+        inv,
+        inv,
+        inv,
+        inv,
+        inv,
+        inv,
+        inv,
+        inv,
+        inv,
+        inv,
+        inv,
+        inv,
+        inv,
+        // 0xcX
+        inv,
+        inv,
+        inv,
+        inv,
+        inv,
+        inv,
+        inv,
+        inv,
+        inv,
+        inv,
+        inv,
+        inv,
+        inv,
+        inv,
+        inv,
+        inv,
+        // 0xdX
+        inv,
+        inv,
+        inv,
+        inv,
+        inv,
+        inv,
+        inv,
+        inv,
+        inv,
+        inv,
+        inv,
+        inv,
+        inv,
+        inv,
+        inv,
+        inv,
+        // 0xeX
+        inv,
+        inv,
+        inv,
+        inv,
+        inv,
+        inv,
+        inv,
+        inv,
+        inv,
+        inv,
+        inv,
+        inv,
+        inv,
+        inv,
+        inv,
+        inv,
+        // 0xfX
+        Instruction(handleCREATE, 3, 1, GAS_CREATE),
+        Instruction(handleCALL, 7, 1, GAS_CALL),
+        Instruction(handleCALLCODE, 7, 1, GAS_CALL),
+        Instruction(handleRETURN, 2, 0, GAS_ZERO),
+        Instruction(handleDELEGATECALL, 6, 1, GAS_CALL),
+        inv,
+        inv,
+        inv,
+        inv,
+        inv,
+        Instruction(handleSTATICCALL, 6, 1, GAS_CALL),
+        inv,
+        inv,
+        Instruction(handleREVERT, 2, 0, GAS_ZERO),
+        inv,
+        Instruction(handleSELFDESTRUCT, 1, 0, GAS_SELFDESTRUCT)
+        ];
 
         handlers.p[1] = handlePreC_ECRECOVER;
         handlers.p[2] = handlePreC_SHA256;

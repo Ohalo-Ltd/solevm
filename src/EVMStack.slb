@@ -79,6 +79,16 @@ library EVMStack {
         return data;
     }
 
+    function read(Stack self, uint index) internal pure returns (uint) {
+        assert(index < self.size);
+        uint data;
+        uint slot = self.dataPtr + index*32;
+        assembly {
+            data := mload(slot)
+        }
+        return data;
+    }
+
     function dup(Stack self, uint n) internal pure {
         assert(self.size < MAX_SIZE);
         assert(1 <= n && n <= 16);

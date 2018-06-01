@@ -180,6 +180,54 @@ contract EVMConstants {
     uint constant internal ERROR_ILLEGAL_WRITE_OPERATION = 0x0b;
     uint constant internal ERROR_PRECOMPILE_NOT_IMPLEMENTED = 0x0c;
 
+    // GAS
+    uint constant internal GAS_ZERO = 0;
+    uint constant internal GAS_BASE = 2;
+    uint constant internal GAS_VERYLOW = 3;
+    uint constant internal GAS_LOW = 5;
+    uint constant internal GAS_MID = 8;
+    uint constant internal GAS_HIGH = 10;
+
+    uint constant internal GAS_EXTCODE = 700;
+    uint constant internal GAS_BALANCE = 400;
+    uint constant internal GAS_JUMPDEST = 1;
+    uint constant internal GAS_SLOAD = 200;
+    uint constant internal GAS_SSET = 20000;
+    uint constant internal GAS_SRESET = 5000;
+    uint constant internal GAS_R_SCLEAR = 15000;
+    uint constant internal GAS_R_SELFDESTRUCT = 24000;
+    uint constant internal GAS_SELFDESTRUCT = 5000;
+    uint constant internal GAS_CREATE = 32000;
+    uint constant internal GAS_CODEDEPOSIT = 200;
+    uint constant internal GAS_CALL = 700;
+    uint constant internal GAS_CALLVALUE = 9000;
+    uint constant internal GAS_CALLSTIPEND = 2300;
+    uint constant internal GAS_NEWACCOUNT = 25000;
+    uint constant internal GAS_EXP = 10;
+    uint constant internal GAS_EXPBYTE = 50;
+    uint constant internal GAS_MEMORY = 3;
+    uint constant internal GAS_TXCREATE = 32000;
+    uint constant internal GAS_TXDATAZERO = 4;
+    uint constant internal GAS_TXDATANONZERO = 68;
+    uint constant internal GAS_TRANSACTION = 21000;
+    uint constant internal GAS_LOG = 375;
+    uint constant internal GAS_LOGDATA = 8;
+    uint constant internal GAS_LOGTOPIC = 375;
+    uint constant internal GAS_SHA3 = 30;
+    uint constant internal GAS_SHA3WORD = 6;
+    uint constant internal GAS_COPY = 3;
+    uint constant internal GAS_BLOCKHASH = 20;
+    uint constant internal GAS_QUADDIVISOR = 100;
+
+    // Precompiles
+    uint constant internal GAS_ECRECOVER = 3000;
+    uint constant internal GAS_SHA256_BASE = 60;
+    uint constant internal GAS_SHA256_WORD = 12;
+    uint constant internal GAS_RIPEMD160_BASE = 600;
+    uint constant internal GAS_RIPEMD160_WORD = 120;
+    uint constant internal GAS_IDENTITY_BASE = 15;
+    uint constant internal GAS_IDENTITY_WORD = 3;
+
     // ENV
 
     uint constant internal MAX_STACK_SIZE = 1024;
