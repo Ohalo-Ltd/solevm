@@ -164,22 +164,6 @@ contract EVMConstants {
     uint constant internal OP_INVALID = 0xfe;
     uint constant internal OP_SELFDESTRUCT = 0xff;
 
-    // ERRORS
-
-    uint constant internal NO_ERROR = 0;
-    uint constant internal ERROR_STACK_OVERFLOW = 0x01;
-    uint constant internal ERROR_STACK_UNDERFLOW = 0x02;
-    uint constant internal ERROR_INDEX_OOB = 0x03;
-    uint constant internal ERROR_INVALID_OPCODE = 0x04;
-    uint constant internal ERROR_INVALID_JUMP_DESTINATION = 0x05;
-    uint constant internal ERROR_INSTRUCTION_NOT_SUPPORTED = 0x06;
-    uint constant internal ERROR_STATE_REVERTED = 0x07;
-    uint constant internal ERROR_INSUFFICIENT_FUNDS = 0x08;
-    uint constant internal ERROR_CONTRACT_CREATION_COLLISION = 0x09;
-    uint constant internal ERROR_MAX_CODE_SIZE_EXCEEDED = 0x0a;
-    uint constant internal ERROR_ILLEGAL_WRITE_OPERATION = 0x0b;
-    uint constant internal ERROR_PRECOMPILE_NOT_IMPLEMENTED = 0x0c;
-
     // GAS
     uint constant internal GAS_ZERO = 0;
     uint constant internal GAS_BASE = 2;
@@ -227,6 +211,23 @@ contract EVMConstants {
     uint constant internal GAS_RIPEMD160_WORD = 120;
     uint constant internal GAS_IDENTITY_BASE = 15;
     uint constant internal GAS_IDENTITY_WORD = 3;
+
+    // ERRORS
+
+    uint constant internal NO_ERROR = 0;
+    uint constant internal ERROR_STACK_OVERFLOW = 0x01;
+    uint constant internal ERROR_STACK_UNDERFLOW = 0x02;
+    uint constant internal ERROR_INDEX_OOB = 0x03;
+    uint constant internal ERROR_INVALID_OPCODE = 0x04;
+    uint constant internal ERROR_INVALID_JUMP_DESTINATION = 0x05;
+    uint constant internal ERROR_INSTRUCTION_NOT_SUPPORTED = 0x06;
+    uint constant internal ERROR_STATE_REVERTED = 0x07;
+    uint constant internal ERROR_INSUFFICIENT_FUNDS = 0x08;
+    uint constant internal ERROR_CONTRACT_CREATION_COLLISION = 0x09;
+    uint constant internal ERROR_MAX_CODE_SIZE_EXCEEDED = 0x0a;
+    uint constant internal ERROR_ILLEGAL_WRITE_OPERATION = 0x0b;
+    uint constant internal ERROR_PRECOMPILE_NOT_IMPLEMENTED = 0x0c;
+    uint constant internal ERROR_OUT_OF_GAS = 0x0d;
 
     // ENV
 

@@ -2511,7 +2511,6 @@ describe('solidity contracts', () => {
         expect(storage[0].address.eq(0)).toBeTruthy();
         expect(storage[0].value.eq(5)).toBeTruthy();
         expect(storage[1].address.eq(1)).toBeTruthy();
-        console.log(storage[1].value.toString(16));
         expect(storage[1].value.eq("c8a5de6331e2e7b12771c579467b1c7d1b506d71", 16)).toBeTruthy();
     });
 
