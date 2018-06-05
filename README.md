@@ -6,7 +6,7 @@ This is still very early in development. There is no support for gas metering, a
 
 **NOTE: This is only an experiment in it's early PoC stages. Do not rely on this library to test or verify EVM bytecode.**
 
-**Update 2018-06-05: There is no way to get this to add in all gas metering without exceeding the maximum codesize**
+**Update 2018-06-05: There is no way to add all gas metering without exceeding the maximum codesize**
 
 ### Building and Testing
 
