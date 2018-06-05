@@ -6,6 +6,8 @@ This is still very early in development. There is no support for gas metering, a
 
 **NOTE: This is only an experiment in it's early PoC stages. Do not rely on this library to test or verify EVM bytecode.**
 
+**Update 2018-06-05: There is no way to get this to add in all gas metering without exceeding the maximum codesize**
+
 ### Building and Testing
 
 The runtime is a regular Solidity contract that can be compiled by `solc`, and can therefore be used with libraries such as `web3js` or just executed by the various different stand-alone evm implementations. The limitations is that a lot of gas is required in order to run the code, and that web3js does not have support for Solidity structs (ABI tuples).
