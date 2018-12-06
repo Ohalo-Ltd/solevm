@@ -42,6 +42,11 @@ export interface ILog {
     data: string;
 }
 
+export interface ITStorage {
+    account: string;
+    data: string;
+}
+
 export interface IResult {
     errno: number;
     errpc: number;
@@ -50,6 +55,7 @@ export interface IResult {
     mem: string;
     accounts: [IAccount];
     logs: [ILog];
+    tStorage: [ITStorage];
 }
 
 export interface IEncodedAccounts {
@@ -120,7 +126,7 @@ export const encodeAccounts = (accounts: [IAccount]): IEncodedAccounts => {
     const accountsOut = [] as [BigNumber];
     let accountsCode = '';
     let codeOffset = 0;
-    for(const account of accounts) {
+    for (const account of accounts) {
         console.log(account);
         accountsOut.push(new BigNumber(account.address, 16));
         accountsOut.push(account.balance);
@@ -152,7 +158,7 @@ export const encodeLogs = (logs: [ILog]): IEncodedLogs => {
     let logsData = '';
 
     let dataOffset = 0;
-    for(const log of logs) {
+    for (const log of logs) {
         logsOut.push(new BigNumber(log.account, 16));
         logsOut.push(new BigNumber(log.topics[0]));
         logsOut.push(new BigNumber(log.topics[1]));
@@ -212,9 +218,9 @@ export const newDefaultPreImage = (code: string, data: string, value: BigNumber,
     const encAcc = encodeAccounts(accs);
     return {
         gas: 0,
-        value: value,
-        code: code,
-        data: data,
+        value,
+        code,
+        data,
         caller: DEFAULT_CALLER,
         target: DEFAULT_CONTRACT_ADDRESS,
         staticExec: false,
@@ -230,8 +236,8 @@ export const newDefaultPreImage = (code: string, data: string, value: BigNumber,
 
 export const decode = (res: string): IResult => {
     res = res.substr(64);
-    const dec = Web3EthAbi.decodeParameters(['uint256', 'uint256', 'bytes', 'uint256[]', 'bytes', 'uint256[]', 'bytes', 'uint256[]', 'bytes'], '0x' + res);
-    // console.log(dec);
+    const dec = Web3EthAbi.decodeParameters(['uint256', 'uint256', 'bytes', 'uint256[]', 'bytes', 'uint256[]', 'bytes', 'uint256[]', 'bytes', 'uint256[]', 'bytes'], '0x' + res);
+    console.log(dec);
     let returnData = '';
     if (dec['2'] && dec['2'].length >= 2) {
         returnData = dec['2'].substr(2);
@@ -325,6 +331,40 @@ export const decode = (res: string): IResult => {
         offset += 7;
     }
 
+    const tStorageArr = dec['9'];
+    let tStorageData = '';
+    if (dec['10'] && dec['10'].length >= 2) {
+        tStorageData = dec['10'].substr(2);
+    }
+
+    const tStorage = [] as [ITStorage];
+    console.log(tStorageData.length / 2);
+    const dataLengths = [];
+    for (let i = 0; i < tStorageArr.length / 2; i++) {
+        const d0 = 2 * new BigNumber(tStorageArr[2 * i + 1]).toNumber();
+
+        if (i < tStorageArr.length / 2 - 1) {
+            const d1 = 2 * new BigNumber(tStorageArr[2 * (i + 1) + 1]).toNumber();
+            dataLengths.push(d1 - d0);
+        } else {
+            dataLengths.push(tStorageData.length - d0);
+        }
+    }
+
+    for (let i = 0; i < tStorageArr.length / 2; i++) {
+        let addr = new BigNumber(tStorageArr[2 * i]).toString(16);
+        while (addr.length < 40) {
+            addr = '0' + addr;
+        }
+        const dOffset = 2 * new BigNumber(tStorageArr[2 * i + 1]).toNumber();
+        const data = tStorageData.substr(dOffset, dataLengths[i]);
+
+        tStorage.push({
+            account: addr,
+            data
+        });
+    }
+
     return {
         errno: new BigNumber(dec['0']).toNumber(),
         errpc: new BigNumber(dec['1']).toNumber(),
@@ -332,7 +372,8 @@ export const decode = (res: string): IResult => {
         stack,
         mem,
         accounts,
-        logs
+        logs,
+        tStorage
     };
 };
 
@@ -397,18 +438,38 @@ export const printStack = (stack: [BigNumber]) => {
     }
 };
 
+export const prettyBytesString = (bts: string): string => {
+    const pp = [];
+    const len = bts.length;
+
+    for (let i = 0; i < len; i += 64) {
+        pp.push(bts.substr(i, 64));
+    }
+
+    return pp.join(' ');
+};
+
 export const prettyPrintResults = (result: IResult) => {
     const resultF = {};
     resultF['errno'] = result.errno;
     resultF['errpc'] = result.errpc;
     resultF['returnData'] = result.returnData;
-    resultF['mem'] = result.mem;
+    resultF['mem'] = prettyBytesString(result.mem);
     const stackF = [];
     let i = 0;
     for (const stackItem of result.stack) {
         stackF.push(`${i++}: ${stackItem.toString(16)}`);
     }
     resultF['stack'] = stackF;
+
+    const tStorageF = [];
+    for (const tStr of result.tStorage) {
+        const tStrF = {};
+        tStrF['account'] = tStr.account;
+        tStrF['data'] = prettyBytesString(tStr.data);
+        tStorageF.push(tStrF);
+    }
+    resultF['transient'] = tStorageF;
 
     const accountsF = [];
     for (const account of result.accounts) {

@@ -185,8 +185,8 @@ exports.newDefaultPreImage = function (code, data, value, transferred) {
 };
 exports.decode = function (res) {
     res = res.substr(64);
-    var dec = Web3EthAbi.decodeParameters(['uint256', 'uint256', 'bytes', 'uint256[]', 'bytes', 'uint256[]', 'bytes', 'uint256[]', 'bytes'], '0x' + res);
-    // console.log(dec);
+    var dec = Web3EthAbi.decodeParameters(['uint256', 'uint256', 'bytes', 'uint256[]', 'bytes', 'uint256[]', 'bytes', 'uint256[]', 'bytes', 'uint256[]', 'bytes'], '0x' + res);
+    console.log(dec);
     var returnData = '';
     if (dec['2'] && dec['2'].length >= 2) {
         returnData = dec['2'].substr(2);
@@ -269,6 +269,36 @@ exports.decode = function (res) {
         });
         offset += 7;
     }
+    var tStorageArr = dec['9'];
+    var tStorageData = '';
+    if (dec['10'] && dec['10'].length >= 2) {
+        tStorageData = dec['10'].substr(2);
+    }
+    var tStorage = [];
+    console.log(tStorageData.length / 2);
+    var dataLengths = [];
+    for (var i = 0; i < tStorageArr.length / 2; i++) {
+        var d0 = 2 * new bignumber_js_1.BigNumber(tStorageArr[2 * i + 1]).toNumber();
+        if (i < tStorageArr.length / 2 - 1) {
+            var d1 = 2 * new bignumber_js_1.BigNumber(tStorageArr[2 * (i + 1) + 1]).toNumber();
+            dataLengths.push(d1 - d0);
+        }
+        else {
+            dataLengths.push(tStorageData.length - d0);
+        }
+    }
+    for (var i = 0; i < tStorageArr.length / 2; i++) {
+        var addr = new bignumber_js_1.BigNumber(tStorageArr[2 * i]).toString(16);
+        while (addr.length < 40) {
+            addr = '0' + addr;
+        }
+        var dOffset = 2 * new bignumber_js_1.BigNumber(tStorageArr[2 * i + 1]).toNumber();
+        var data = tStorageData.substr(dOffset, dataLengths[i]);
+        tStorage.push({
+            account: addr,
+            data: data
+        });
+    }
     return {
         errno: new bignumber_js_1.BigNumber(dec['0']).toNumber(),
         errpc: new bignumber_js_1.BigNumber(dec['1']).toNumber(),
@@ -276,7 +306,8 @@ exports.decode = function (res) {
         stack: stack,
         mem: mem,
         accounts: accounts,
-        logs: logs
+        logs: logs,
+        tStorage: tStorage
     };
 };
 exports.execute = function (code, data) { return __awaiter(_this, void 0, void 0, function () {
@@ -339,12 +370,20 @@ exports.printStack = function (stack) {
         console.log("" + elem.toString(16));
     }
 };
+exports.prettyBytesString = function (bts) {
+    var pp = [];
+    var len = bts.length;
+    for (var i = 0; i < len; i += 64) {
+        pp.push(bts.substr(i, 64));
+    }
+    return pp.join(' ');
+};
 exports.prettyPrintResults = function (result) {
     var resultF = {};
     resultF['errno'] = result.errno;
     resultF['errpc'] = result.errpc;
     resultF['returnData'] = result.returnData;
-    resultF['mem'] = result.mem;
+    resultF['mem'] = exports.prettyBytesString(result.mem);
     var stackF = [];
     var i = 0;
     for (var _i = 0, _a = result.stack; _i < _a.length; _i++) {
@@ -352,17 +391,26 @@ exports.prettyPrintResults = function (result) {
         stackF.push(i++ + ": " + stackItem.toString(16));
     }
     resultF['stack'] = stackF;
+    var tStorageF = [];
+    for (var _b = 0, _c = result.tStorage; _b < _c.length; _b++) {
+        var tStr = _c[_b];
+        var tStrF = {};
+        tStrF['account'] = tStr.account;
+        tStrF['data'] = exports.prettyBytesString(tStr.data);
+        tStorageF.push(tStrF);
+    }
+    resultF['transient'] = tStorageF;
     var accountsF = [];
-    for (var _b = 0, _c = result.accounts; _b < _c.length; _b++) {
-        var account = _c[_b];
+    for (var _d = 0, _e = result.accounts; _d < _e.length; _d++) {
+        var account = _e[_d];
         var accountF = {};
         accountF['address'] = account.address;
         accountF['balance'] = account.balance.toString(16);
         accountF['nonce'] = account.nonce;
         accountF['code'] = account.code;
         var storageF = [];
-        for (var _d = 0, _e = account.storage; _d < _e.length; _d++) {
-            var item = _e[_d];
+        for (var _f = 0, _g = account.storage; _f < _g.length; _f++) {
+            var item = _g[_f];
             storageF.push({
                 address: item.address.toString(16),
                 value: item.value.toString(16)
@@ -375,13 +423,13 @@ exports.prettyPrintResults = function (result) {
     resultF['accounts'] = accountsF;
     var logsF = [];
     // console.log(result.logs);
-    for (var _f = 0, _g = result.logs; _f < _g.length; _f++) {
-        var log = _g[_f];
+    for (var _h = 0, _j = result.logs; _h < _j.length; _h++) {
+        var log = _j[_h];
         var logF = {};
         logF['account'] = log.account;
         logF['topics'] = [];
-        for (var _h = 0, _j = log.topics; _h < _j.length; _h++) {
-            var topic = _j[_h];
+        for (var _k = 0, _l = log.topics; _k < _l.length; _k++) {
+            var topic = _l[_k];
             logF['topics'].push(topic.toString(16));
         }
         logF['data'] = log.data;

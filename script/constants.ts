@@ -20,6 +20,7 @@ export const TEST_CONTRACT_PATH = path.join(ROOT_PATH, '__tests__', 'testcontrac
 
 export const DEFAULT_CALLER = 'cd1722f2947def4cf144679da39c4c32bdc35681';
 export const DEFAULT_CONTRACT_ADDRESS = '0f572e5295c57f15886f9b263e2f6d2d6c7b5ec6';
+
 // Errors
 
 export const NO_ERROR = 0;
@@ -108,6 +109,9 @@ export const PC = '58';
 export const MSIZE = '59';
 export const GAS = '5a';
 export const JUMPDEST = '5b';
+export const TLOAD = '5c';
+export const TSTORE = '5d';
+export const TCOPY = '5e';
 
 // Push operations
 export const PUSH1 = '60';

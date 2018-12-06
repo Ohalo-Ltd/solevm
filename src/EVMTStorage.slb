@@ -1,6 +1,7 @@
 pragma solidity ^0.5.0;
 
 import {EVMMemory} from "./EVMMemory.slb";
+import {EVMUtils} from "./EVMUtils.slb";
 
 library EVMTStorage {
 
@@ -123,6 +124,40 @@ library EVMTStorage {
             }
             e2._next = newElemAddr;
             e2 = newElem;
+        }
+    }
+
+    function toArray(Storage memory self) internal pure returns (uint[] memory arr, bytes memory data) {
+        if (self.size == 0) {
+            return (arr, data);
+        }
+        StorageSlot[] memory slots = new StorageSlot[](self.size);
+        uint totalSize = 2*self.size;
+        Element memory e = self.head;
+        uint i = 0;
+        uint dataSize = 0;
+        while (true) {
+            slots[i++] = e.slot;
+            dataSize += 32*e.slot.mem.size;
+            if (e._next == 0) {
+                break;
+            }
+            uint n = e._next;
+            assembly {
+                e := n
+            }
+        }
+        arr = new uint[](totalSize);
+        data = new bytes(dataSize);
+        uint offset = 0;
+        uint dataOffset = 0;
+        for (i = 0; i < self.size; i++) {
+            StorageSlot memory slot = slots[i];
+            arr[offset++] = slot.addr;
+            arr[offset++] = dataOffset;
+            bytes memory bts = slot.mem.toArray();
+            EVMUtils.copy(bts, data, 0, dataOffset, bts.length);
+            dataOffset += bts.length;
         }
     }
 

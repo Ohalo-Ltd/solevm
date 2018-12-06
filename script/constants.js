@@ -99,6 +99,9 @@ exports.PC = '58';
 exports.MSIZE = '59';
 exports.GAS = '5a';
 exports.JUMPDEST = '5b';
+exports.TLOAD = '5c';
+exports.TSTORE = '5d';
+exports.TCOPY = '5e';
 // Push operations
 exports.PUSH1 = '60';
 exports.PUSH2 = '61';

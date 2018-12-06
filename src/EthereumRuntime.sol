@@ -65,6 +65,8 @@ contract IEthereumRuntime is EVMConstants {
         bytes accountsCode;
         uint[] logs;
         bytes logsData;
+        uint[] tStorage;
+        bytes tStorageData;
     }
 
     // ************* Only used internally *************
@@ -389,6 +391,7 @@ contract EthereumRuntime is IEthereumRuntime {
         // TODO handle accounts that result from a failed transaction.
         (result.accounts, result.accountsCode) = evm.accounts.toArray();
         (result.logs, result.logsData) = evm.logs.toArray();
+        (result.tStorage, result.tStorageData) = evm.tStorage.toArray();
         return result;
     }
 

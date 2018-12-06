@@ -9,9 +9,6 @@ export const run = (file: string, input: string): string => {
     if (ret === null) {
         throw new Error(`Failed when running command: ${cmd}`);
     }
-    if (ret === null) {
-        throw new Error(`Failed when running command: ${cmd}`);
-    }
     const retStr = ret.toString();
     if (retStr.length === 0) {
         throw new Error(`Failed when running command: ${cmd}`);

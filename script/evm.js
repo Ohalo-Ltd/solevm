@@ -10,9 +10,6 @@ exports.run = function (file, input) {
     if (ret === null) {
         throw new Error("Failed when running command: " + cmd);
     }
-    if (ret === null) {
-        throw new Error("Failed when running command: " + cmd);
-    }
     var retStr = ret.toString();
     if (retStr.length === 0) {
         throw new Error("Failed when running command: " + cmd);
