@@ -1,6 +1,4 @@
-pragma experimental "v0.5.0";
-pragma experimental ABIEncoderV2;
-pragma solidity ^0.4.22;
+pragma solidity ^0.5.0;
 
 import {MemOps} from "./MemOps.slb";
 
@@ -171,6 +169,16 @@ library EVMMemory {
             data := mload(slot)
         }
         return data;
+    }
+
+    // Deep copy of memory
+    function copy(Memory memory self) internal pure returns(Memory memory newMem) {
+        newMem.size = self.size;
+        newMem.cap = self.cap;
+        newMem.dataPtr = MemOps.allocate32(self.cap);
+        uint dest = newMem.dataPtr;
+        uint src = self.dataPtr;
+        MemOps.memcopy32(src, dest, self.size);
     }
 
 }

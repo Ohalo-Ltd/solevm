@@ -1,10 +1,10 @@
-pragma experimental "v0.5.0";
+pragma solidity ^0.5.0;
 pragma experimental ABIEncoderV2;
-pragma solidity ^0.4.22;
 
 import {EVMConstants} from "./EVMConstants.sol";
 import {EVMAccounts} from "./EVMAccounts.slb";
 import {EVMStorage} from "./EVMStorage.slb";
+import {EVMTStorage} from "./EVMTStorage.slb";
 import {EVMMemory} from "./EVMMemory.slb";
 import {EVMStack} from "./EVMStack.slb";
 import {EVMLogs} from "./EVMLogs.slb";
@@ -19,12 +19,13 @@ contract IEthereumRuntime is EVMConstants {
         CallCode
     }
 
-    address constant DEFAULT_CONTRACT_ADDRESS = 0x0f572e5295c57f15886f9b263e2f6d2d6c7b5ec6;
-    address constant DEFAULT_CALLER = 0xcd1722f2947def4cf144679da39c4c32bdc35681;
+    address constant DEFAULT_CONTRACT_ADDRESS = 0x0f572e5295c57F15886F9b263E2f6d2d6c7b5ec6;
+    address constant DEFAULT_CALLER = 0xcD1722f2947Def4CF144679da39c4C32bDc35681;
 
     using EVMAccounts for EVMAccounts.Accounts;
     using EVMAccounts for EVMAccounts.Account;
     using EVMStorage for EVMStorage.Storage;
+    using EVMTStorage for EVMTStorage.Storage;
     using EVMMemory for EVMMemory.Memory;
     using EVMStack for EVMStack.Stack;
     using EVMLogs for EVMLogs.Logs;
@@ -85,6 +86,7 @@ contract IEthereumRuntime is EVMConstants {
         EVMAccounts.Accounts accounts;
         EVMLogs.Logs logs;
         Handlers handlers;
+        EVMTStorage.Storage tStorage;
         bool staticExec;
     }
 
@@ -98,11 +100,12 @@ contract IEthereumRuntime is EVMConstants {
         EVMAccounts.Accounts accounts;
         EVMLogs.Logs logs;
         Handlers handlers;
+        EVMTStorage.Storage tStorage;
     }
 
     struct Handlers {
         Instruction[256] ins;
-        function(bytes memory input) internal pure returns (bytes memory ret, uint errno)[9] p;
+        function(bytes memory) internal pure returns (bytes memory, uint)[9] p;
     }
 
     struct EVM {
@@ -119,6 +122,7 @@ contract IEthereumRuntime is EVMConstants {
         EVMLogs.Logs logs;
         Context context;
         EVMMemory.Memory mem;
+        EVMTStorage.Storage tStorage;
         EVMStack.Stack stack;
 
         uint depth;
@@ -162,6 +166,7 @@ contract EthereumRuntime is IEthereumRuntime {
         evm.gas = evmInput.gas;
         evm.data = evmInput.data;
         evm.caller = evm.accounts.get(evmInput.caller);
+        evm.tStorage = evmInput.tStorage;
         // TODO touching accounts.
         evm.target = evm.accounts.get(evmInput.target);
         evm.staticExec = evmInput.staticExec;
@@ -170,22 +175,22 @@ contract EthereumRuntime is IEthereumRuntime {
         if (callType != CallType.DelegateCall && evm.value > 0) {
             if (evm.staticExec) {
                 evm.errno = ERROR_ILLEGAL_WRITE_OPERATION;
-                return;
+                return evm;
             }
             if (evm.caller.balance < evm.value) {
                 evm.errno = ERROR_INSUFFICIENT_FUNDS;
-                return;
+                return evm;
             }
             evm.caller.balance -= evm.value;
             evm.target.balance += evm.value;
         }
 
-        if (1 <= evm.target.addr && evm.target.addr <= 8) {
+        if (address(1) <= evm.target.addr && evm.target.addr <= address(8)) {
             (evm.returnData, evm.errno) = evm.handlers.p[uint(evm.target.addr)](evm.data);
         } else {
             // If there is no code to run, just continue. TODO
             if (evm.target.code.length == 0) {
-                return;
+                return evm;
             }
             evm.code = evm.target.code;
 
@@ -203,6 +208,7 @@ contract EthereumRuntime is IEthereumRuntime {
         evm.value = evmInput.value;
         evm.gas = evmInput.gas;
         evm.caller = evm.accounts.get(evmInput.caller);
+        evm.tStorage = evmInput.tStorage;
 
         // Increase the nonce. TODO
         evm.caller.nonce++;
@@ -211,7 +217,7 @@ contract EthereumRuntime is IEthereumRuntime {
         if (evm.value > 0) {
             if (evm.caller.balance < evm.value) {
                 evm.errno = ERROR_INSUFFICIENT_FUNDS;
-                return;
+                return (evm, addr);
             }
         }
 
@@ -221,7 +227,7 @@ contract EthereumRuntime is IEthereumRuntime {
         // TODO
         if (newAcc.nonce != 0) {
             evm.errno = ERROR_CONTRACT_CREATION_COLLISION;
-            return;
+            return (evm, addr);
         }
 
         evm.caller.balance -= evm.value;
@@ -235,11 +241,11 @@ contract EthereumRuntime is IEthereumRuntime {
 
         // TODO
         if (evm.errno != NO_ERROR) {
-            return;
+            return (evm, addr);
         }
         if (evm.returnData.length > MAX_CODE_SIZE) {
             evm.errno = ERROR_MAX_CODE_SIZE_EXCEEDED;
-            return;
+            return (evm, addr);
         }
         newAcc.code = evm.returnData;
         addr = newAddress;
@@ -252,7 +258,7 @@ contract EthereumRuntime is IEthereumRuntime {
         bytes memory code = evm.code;
 
         while (errno == NO_ERROR && pc < code.length) {
-            uint opcode = uint(code[pc]);
+            uint opcode = uint8(code[pc]);
 
             // Check for violation of static execution.
             if (evm.staticExec && (opcode == OP_SSTORE || opcode == OP_CREATE ||
@@ -383,7 +389,7 @@ contract EthereumRuntime is IEthereumRuntime {
         // TODO handle accounts that result from a failed transaction.
         (result.accounts, result.accountsCode) = evm.accounts.toArray();
         (result.logs, result.logsData) = evm.logs.toArray();
-        return;
+        return result;
     }
 
     // ************************* Handlers ***************************
@@ -404,7 +410,7 @@ contract EthereumRuntime is IEthereumRuntime {
 
     function handlePreC_RIPEMD160(bytes memory input) internal pure returns (bytes memory ret, uint errno){
         bytes20 result = ripemd160(input);
-        ret = EVMUtils.fromUint(uint(result));
+        ret = EVMUtils.fromUint(uint160(result));
     }
 
     function handlePreC_IDENTITY(bytes memory input) internal pure returns (bytes memory ret, uint errno){
@@ -679,7 +685,7 @@ contract EthereumRuntime is IEthereumRuntime {
         uint mp = state.mem.memUPtr(p);
         uint res;
         assembly {
-            res := sha3(mp, n)
+            res := keccak256(mp, n)
         }
         state.stack.push(res);
     }
@@ -847,7 +853,7 @@ contract EthereumRuntime is IEthereumRuntime {
 
     function handleJUMP(EVM memory state) internal pure returns (uint errno) {
         uint dest = state.stack.pop();
-        if (dest >= state.code.length || uint(state.code[dest]) != OP_JUMPDEST) {
+        if (dest >= state.code.length || uint8(state.code[dest]) != OP_JUMPDEST) {
             return ERROR_INVALID_JUMP_DESTINATION;
         }
         state.pc = dest;
@@ -858,9 +864,9 @@ contract EthereumRuntime is IEthereumRuntime {
         uint cnd = state.stack.pop();
         if (cnd == 0) {
             state.pc = state.pc + 1;
-            return;
+            return NO_ERROR;
         }
-        if (dest >= state.code.length || uint(state.code[dest]) != OP_JUMPDEST) {
+        if (dest >= state.code.length || uint8(state.code[dest]) != OP_JUMPDEST) {
             return ERROR_INVALID_JUMP_DESTINATION;
         }
         state.pc = dest;
@@ -879,6 +885,26 @@ contract EthereumRuntime is IEthereumRuntime {
     }
 
     function handleJUMPDEST(EVM memory state) internal pure returns (uint errno) {
+    }
+
+    function handleTLOAD(EVM memory state) internal pure returns (uint errno) {
+        uint cAddr = state.stack.pop();
+        uint sAddr = state.stack.pop();
+        state.stack.push(state.tStorage.load(cAddr, sAddr));
+    }
+
+    function handleTSTORE(EVM memory state) internal pure returns (uint errno) {
+        uint addr = state.stack.pop();
+        uint val = state.stack.pop();
+        state.tStorage.store(uint160(state.target.addr), addr, val);
+    }
+
+    function handleTCOPY(EVM memory state) internal pure returns (uint errno) {
+        uint cAddr = state.stack.pop();
+        uint sAddr = state.stack.pop();
+        uint dAddr = state.stack.pop();
+        uint len = state.stack.pop();
+        state.tStorage.copy(state.mem, cAddr, sAddr, dAddr, len);
     }
 
     // 0x6X, 0x7X
@@ -934,6 +960,7 @@ contract EthereumRuntime is IEthereumRuntime {
         input.accounts = state.accounts;
         input.logs = state.logs;
         input.handlers = state.handlers;
+        input.tStorage = state.tStorage;
         EVM memory retEvm;
         address newAddress;
         (retEvm, newAddress) = _create(input);
@@ -945,6 +972,7 @@ contract EthereumRuntime is IEthereumRuntime {
             state.caller = state.accounts.get(state.caller.addr);
             state.target = state.accounts.get(state.target.addr);
             state.logs = retEvm.logs;
+            state.tStorage = retEvm.tStorage;
         }
 
     }
@@ -976,6 +1004,7 @@ contract EthereumRuntime is IEthereumRuntime {
         input.accounts = state.accounts;
         input.logs = state.logs;
         input.handlers = state.handlers;
+        input.tStorage = state.tStorage;
         input.staticExec = state.staticExec;
 
         EVM memory retEvm = _call(input, CallType.Call);
@@ -991,6 +1020,7 @@ contract EthereumRuntime is IEthereumRuntime {
             state.caller = state.accounts.get(state.caller.addr);
             state.target = state.accounts.get(state.target.addr);
             state.logs = retEvm.logs;
+            state.tStorage = retEvm.tStorage;
         }
     }
 
@@ -1027,6 +1057,7 @@ contract EthereumRuntime is IEthereumRuntime {
         input.accounts = state.accounts;
         input.logs = state.logs;
         input.handlers = state.handlers;
+        input.tStorage = state.tStorage;
         input.staticExec = state.staticExec;
 
         EVM memory retEvm = _call(input, CallType.DelegateCall);
@@ -1042,6 +1073,7 @@ contract EthereumRuntime is IEthereumRuntime {
             state.caller = state.accounts.get(state.caller.addr);
             state.target = state.accounts.get(state.target.addr);
             state.logs = retEvm.logs;
+            state.tStorage = retEvm.tStorage;
         }
         state.target.code = oldCode;
     }
@@ -1064,6 +1096,7 @@ contract EthereumRuntime is IEthereumRuntime {
         input.accounts = state.accounts;
         input.logs = state.logs;
         input.handlers = state.handlers;
+        input.tStorage = state.tStorage;
         input.staticExec = true;
 
         EVM memory retEvm = _call(input, CallType.StaticCall);
@@ -1073,6 +1106,7 @@ contract EthereumRuntime is IEthereumRuntime {
         } else {
             state.stack.push(1);
             state.mem.storeBytesAndPadWithZeroes(retEvm.returnData, 0, retOffset, retSize);
+            state.tStorage = retEvm.tStorage;
             state.lastRet = retEvm.returnData;
         }
     }
@@ -1200,8 +1234,8 @@ contract EthereumRuntime is IEthereumRuntime {
         Instruction(handleMSIZE, 0, 1, GAS_BASE),
         Instruction(handleGAS, 0, 1, GAS_BASE),
         Instruction(handleJUMPDEST, 0, 0, GAS_JUMPDEST),
-        inv,
-        inv,
+        Instruction(handleTLOAD, 2, 1, GAS_VERYLOW),
+        Instruction(handleTSTORE, 2, 0, GAS_VERYLOW),
         inv,
         inv,
         // 0x6X

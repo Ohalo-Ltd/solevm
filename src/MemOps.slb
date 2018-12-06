@@ -1,7 +1,4 @@
-pragma experimental "v0.5.0";
-pragma experimental ABIEncoderV2;
-pragma solidity ^0.4.22;
-
+pragma solidity ^0.5.0;
 /*
     Operations to do with EVM memory. This library uses 0x40 as free memory pointer just as LLL and
     Solidity, but only for storage; it always reads the value from MSIZE. Allocation will allocate new

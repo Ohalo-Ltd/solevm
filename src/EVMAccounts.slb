@@ -1,6 +1,4 @@
-pragma experimental "v0.5.0";
-pragma experimental ABIEncoderV2;
-pragma solidity ^0.4.22;
+pragma solidity ^0.5.0;
 
 import {MemOps} from "./MemOps.slb";
 import {EVMStorage} from "./EVMStorage.slb";
@@ -36,13 +34,13 @@ library EVMAccounts {
             self.head = e;
             self.size = 1;
             acc = e.account;
-            return;
+            return acc;
         } else {
             Element memory e = self.head;
             while (true) {
                 if (e.account.addr == addr) {
                     acc = e.account;
-                    return;
+                    return acc;
                 }
                 if (e._next == 0) {
                     break;
@@ -66,7 +64,7 @@ library EVMAccounts {
 
     function copy(Accounts memory self) internal pure returns (Accounts memory accs) {
         if (self.size == 0) {
-            return;
+            return accs;
         }
         accs.size = self.size;
         Element memory e = self.head;
@@ -102,12 +100,11 @@ library EVMAccounts {
             e2._next = newElemAddr;
             e2 = newElem;
         }
-        return;
     }
 
     function toArray(Accounts memory self) internal pure returns (uint[] memory arr, bytes memory code) {
         if (self.size == 0) {
-            return;
+            return (arr, code);
         }
         Account[] memory accs = new Account[](self.size);
         uint totalSize;

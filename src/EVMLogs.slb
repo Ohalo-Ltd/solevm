@@ -1,6 +1,4 @@
-pragma experimental "v0.5.0";
-pragma experimental ABIEncoderV2;
-pragma solidity ^0.4.22;
+pragma solidity ^0.5.0;
 
 import {EVMUtils} from "./EVMUtils.slb";
 
@@ -46,7 +44,7 @@ library EVMLogs {
 
     function copy(Logs memory self) internal pure returns (Logs memory newLogs) {
         if (self.size == 0) {
-            return;
+            return newLogs;
         }
         newLogs.size = self.size;
         Element memory e = self.tail;
@@ -68,12 +66,11 @@ library EVMLogs {
             e2._prev = newElemAddr;
             e2 = newElem;
         }
-        return;
     }
 
     function toArray(Logs memory self) internal pure returns (uint[] memory logs, bytes memory data) {
         if (self.size == 0) {
-            return;
+            return (logs, data);
         }
         LogEntry[] memory entries = new LogEntry[](self.size);
 
@@ -112,7 +109,6 @@ library EVMLogs {
 
             dataIdx += dSize;
         }
-        return;
     }
 
 }

@@ -1,6 +1,4 @@
-pragma experimental "v0.5.0";
-pragma experimental ABIEncoderV2;
-pragma solidity ^0.4.22;
+pragma solidity ^0.5.0;
 
 contract EVMConstants {
 
@@ -75,6 +73,9 @@ contract EVMConstants {
     uint constant internal OP_MSIZE = 0x59;
     uint constant internal OP_GAS = 0x5a;
     uint constant internal OP_JUMPDEST = 0x5b;
+    uint constant internal OP_TLOAD = 0x5c;
+    uint constant internal OP_TSTORE = 0x5d;
+    uint constant internal OP_TCOPY = 0x5e;
 
     // Push operations
     uint constant internal OP_PUSH1 = 0x60;
