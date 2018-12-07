@@ -17,6 +17,7 @@ library MemOps {
             // free memory address - constants doesn't work in inline assembly.
             addr := mload(0x40)
         }
+        return addr;
     }
 
     /*
@@ -40,6 +41,7 @@ library MemOps {
             addr := mload(0x40)
             mstore(0x40, add(addr, numBytes))
         }
+        return addr;
     }
 
     // Copies 'len' bytes from 'srcPtr' to 'destPtr'.

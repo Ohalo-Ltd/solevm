@@ -1,6 +1,4 @@
-pragma experimental "v0.5.0";
-pragma experimental ABIEncoderV2;
-pragma solidity ^0.4.22;
+pragma solidity ^0.5.0;
 
 import {EVMLogs} from "./EVMLogs.slb";
 
@@ -13,8 +11,7 @@ contract EVMLogsTest {
         eq = true;
         for (uint i = 0; i < len; i++) {
             if(a[aIdx + i] != b[bIdx + i]) {
-                eq = false;
-                return;
+                return false;
             }
         }
     }
@@ -24,14 +21,14 @@ contract EVMLogsTest {
         EVMLogs.Logs memory logs;
 
         EVMLogs.LogEntry memory log;
-        log.account = 0x1;
+        log.account = address(0x1);
         log.topics = [uint(1), 2, 3, 4];
         log.data = new bytes(5);
         logs.add(log);
 
         assert(logs.size == 1);
         assert(logs.tail._prev == 0);
-        assert(logs.tail.entry.account == 0x1);
+        assert(logs.tail.entry.account == address(0x1));
         assert(logs.tail.entry.topics[0] == 1);
         assert(logs.tail.entry.topics[1] == 2);
         assert(logs.tail.entry.topics[2] == 3);
@@ -44,25 +41,25 @@ contract EVMLogsTest {
         EVMLogs.Logs memory logs;
 
         EVMLogs.LogEntry memory log;
-        log.account = 0x1;
+        log.account = address(0x1);
         logs.add(log);
 
         EVMLogs.LogEntry memory log2;
-        log2.account = 0x2;
+        log2.account = address(0x2);
         logs.add(log2);
 
         uint prev = logs.tail._prev;
 
         assert(logs.size == 2);
         assert(logs.tail._prev != 0);
-        assert(logs.tail.entry.account == 0x2);
+        assert(logs.tail.entry.account == address(0x2));
 
         EVMLogs.Element memory e;
         assembly {
             e := prev
         }
         assert(e._prev == 0);
-        assert(e.entry.account == 0x1);
+        assert(e.entry.account == address(0x1));
     }
 
     function testAddCopy() public payable returns (bool ret) {
@@ -70,11 +67,11 @@ contract EVMLogsTest {
         EVMLogs.Logs memory logs;
 
         EVMLogs.LogEntry memory log;
-        log.account = 0x1;
+        log.account = address(0x1);
         logs.add(log);
 
         EVMLogs.LogEntry memory log2;
-        log2.account = 0x2;
+        log2.account = address(0x2);
         logs.add(log2);
 
         EVMLogs.Logs memory logsCopy = logs.copy();
@@ -83,14 +80,14 @@ contract EVMLogsTest {
 
         assert(logsCopy.size == 2);
         assert(logsCopy.tail._prev != 0);
-        assert(logsCopy.tail.entry.account == 0x2);
+        assert(logsCopy.tail.entry.account == address(0x2));
 
         EVMLogs.Element memory e;
         assembly {
             e := prev
         }
         assert(e._prev == 0);
-        assert(e.entry.account == 0x1);
+        assert(e.entry.account == address(0x1));
     }
 
     function testToArray() public payable returns (bool ret) {
@@ -98,7 +95,7 @@ contract EVMLogsTest {
         EVMLogs.Logs memory logs;
 
         EVMLogs.LogEntry memory log;
-        log.account = 0x1;
+        log.account = address(0x1);
         log.topics[0] = 7;
         log.topics[1] = 4;
         log.topics[2] = 1;
@@ -107,7 +104,7 @@ contract EVMLogsTest {
         logs.add(log);
 
         EVMLogs.LogEntry memory log2;
-        log2.account = 0x2;
+        log2.account = address(0x2);
         log2.data = hex"1122334455667788";
         logs.add(log2);
 

@@ -1,6 +1,4 @@
-pragma experimental "v0.5.0";
-pragma experimental ABIEncoderV2;
-pragma solidity ^0.4.22;
+pragma solidity ^0.5.0;
 
 import {EVMStack} from "./EVMStack.slb";
 import {MemOps} from "./MemOps.slb";
@@ -14,9 +12,9 @@ contract EVMStackTest {
 
     function testCreate() public payable returns (bool ret) {
         ret = true;
-        uint fPtr = MemOps.freeMemPtr();
         EVMStack.Stack memory stack = EVMStack.newStack();
-        assert(stack.dataPtr == fPtr + 0x60);
+        uint fPtr = MemOps.freeMemPtr();
+        assert(stack.dataPtr + 32*64 == fPtr);
         assert(stack.size == 0);
         assert(stack.cap == 64);
     }

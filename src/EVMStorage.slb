@@ -17,19 +17,16 @@ library EVMStorage {
         uint size;
     }
 
-    function store(Storage memory self, uint addr, uint val) internal pure {
+    function _getOrCreateElement(Storage memory self, uint addr) internal pure returns (Element memory e) {
         if (self.size == 0) {
-            Element memory e;
             e.slot.addr = addr;
-            e.slot.val = val;
             self.head = e;
             self.size = 1;
         } else {
-            Element memory e = self.head;
+            e = self.head;
             while (true) {
                 if (e.slot.addr == addr) {
-                    e.slot.val = val;
-                    return;
+                    return e;
                 }
                 if (e._next == 0) {
                     break;
@@ -39,34 +36,24 @@ library EVMStorage {
                     e := n
                 }
             }
-            Element memory newElem = Element(0, StorageSlot(addr, val));
+            Element memory newElem = Element(0, StorageSlot(addr, 0));
             uint elemAddr;
             assembly {
                 elemAddr := newElem
             }
             e._next = elemAddr;
             self.size++;
+            e = newElem;
         }
+        return e;
+    }
+
+    function store(Storage memory self, uint addr, uint val) internal pure {
+        _getOrCreateElement(self, addr).slot.val = val;
     }
 
     function load(Storage memory self, uint addr) internal pure returns (uint val) {
-        if (self.size != 0) {
-            Element memory e = self.head;
-            while (true) {
-                if (e.slot.addr == addr) {
-                    val = e.slot.val;
-                    return 0;
-                }
-                if (e._next == 0) {
-                    break;
-                }
-                uint n = e._next;
-                assembly {
-                    e := n
-                }
-            }
-        }
-        val = 0;
+        return _getOrCreateElement(self, addr).slot.val;
     }
 
     function copy(Storage memory self) internal pure returns (Storage memory stg) {

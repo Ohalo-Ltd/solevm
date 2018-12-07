@@ -1,6 +1,4 @@
-pragma experimental "v0.5.0";
-pragma experimental ABIEncoderV2;
-pragma solidity ^0.4.22;
+pragma solidity ^0.5.0;
 
 import {EVMMemory} from "../src/EVMMemory.slb";
 import {MemOps} from "./MemOps.slb";

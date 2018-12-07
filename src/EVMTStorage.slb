@@ -22,12 +22,10 @@ library EVMTStorage {
         uint size;
     }
 
-    function store(Storage memory self, uint cAddr, uint sAddr, uint val) internal pure {
+    function _getOrCreateElem(Storage memory self, uint cAddr) internal pure returns (Element memory e){
         if (self.size == 0) {
-            Element memory e;
             e.slot.addr = cAddr;
             EVMMemory.Memory memory mem = EVMMemory.newMemory();
-            mem.store(sAddr, val);
             e.slot.mem = mem;
             self.head = e;
             self.size = 1;
@@ -35,8 +33,7 @@ library EVMTStorage {
             Element memory e = self.head;
             while (true) {
                 if (e.slot.addr == cAddr) {
-                    e.slot.mem.store(sAddr, val);
-                    return;
+                    return e;
                 }
                 if (e._next == 0) {
                     break;
@@ -47,7 +44,6 @@ library EVMTStorage {
                 }
             }
             EVMMemory.Memory memory mem = EVMMemory.newMemory();
-            mem.store(sAddr, val);
             Element memory newElem = Element(0, StorageSlot(cAddr, mem));
             uint elemAddr;
             assembly {
@@ -55,46 +51,31 @@ library EVMTStorage {
             }
             e._next = elemAddr;
             self.size++;
+            e = newElem;
         }
+        return e;
+    }
+
+    function store(Storage memory self, uint cAddr, uint sAddr, uint val) internal pure {
+        _getOrCreateElem(self, cAddr).slot.mem.store(sAddr, val);
+    }
+
+    function storeBytes(Storage memory self, bytes memory bts, uint cAddr, uint sAddr, uint srcAddr, uint len) internal pure {
+        _getOrCreateElem(self, cAddr).slot.mem.storeBytes(bts, srcAddr, sAddr, len);
     }
 
     function load(Storage memory self, uint cAddr, uint sAddr) internal pure returns (uint val) {
-        if (self.size != 0) {
-            Element memory e = self.head;
-            while (true) {
-                if (e.slot.addr == cAddr) {
-                    return e.slot.mem.load(sAddr);
-                }
-                if (e._next == 0) {
-                    break;
-                }
-                uint n = e._next;
-                assembly {
-                    e := n
-                }
-            }
-        }
+        return _getOrCreateElem(self, cAddr).slot.mem.load(sAddr);
     }
 
     function copyToMem(Storage memory self, EVMMemory.Memory memory mem, uint cAddr, uint sAddr, uint mAddr, uint len) internal pure {
-        if (self.size != 0) {
-            Element memory e = self.head;
-            while (true) {
-                if (e.slot.addr == cAddr) {
-                    mem.storeBytes(e.slot.mem.toArray(sAddr, len), 0, mAddr, len);
-                    break;
-                }
-                if (e._next == 0) { // copy empty
-                    bytes memory bts = new bytes(len);
-                    mem.storeBytes(bts, 0, mAddr, len);
-                    break;
-                }
-                uint n = e._next;
-                assembly {
-                    e := n
-                }
-            }
-        }
+        Element memory elem = _getOrCreateElem(self, cAddr);
+        mem.storeBytes(elem.slot.mem.toArray(sAddr, len), 0, mAddr, len);
+    }
+
+    function copyFromMem(Storage memory self, EVMMemory.Memory memory mem, uint cAddr, uint sAddr, uint mAddr, uint len) internal pure {
+        bytes memory bts = mem.toArray(mAddr, len);
+        storeBytes(self, bts, cAddr, sAddr, 0, len);
     }
 
     function copy(Storage memory self) internal pure returns (Storage memory stg) {
