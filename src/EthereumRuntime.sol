@@ -907,7 +907,7 @@ contract EthereumRuntime is IEthereumRuntime {
         uint sAddr = state.stack.pop();
         uint dAddr = state.stack.pop();
         uint len = state.stack.pop();
-        state.tStorage.copy(state.mem, cAddr, sAddr, dAddr, len);
+        state.tStorage.copyToMem(state.mem, cAddr, sAddr, dAddr, len);
     }
 
     // 0x6X, 0x7X

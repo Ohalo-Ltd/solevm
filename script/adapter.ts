@@ -237,7 +237,6 @@ export const newDefaultPreImage = (code: string, data: string, value: BigNumber,
 export const decode = (res: string): IResult => {
     res = res.substr(64);
     const dec = Web3EthAbi.decodeParameters(['uint256', 'uint256', 'bytes', 'uint256[]', 'bytes', 'uint256[]', 'bytes', 'uint256[]', 'bytes', 'uint256[]', 'bytes'], '0x' + res);
-    console.log(dec);
     let returnData = '';
     if (dec['2'] && dec['2'].length >= 2) {
         returnData = dec['2'].substr(2);
@@ -261,7 +260,6 @@ export const decode = (res: string): IResult => {
     if (dec['6'] && dec['6'].length >= 2) {
         accsCode = dec['6'].substr(2);
     }
-    // console.log(accsArr.length);
     const accounts = [] as [IAccount];
     let offset = 0;
 
@@ -338,7 +336,6 @@ export const decode = (res: string): IResult => {
     }
 
     const tStorage = [] as [ITStorage];
-    console.log(tStorageData.length / 2);
     const dataLengths = [];
     for (let i = 0; i < tStorageArr.length / 2; i++) {
         const d0 = 2 * new BigNumber(tStorageArr[2 * i + 1]).toNumber();
@@ -379,9 +376,7 @@ export const decode = (res: string): IResult => {
 
 export const execute = async (code: string, data: string): Promise<IResult> => {
     const calldata = EVM_EXECUTE_SIG + Web3EthAbi.encodeParameters(['bytes', 'bytes'], ['0x' + code, '0x' + data]).substr(2);
-    // console.log(calldata);
     const res = run(SOL_ETH_BIN, calldata);
-    // console.log(res);
     if (res === '0') {
         throw new Error("Error when executing - no return data.");
     }
@@ -394,9 +389,7 @@ export const executeWithTxInput = async (txInput: ITxInput): Promise<IResult> =>
             ['uint256', 'uint256', 'address', 'uint256', 'uint256', 'address', 'uint256', 'bytes', 'bytes', 'bool'],
             [txInput.gas, txInput.gasPrice, '0x' + txInput.caller, txInput.callerBalance, txInput.value,
                 '0x' + txInput.target, txInput.targetBalance, '0x' + txInput.targetCode, '0x' + txInput.data, txInput.staticExec]).substr(2);
-    // console.log(calldata);
     const res = run(SOL_ETH_BIN, calldata);
-    // console.log(res);
     if (res === '0') {
         throw new Error("Error when executing - no return data.");
     }
@@ -414,9 +407,7 @@ export const executeWithPreImage = async (preImage): Promise<IResult> => {
                 preImage.stack, '0x' + preImage.mem, preImage.pc, preImage.accounts,
                 '0x' + preImage.accountsCode, preImage.logs, '0x' + preImage.logsData
             ]).substr(2);
-    // console.log(calldata);
     const res = run(SOL_ETH_DEBUG_BIN, calldata);
-    // console.log(res);
     if (res === '0') {
         throw new Error("Error when executing - no return data.");
     }
@@ -442,6 +433,9 @@ export const prettyBytesString = (bts: string): string => {
     const pp = [];
     const len = bts.length;
 
+    if (len <= 64) {
+        return bts;
+    }
     for (let i = 0; i < len; i += 64) {
         pp.push(bts.substr(i, 64));
     }
@@ -453,7 +447,7 @@ export const prettyPrintResults = (result: IResult) => {
     const resultF = {};
     resultF['errno'] = result.errno;
     resultF['errpc'] = result.errpc;
-    resultF['returnData'] = result.returnData;
+    resultF['returnData'] = prettyBytesString(result.returnData);
     resultF['mem'] = prettyBytesString(result.mem);
     const stackF = [];
     let i = 0;
@@ -493,7 +487,6 @@ export const prettyPrintResults = (result: IResult) => {
     resultF['accounts'] = accountsF;
 
     const logsF = [];
-    // console.log(result.logs);
     for (const log of result.logs) {
         const logF = {};
         logF['account'] = log.account;

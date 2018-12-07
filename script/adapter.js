@@ -186,7 +186,6 @@ exports.newDefaultPreImage = function (code, data, value, transferred) {
 exports.decode = function (res) {
     res = res.substr(64);
     var dec = Web3EthAbi.decodeParameters(['uint256', 'uint256', 'bytes', 'uint256[]', 'bytes', 'uint256[]', 'bytes', 'uint256[]', 'bytes', 'uint256[]', 'bytes'], '0x' + res);
-    console.log(dec);
     var returnData = '';
     if (dec['2'] && dec['2'].length >= 2) {
         returnData = dec['2'].substr(2);
@@ -206,7 +205,6 @@ exports.decode = function (res) {
     if (dec['6'] && dec['6'].length >= 2) {
         accsCode = dec['6'].substr(2);
     }
-    // console.log(accsArr.length);
     var accounts = [];
     var offset = 0;
     while (offset < accsArr.length) {
@@ -275,7 +273,6 @@ exports.decode = function (res) {
         tStorageData = dec['10'].substr(2);
     }
     var tStorage = [];
-    console.log(tStorageData.length / 2);
     var dataLengths = [];
     for (var i = 0; i < tStorageArr.length / 2; i++) {
         var d0 = 2 * new bignumber_js_1.BigNumber(tStorageArr[2 * i + 1]).toNumber();
@@ -315,7 +312,6 @@ exports.execute = function (code, data) { return __awaiter(_this, void 0, void 0
     return __generator(this, function (_a) {
         calldata = constants_1.EVM_EXECUTE_SIG + Web3EthAbi.encodeParameters(['bytes', 'bytes'], ['0x' + code, '0x' + data]).substr(2);
         res = evm_1.run(constants_1.SOL_ETH_BIN, calldata);
-        // console.log(res);
         if (res === '0') {
             throw new Error("Error when executing - no return data.");
         }
@@ -329,7 +325,6 @@ exports.executeWithTxInput = function (txInput) { return __awaiter(_this, void 0
             Web3EthAbi.encodeParameters(['uint256', 'uint256', 'address', 'uint256', 'uint256', 'address', 'uint256', 'bytes', 'bytes', 'bool'], [txInput.gas, txInput.gasPrice, '0x' + txInput.caller, txInput.callerBalance, txInput.value,
                 '0x' + txInput.target, txInput.targetBalance, '0x' + txInput.targetCode, '0x' + txInput.data, txInput.staticExec]).substr(2);
         res = evm_1.run(constants_1.SOL_ETH_BIN, calldata);
-        // console.log(res);
         if (res === '0') {
             throw new Error("Error when executing - no return data.");
         }
@@ -348,7 +343,6 @@ exports.executeWithPreImage = function (preImage) { return __awaiter(_this, void
                 '0x' + preImage.accountsCode, preImage.logs, '0x' + preImage.logsData
             ]).substr(2);
         res = evm_1.run(constants_1.SOL_ETH_DEBUG_BIN, calldata);
-        // console.log(res);
         if (res === '0') {
             throw new Error("Error when executing - no return data.");
         }
@@ -373,6 +367,9 @@ exports.printStack = function (stack) {
 exports.prettyBytesString = function (bts) {
     var pp = [];
     var len = bts.length;
+    if (len <= 64) {
+        return bts;
+    }
     for (var i = 0; i < len; i += 64) {
         pp.push(bts.substr(i, 64));
     }
@@ -382,7 +379,7 @@ exports.prettyPrintResults = function (result) {
     var resultF = {};
     resultF['errno'] = result.errno;
     resultF['errpc'] = result.errpc;
-    resultF['returnData'] = result.returnData;
+    resultF['returnData'] = exports.prettyBytesString(result.returnData);
     resultF['mem'] = exports.prettyBytesString(result.mem);
     var stackF = [];
     var i = 0;
@@ -422,7 +419,6 @@ exports.prettyPrintResults = function (result) {
     }
     resultF['accounts'] = accountsF;
     var logsF = [];
-    // console.log(result.logs);
     for (var _h = 0, _j = result.logs; _h < _j.length; _h++) {
         var log = _j[_h];
         var logF = {};

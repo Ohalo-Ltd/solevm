@@ -76,17 +76,13 @@ library EVMTStorage {
         }
     }
 
-    function copy(Storage memory self, EVMMemory.Memory memory mem, uint cAddr, uint sAddr, uint mAddr, uint len) internal pure returns (Storage memory stg) {
+    function copyToMem(Storage memory self, EVMMemory.Memory memory mem, uint cAddr, uint sAddr, uint mAddr, uint len) internal pure {
         if (self.size != 0) {
             Element memory e = self.head;
             while (true) {
                 if (e.slot.addr == cAddr) {
-                    uint sMemPos = e.slot.mem.dataPtr + sAddr;
-                    bytes memory bts = new bytes(len);
-                    assembly {
-                        mstore(add(bts, 0x20), sMemPos)
-                    }
-                    mem.storeBytes(bts, 0, mAddr, len);
+                    mem.storeBytes(e.slot.mem.toArray(sAddr, len), 0, mAddr, len);
+                    break;
                 }
                 if (e._next == 0) { // copy empty
                     bytes memory bts = new bytes(len);
@@ -125,6 +121,7 @@ library EVMTStorage {
             e2._next = newElemAddr;
             e2 = newElem;
         }
+        return stg;
     }
 
     function toArray(Storage memory self) internal pure returns (uint[] memory arr, bytes memory data) {
