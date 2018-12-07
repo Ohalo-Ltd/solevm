@@ -1239,7 +1239,7 @@ contract EthereumRuntime is IEthereumRuntime {
         Instruction(handleJUMPDEST, 0, 0, GAS_JUMPDEST),
         Instruction(handleTLOAD, 2, 1, GAS_VERYLOW),
         Instruction(handleTSTORE, 2, 0, GAS_VERYLOW),
-        inv,
+        Instruction(handleTCOPY, 4, 0, GAS_VERYLOW),
         inv,
         // 0x6X
         push,
