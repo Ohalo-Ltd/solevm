@@ -891,23 +891,21 @@ contract EthereumRuntime is IEthereumRuntime {
     }
 
     function handleTLOAD(EVM memory state) internal pure returns (uint errno) {
-        uint cAddr = state.stack.pop();
         uint sAddr = state.stack.pop();
-        state.stack.push(state.tStorage.load(cAddr, sAddr));
+        state.stack.push(state.tStorage.load(0, sAddr));
     }
 
     function handleTSTORE(EVM memory state) internal pure returns (uint errno) {
         uint addr = state.stack.pop();
         uint val = state.stack.pop();
-        state.tStorage.store(uint160(state.target.addr), addr, val);
+        state.tStorage.store(0, addr, val);
     }
 
     function handleTCOPY(EVM memory state) internal pure returns (uint errno) {
-        uint cAddr = state.stack.pop();
         uint sAddr = state.stack.pop();
         uint dAddr = state.stack.pop();
         uint len = state.stack.pop();
-        state.tStorage.copy(state.mem, cAddr, sAddr, dAddr, len);
+        state.tStorage.copy(state.mem, 0, sAddr, dAddr, len);
     }
 
     // 0x6X, 0x7X
@@ -1237,9 +1235,9 @@ contract EthereumRuntime is IEthereumRuntime {
         Instruction(handleMSIZE, 0, 1, GAS_BASE),
         Instruction(handleGAS, 0, 1, GAS_BASE),
         Instruction(handleJUMPDEST, 0, 0, GAS_JUMPDEST),
-        Instruction(handleTLOAD, 2, 1, GAS_VERYLOW),
+        Instruction(handleTLOAD, 1, 1, GAS_VERYLOW),
         Instruction(handleTSTORE, 2, 0, GAS_VERYLOW),
-        inv,
+        Instruction(handleTCOPY, 3, 0, GAS_VERYLOW),
         inv,
         // 0x6X
         push,
