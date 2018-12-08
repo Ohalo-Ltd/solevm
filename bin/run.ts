@@ -1,7 +1,6 @@
 #!/usr/bin/env node
 
-import {execute, executeWithPreImage, newDefaultPreImage, prettyPrintResults} from "../script/adapter";
-import {BigNumber} from "bignumber.js";
+import {execute, prettyPrintResults} from "../script/adapter";
 
 (async () => {
     try {

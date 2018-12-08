@@ -68,9 +68,6 @@ var runTest = function (code, data, resExpected) { return __awaiter(_this, void 
             case 0: return [4 /*yield*/, adapter_1.execute(code, data)];
             case 1:
                 result = _a.sent();
-                // prettyPrintResults(result);
-                // console.log(result);
-                // console.log(result.stack[0].toNumber());
                 expect(result.errno).toEqual(resExpected.errno);
                 expect(result.errpc).toEqual(resExpected.errpc);
                 expect(result.returnData).toEqual(resExpected.returnData);
@@ -78,8 +75,6 @@ var runTest = function (code, data, resExpected) { return __awaiter(_this, void 
                 expect(result.mem).toEqual(resExpected.mem);
                 expect(result.stack.length).toEqual(resExpected.stack.length);
                 for (i = 0; i < result.stack.length; i++) {
-                    // console.log(result.stack[i].toString(16));
-                    // console.log(resExpected.stack[i].toString(16));
                     expect(result.stack[i].eq(resExpected.stack[i])).toBeTruthy();
                 }
                 return [2 /*return*/, result];
@@ -93,8 +88,6 @@ var runTestWithInput = function (input, resExpected) { return __awaiter(_this, v
             case 0: return [4 /*yield*/, adapter_1.executeWithTxInput(input)];
             case 1:
                 result = _a.sent();
-                // console.log(result);
-                // console.log(result.stack[0].toNumber());
                 expect(result.errno).toEqual(resExpected.errno);
                 expect(result.errpc).toEqual(resExpected.errpc);
                 expect(result.returnData).toEqual(resExpected.returnData);
@@ -102,8 +95,6 @@ var runTestWithInput = function (input, resExpected) { return __awaiter(_this, v
                 expect(result.mem).toEqual(resExpected.mem);
                 expect(result.stack.length).toEqual(resExpected.stack.length);
                 for (i = 0; i < result.stack.length; i++) {
-                    // console.log(result.stack[i].toString(16));
-                    // console.log(resExpected.stack[i].toString(16));
                     expect(result.stack[i].eq(resExpected.stack[i])).toBeTruthy();
                 }
                 return [2 /*return*/, result];
@@ -1580,7 +1571,7 @@ describe('single instructions', function () { return __awaiter(_this, void 0, vo
                 });
             }); });
             it('should use BALANCE successfully', function () { return __awaiter(_this, void 0, void 0, function () {
-                var code, data, input, resExpected, result;
+                var code, data, input, resExpected;
                 return __generator(this, function (_a) {
                     switch (_a.label) {
                         case 0:
@@ -1600,7 +1591,7 @@ describe('single instructions', function () { return __awaiter(_this, void 0, vo
                             };
                             return [4 /*yield*/, runTestWithInput(input, resExpected)];
                         case 1:
-                            result = _a.sent();
+                            _a.sent();
                             return [2 /*return*/];
                     }
                 });
@@ -1652,7 +1643,7 @@ describe('single instructions', function () { return __awaiter(_this, void 0, vo
                 });
             }); });
             it('should use CALLVALUE successfully', function () { return __awaiter(_this, void 0, void 0, function () {
-                var code, data, input, resExpected, result;
+                var code, data, input, resExpected;
                 return __generator(this, function (_a) {
                     switch (_a.label) {
                         case 0:
@@ -1671,7 +1662,7 @@ describe('single instructions', function () { return __awaiter(_this, void 0, vo
                             };
                             return [4 /*yield*/, runTestWithInput(input, resExpected)];
                         case 1:
-                            result = _a.sent();
+                            _a.sent();
                             return [2 /*return*/];
                     }
                 });
@@ -2371,7 +2362,7 @@ describe('single instructions', function () { return __awaiter(_this, void 0, vo
                 });
             }); });
             it('should use SLOAD successfully', function () { return __awaiter(_this, void 0, void 0, function () {
-                var code, data, resExpected, result;
+                var code, data, resExpected;
                 return __generator(this, function (_a) {
                     switch (_a.label) {
                         case 0:
@@ -2387,7 +2378,7 @@ describe('single instructions', function () { return __awaiter(_this, void 0, vo
                             };
                             return [4 /*yield*/, runTest(code, data, resExpected)];
                         case 1:
-                            result = _a.sent();
+                            _a.sent();
                             return [2 /*return*/];
                     }
                 });
@@ -3153,7 +3144,6 @@ describe('solidity contracts', function () {
                     return [4 /*yield*/, adapter_1.execute(code, constants_1.CONTRACT_TEST_SIG)];
                 case 1:
                     result = _a.sent();
-                    // console.log(result);
                     expect(result.errno).toBe(constants_1.ERROR_STATE_REVERTED);
                     expect(result.returnData).toBe('');
                     return [2 /*return*/];
@@ -3169,7 +3159,6 @@ describe('solidity contracts', function () {
                     return [4 /*yield*/, adapter_1.execute(code, constants_1.CONTRACT_TEST_SIG)];
                 case 1:
                     result = _a.sent();
-                    // console.log(result);
                     expect(result.errno).toBe(constants_1.ERROR_STATE_REVERTED);
                     expect(result.returnData).toBe('08c379a0000000000000000000000000000000000000000000000000000000000000002000000000000000000000000000000000000000000000000000000000000000036162630000000000000000000000000000000000000000000000000000000000');
                     return [2 /*return*/];
@@ -3185,7 +3174,6 @@ describe('solidity contracts', function () {
                     return [4 /*yield*/, adapter_1.execute(code, constants_1.CONTRACT_TEST_SIG)];
                 case 1:
                     result = _a.sent();
-                    // console.log(result);
                     expect(result.errno).toBe(constants_1.NO_ERROR);
                     expect(result.returnData).toBe('0000000000000000000000000000000000000000000000000000000000000003');
                     return [2 /*return*/];
@@ -3203,8 +3191,6 @@ describe('solidity contracts', function () {
                     result = _a.sent();
                     expect(result.errno).toBe(constants_1.NO_ERROR);
                     storage = result.accounts[1].storage;
-                    // console.log(result);
-                    // prettyPrintResults(result);
                     expect(storage.length).toBe(4);
                     expect(storage[0].address.eq(new bignumber_js_1.BigNumber(0))).toBeTruthy();
                     expect(storage[0].value.eq(new bignumber_js_1.BigNumber(3))).toBeTruthy();
@@ -3277,7 +3263,6 @@ describe('solidity contracts', function () {
                     return [4 /*yield*/, adapter_1.execute(code, constants_1.CONTRACT_TEST_SIG)];
                 case 1:
                     result = _a.sent();
-                    // console.log(result);
                     expect(result.errno).toBe(constants_1.NO_ERROR);
                     expect(result.returnData).toBe('0000000000000000000000000000000000000000000000000000000000000003');
                     return [2 /*return*/];
@@ -3293,7 +3278,6 @@ describe('solidity contracts', function () {
                     return [4 /*yield*/, adapter_1.execute(code, constants_1.CONTRACT_TEST_SIG)];
                 case 1:
                     result = _a.sent();
-                    // console.log(result);
                     expect(result.errno).toBe(constants_1.NO_ERROR);
                     expect(result.returnData).toBe('0000000000000000000000000000000000000000000000000000000000000003');
                     return [2 /*return*/];
@@ -3309,7 +3293,6 @@ describe('solidity contracts', function () {
                     return [4 /*yield*/, adapter_1.execute(code, constants_1.CONTRACT_TEST_SIG)];
                 case 1:
                     result = _a.sent();
-                    // console.log(result);
                     expect(result.errno).toBe(constants_1.NO_ERROR);
                     expect(result.returnData).toBe('0000000000000000000000000000000000000000000000000000000000000002');
                     return [2 /*return*/];
@@ -3325,7 +3308,6 @@ describe('solidity contracts', function () {
                     return [4 /*yield*/, adapter_1.execute(code, constants_1.CONTRACT_TEST_SIG)];
                 case 1:
                     result = _a.sent();
-                    // console.log(result);
                     expect(result.errno).toBe(constants_1.ERROR_INVALID_OPCODE);
                     return [2 /*return*/];
             }
@@ -3340,7 +3322,6 @@ describe('solidity contracts', function () {
                     return [4 /*yield*/, adapter_1.execute(code, constants_1.CONTRACT_TEST_SIG)];
                 case 1:
                     result = _a.sent();
-                    // prettyPrintResults(result);
                     expect(result.errno).toBe(constants_1.NO_ERROR);
                     expect(result.logs.length).toBe(1);
                     log = result.logs[0];
@@ -3364,7 +3345,6 @@ describe('solidity contracts', function () {
                     return [4 /*yield*/, adapter_1.execute(code, constants_1.CONTRACT_TEST_SIG)];
                 case 1:
                     result = _a.sent();
-                    // prettyPrintResults(result);
                     expect(result.errno).toBe(constants_1.NO_ERROR);
                     expect(result.logs.length).toBe(1);
                     log = result.logs[0];
@@ -3388,7 +3368,6 @@ describe('solidity contracts', function () {
                     return [4 /*yield*/, adapter_1.execute(code, constants_1.CONTRACT_TEST_SIG)];
                 case 1:
                     result = _a.sent();
-                    // prettyPrintResults(result);
                     expect(result.errno).toBe(constants_1.NO_ERROR);
                     expect(result.logs.length).toBe(1);
                     log = result.logs[0];
@@ -3412,7 +3391,6 @@ describe('solidity contracts', function () {
                     return [4 /*yield*/, adapter_1.execute(code, constants_1.CONTRACT_TEST_SIG)];
                 case 1:
                     result = _a.sent();
-                    // prettyPrintResults(result);
                     expect(result.errno).toBe(constants_1.NO_ERROR);
                     expect(result.logs.length).toBe(1);
                     log = result.logs[0];
@@ -3436,7 +3414,6 @@ describe('solidity contracts', function () {
                     return [4 /*yield*/, adapter_1.execute(code, constants_1.CONTRACT_TEST_SIG)];
                 case 1:
                     result = _a.sent();
-                    // prettyPrintResults(result);
                     expect(result.errno).toBe(constants_1.NO_ERROR);
                     expect(result.logs.length).toBe(1);
                     log = result.logs[0];
@@ -3460,7 +3437,6 @@ describe('solidity contracts', function () {
                     return [4 /*yield*/, adapter_1.execute(code, constants_1.CONTRACT_TEST_SIG)];
                 case 1:
                     result = _a.sent();
-                    // prettyPrintResults(result);
                     expect(result.errno).toBe(constants_1.NO_ERROR);
                     expect(result.logs.length).toBe(1);
                     log = result.logs[0];
@@ -3484,7 +3460,6 @@ describe('solidity contracts', function () {
                     return [4 /*yield*/, adapter_1.execute(code, constants_1.CONTRACT_TEST_SIG)];
                 case 1:
                     result = _a.sent();
-                    // prettyPrintResults(result);
                     expect(result.errno).toBe(constants_1.NO_ERROR);
                     expect(result.logs.length).toBe(2);
                     log = result.logs[0];
@@ -3516,7 +3491,6 @@ describe('solidity contracts', function () {
                     return [4 /*yield*/, adapter_1.execute(code, constants_1.CONTRACT_TEST_SIG)];
                 case 1:
                     result = _a.sent();
-                    // prettyPrintResults(result);
                     expect(result.errno).toBe(constants_1.NO_ERROR);
                     expect(result.returnData).toBe('66840dda154e8a113c31dd0ad32f7f3a366a80e8136979d8f5a101d3d29d6f72');
                     return [2 /*return*/];
@@ -3532,7 +3506,6 @@ describe('solidity contracts', function () {
                     return [4 /*yield*/, adapter_1.execute(code, constants_1.CONTRACT_TEST_SIG)];
                 case 1:
                     result = _a.sent();
-                    // prettyPrintResults(result);
                     expect(result.errno).toBe(constants_1.NO_ERROR);
                     expect(result.returnData).toBe('c9883eece7dca619b830dc9d87e82c38478111c0000000000000000000000000');
                     return [2 /*return*/];
@@ -3572,13 +3545,12 @@ describe('solidity contracts', function () {
         });
     }); });
     it('should call test function on TestContractCreatesPayable', function () { return __awaiter(_this, void 0, void 0, function () {
-        var code, data, input, result, _i, _a, acc;
+        var code, input, result, _i, _a, acc;
         return __generator(this, function (_b) {
             switch (_b.label) {
                 case 0:
                     code = io_1.readText(path.join(constants_1.BIN_OUTPUT_PATH, 'TestContractCreatesPayable.bin-runtime'));
-                    data = constants_1.CONTRACT_TEST_SIG;
-                    input = adapter_1.createTxInput(code, data, 3);
+                    input = adapter_1.createTxInput(code, constants_1.CONTRACT_TEST_SIG, 3);
                     input.value = new bignumber_js_1.BigNumber(2);
                     return [4 /*yield*/, adapter_1.executeWithTxInput(input)];
                 case 1:
@@ -3596,17 +3568,15 @@ describe('solidity contracts', function () {
         });
     }); });
     it('should call test function on TestContractSelfDestructs', function () { return __awaiter(_this, void 0, void 0, function () {
-        var code, data, input, result;
+        var code, input, result;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
                     code = io_1.readText(path.join(constants_1.BIN_OUTPUT_PATH, 'TestContractSelfDestructs.bin-runtime'));
-                    data = constants_1.CONTRACT_TEST_SIG;
-                    input = adapter_1.createTxInput(code, data, 55);
+                    input = adapter_1.createTxInput(code, constants_1.CONTRACT_TEST_SIG, 55);
                     return [4 /*yield*/, adapter_1.executeWithTxInput(input)];
                 case 1:
                     result = _a.sent();
-                    // prettyPrintResults(result);
                     expect(result.errno).toBe(constants_1.NO_ERROR);
                     expect(result.accounts[1].balance.eq(0)).toBeTruthy();
                     expect(result.accounts[1].destroyed).toBeTruthy();
@@ -3615,17 +3585,15 @@ describe('solidity contracts', function () {
         });
     }); });
     it('should call test function on TestContractCallsB', function () { return __awaiter(_this, void 0, void 0, function () {
-        var code, data, input, result, storage;
+        var code, input, result, storage;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
                     code = io_1.readText(path.join(constants_1.BIN_OUTPUT_PATH, 'TestContractCallsB.bin-runtime'));
-                    data = constants_1.CONTRACT_TEST_SIG;
-                    input = adapter_1.createTxInput(code, data);
+                    input = adapter_1.createTxInput(code, constants_1.CONTRACT_TEST_SIG);
                     return [4 /*yield*/, adapter_1.executeWithTxInput(input)];
                 case 1:
                     result = _a.sent();
-                    // prettyPrintResults(result);
                     expect(result.errno).toBe(constants_1.NO_ERROR);
                     storage = result.accounts[3].storage;
                     expect(storage[0].address.eq(0)).toBeTruthy();
@@ -3637,17 +3605,15 @@ describe('solidity contracts', function () {
         });
     }); });
     it('should call test function on TestContractCallsC', function () { return __awaiter(_this, void 0, void 0, function () {
-        var code, data, input, result, storage;
+        var code, input, result, storage;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
                     code = io_1.readText(path.join(constants_1.BIN_OUTPUT_PATH, 'TestContractCallsC.bin-runtime'));
-                    data = constants_1.CONTRACT_TEST_SIG;
-                    input = adapter_1.createTxInput(code, data);
+                    input = adapter_1.createTxInput(code, constants_1.CONTRACT_TEST_SIG);
                     return [4 /*yield*/, adapter_1.executeWithTxInput(input)];
                 case 1:
                     result = _a.sent();
-                    // prettyPrintResults(result);
                     expect(result.errno).toBe(constants_1.NO_ERROR);
                     storage = result.accounts[2].storage;
                     expect(storage[0].address.eq(0)).toBeTruthy();
@@ -3669,7 +3635,6 @@ describe('solidity contracts - advanced', function () {
                     return [4 /*yield*/, adapter_1.execute(code, constants_1.CONTRACT_TEST_SIG)];
                 case 1:
                     result = _a.sent();
-                    // console.log(result);
                     expect(result.errno).toBe(constants_1.NO_ERROR);
                     return [2 /*return*/];
             }
