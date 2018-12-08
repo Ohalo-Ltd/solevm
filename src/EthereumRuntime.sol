@@ -963,7 +963,7 @@ contract EthereumRuntime is IEthereumRuntime {
         input.accounts = state.accounts;
         input.logs = state.logs;
         input.handlers = state.handlers;
-        input.tStorage = state.tStorage;
+        input.tStorage = state.tStorage.copy();
         EVM memory retEvm;
         address newAddress;
         (retEvm, newAddress) = _create(input);
@@ -1007,7 +1007,7 @@ contract EthereumRuntime is IEthereumRuntime {
         input.accounts = state.accounts;
         input.logs = state.logs;
         input.handlers = state.handlers;
-        input.tStorage = state.tStorage;
+        input.tStorage = state.tStorage.copy();
         input.staticExec = state.staticExec;
 
         EVM memory retEvm = _call(input, CallType.Call);
@@ -1060,7 +1060,7 @@ contract EthereumRuntime is IEthereumRuntime {
         input.accounts = state.accounts;
         input.logs = state.logs;
         input.handlers = state.handlers;
-        input.tStorage = state.tStorage;
+        input.tStorage = state.tStorage.copy();
         input.staticExec = state.staticExec;
 
         EVM memory retEvm = _call(input, CallType.DelegateCall);
@@ -1099,7 +1099,7 @@ contract EthereumRuntime is IEthereumRuntime {
         input.accounts = state.accounts;
         input.logs = state.logs;
         input.handlers = state.handlers;
-        input.tStorage = state.tStorage;
+        input.tStorage = state.tStorage.copy();
         input.staticExec = true;
 
         EVM memory retEvm = _call(input, CallType.StaticCall);
