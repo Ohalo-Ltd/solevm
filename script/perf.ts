@@ -27,8 +27,6 @@ export const compileAndRunPerfs = async (units: [string], optimize: boolean): Pr
 export const runPerf = (unit: string): void => {
     const funcs = parseSigFile(unit);
     const binPath = path.join(BIN_OUTPUT_PATH, unit + ".bin-runtime");
-    let tests = 0;
-    let failed = 0;
 
     TestLogger.info(`${unit}`);
     for (const func in funcs) {

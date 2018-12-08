@@ -30,7 +30,7 @@ library EVMTStorage {
             self.head = e;
             self.size = 1;
         } else {
-            Element memory e = self.head;
+            e = self.head;
             while (true) {
                 if (e.slot.addr == cAddr) {
                     return e;

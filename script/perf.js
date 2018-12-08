@@ -77,8 +77,6 @@ exports.compileAndRunPerfs = function (units, optimize) { return __awaiter(_this
 exports.runPerf = function (unit) {
     var funcs = io_1.parseSigFile(unit);
     var binPath = path.join(constants_1.BIN_OUTPUT_PATH, unit + ".bin-runtime");
-    var tests = 0;
-    var failed = 0;
     test_logger_1.default.info("" + unit);
     for (var func in funcs) {
         if (funcs.hasOwnProperty(func)) {

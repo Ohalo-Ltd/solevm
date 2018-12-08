@@ -70,7 +70,7 @@ beforeAll(async () => {
     await compile(path.join(SRC_PATH, 'testcontracts.sol'), BIN_OUTPUT_PATH, true);
     await compile(path.join(SRC_PATH, 'testcontracts_advanced.sol'), BIN_OUTPUT_PATH, true);
     console.log("Compiling done.");
-}, 30000);
+}, 100000);
 
 const runTest = async (code, data, resExpected) => {
     const result = await execute(code, data);
@@ -1443,8 +1443,6 @@ describe('single instructions', async () => {
         // TODO EXTCODESIZE, EXTCODECOPY, RETURNDATASIZE, RETURNDATACOPY
         // These should maybe be done directly in solidity
         // There are tests for returndata in solidity contract tests.
-
-
     });
 
     describe('block information', () => {
@@ -2141,7 +2139,7 @@ describe('single instructions', async () => {
                 memSize: 32,
                 mem: "60016000f3000000000000000000000000000000000000000000000000000000",
                 stack: [
-                    new BigNumber("c8a5de6331e2e7b12771c579467b1c7d1b506d71", 16)
+                    new BigNumber("5ecfbe86fcd903321c505cb5c8a5de6331e2e7b1", 16)
                 ],
             };
             const result = await runTest(code, data, resExpected);
@@ -2160,7 +2158,7 @@ describe('single instructions', async () => {
                 mem: "60016000f3000000000000000000000000000000000000000000000000000000",
                 stack: [
                     new BigNumber(0),
-                    new BigNumber("c8a5de6331e2e7b12771c579467b1c7d1b506d71", 16)
+                    new BigNumber("5ecfbe86fcd903321c505cb5c8a5de6331e2e7b1", 16)
                 ],
             };
             const result = await runTest(code, data, resExpected);
@@ -2286,7 +2284,7 @@ describe('solidity contracts', () => {
         const code = readText(path.join(BIN_OUTPUT_PATH, 'TestContractCreate.bin-runtime'));
         const result = await execute(code, CONTRACT_TEST_SIG);
         expect(result.errno).toBe(NO_ERROR);
-        expect(result.returnData).toBe('000000000000000000000000c8a5de6331e2e7b12771c579467b1c7d1b506d71');
+        expect(result.returnData).toBe('0000000000000000000000005ecfbe86fcd903321c505cb5c8a5de6331e2e7b1');
     });
 
     it('should call test function on TestContractCreateAndCall', async () => {
@@ -2511,7 +2509,7 @@ describe('solidity contracts', () => {
         expect(storage[0].address.eq(0)).toBeTruthy();
         expect(storage[0].value.eq(5)).toBeTruthy();
         expect(storage[1].address.eq(1)).toBeTruthy();
-        expect(storage[1].value.eq("c8a5de6331e2e7b12771c579467b1c7d1b506d71", 16)).toBeTruthy();
+        expect(storage[1].value.eq("5ecfbe86fcd903321c505cb5c8a5de6331e2e7b1", 16)).toBeTruthy();
     });
 
     it('should call test function on TestContractCallsC', async () => {

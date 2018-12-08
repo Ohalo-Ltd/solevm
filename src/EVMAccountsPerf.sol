@@ -1,6 +1,4 @@
-pragma experimental "v0.5.0";
-pragma experimental ABIEncoderV2;
-pragma solidity ^0.4.22;
+pragma solidity ^0.5.0;
 
 import {EVMAccounts} from "./EVMAccounts.slb";
 
@@ -13,15 +11,15 @@ contract EVMAccountsPerf {
     function perfAccountGetFirst() public payable returns (uint gas) {
         EVMAccounts.Accounts memory accs;
         gas = gasleft();
-        accs.get(1);
+        accs.get(address(1));
         gas -= gasleft();
     }
 
     function perfAccountGetSecond() public payable returns (uint gas) {
         EVMAccounts.Accounts memory accs;
-        accs.get(1);
+        accs.get(address(1));
         gas = gasleft();
-        accs.get(2);
+        accs.get(address(2));
         gas -= gasleft();
     }
 
@@ -31,13 +29,13 @@ contract EVMAccountsPerf {
             accs.get(address(i));
         }
         gas = gasleft();
-        accs.get(10);
+        accs.get(address(10));
         gas -= gasleft();
     }
 
     function perfAccountCopyOne() public payable returns (uint gas) {
         EVMAccounts.Accounts memory accs;
-        accs.get(1);
+        accs.get(address(1));
         gas = gasleft();
         accs.copy();
         gas -= gasleft();
@@ -45,8 +43,8 @@ contract EVMAccountsPerf {
 
     function perfAccountCopyTwo() public payable returns (uint gas) {
         EVMAccounts.Accounts memory accs;
-        accs.get(1);
-        accs.get(2);
+        accs.get(address(1));
+        accs.get(address(2));
         gas = gasleft();
         accs.copy();
         gas -= gasleft();
@@ -71,7 +69,7 @@ contract EVMAccountsPerf {
 
     function perfAccountToArrayOne() public payable returns (uint gas) {
         EVMAccounts.Accounts memory accs;
-        accs.get(1);
+        accs.get(address(1));
         gas = gasleft();
         accs.toArray();
         gas -= gasleft();
@@ -79,8 +77,8 @@ contract EVMAccountsPerf {
 
     function perfAccountToArrayTwo() public payable returns (uint gas) {
         EVMAccounts.Accounts memory accs;
-        accs.get(1);
-        accs.get(2);
+        accs.get(address(1));
+        accs.get(address(2));
         gas = gasleft();
         accs.toArray();
         gas -= gasleft();

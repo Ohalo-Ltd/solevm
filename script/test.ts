@@ -3,7 +3,6 @@ import {BIN_OUTPUT_PATH} from "./constants";
 import {ensureAndClear, parseSigFile} from "./io";
 import {run} from "./evm";
 import TestLogger from "./test_logger";
-import {hasOwnProperty} from "tslint/lib/utils";
 import {compileContracts} from "./solc";
 
 export interface ITestData {

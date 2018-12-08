@@ -1,6 +1,4 @@
-pragma experimental "v0.5.0";
-pragma experimental ABIEncoderV2;
-pragma solidity ^0.4.22;
+pragma solidity ^0.5.0;
 
 import {EVMConstants} from "./EVMConstants.sol";
 import {EVMAccounts} from "./EVMAccounts.slb";
@@ -10,7 +8,7 @@ import {EVMStack} from "./EVMStack.slb";
 import {EVMLogs} from "./EVMLogs.slb";
 import {EVMUtils} from "./EVMUtils.slb";
 
-import {EthereumRuntime} from "./EthereumRuntime.sol";
+import {IEthereumRuntime, EthereumRuntime} from "./EthereumRuntime.sol";
 
 contract EthereumRuntimePerf is EthereumRuntime {
 

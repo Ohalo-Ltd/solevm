@@ -1,6 +1,4 @@
-pragma experimental "v0.5.0";
-pragma experimental ABIEncoderV2;
-pragma solidity ^0.4.22;
+pragma solidity ^0.5.0;
 
 
 contract TestContractNoop {
@@ -102,7 +100,7 @@ contract DeployedContractEmpty {}
 
 contract TestContractCreate {
     function test() public returns (address) {
-        return new DeployedContractEmpty();
+        return address(new DeployedContractEmpty());
     }
 }
 
@@ -275,7 +273,7 @@ contract DeployedContractWithConstructorParams {
 
 contract TestContractCreateWithConstructorParams {
     function test() public returns (uint, address) {
-        DeployedContractWithConstructorParams c = new DeployedContractWithConstructorParams(4, 5);
+        DeployedContractWithConstructorParams c = new DeployedContractWithConstructorParams(4, address(5));
         uint x = c.x();
         address y = c.y();
         return (x, y);
@@ -310,7 +308,7 @@ contract TestContractCallsB {
     function test() public {
         TestContractCallsD d = new TestContractCallsD();
         TestContractCallsE e = new TestContractCallsE();
-        d.callSetN(e, 5);
+        d.callSetN(address(e), 5);
     }
 }
 
@@ -320,7 +318,7 @@ contract TestContractCallsC {
     function test() public {
         TestContractCallsD d = new TestContractCallsD();
         TestContractCallsE e = new TestContractCallsE();
-        d.delegatecallSetN(e, 5);
+        d.delegatecallSetN(address(e), 5);
     }
 }
 
@@ -331,11 +329,11 @@ contract TestContractCallsD {
     address public sender;
 
     function callSetN(address _e, uint _n) public {
-        _e.call(bytes4(keccak256("setN(uint256)")), _n); // E's storage is set, D is not modified
+        _e.call(abi.encodeWithSignature("setN(uint256)", _n)); // E's storage is set, D is not modified
     }
 
     function delegatecallSetN(address _e, uint _n) public {
-        _e.delegatecall(bytes4(keccak256("setN(uint256)")), _n); // D's storage is set, E is not modified
+        _e.delegatecall(abi.encodeWithSignature("setN(uint256)", _n)); // D's storage is set, E is not modified
     }
 }
 

@@ -1,6 +1,4 @@
-pragma experimental "v0.5.0";
-pragma experimental ABIEncoderV2;
-pragma solidity ^0.4.22;
+pragma solidity ^0.5.0;
 
 import {EVMLogs} from "./EVMLogs.slb";
 
@@ -13,31 +11,31 @@ contract EVMLogsPerf {
     function perfLogGetFirst() public payable returns (uint gas) {
         EVMLogs.Logs memory logs;
         gas = gasleft();
-        logs.add(EVMLogs.LogEntry(1, [uint(2), 3, 4, 5], new bytes(5)));
+        logs.add(EVMLogs.LogEntry(address(1), [uint(2), 3, 4, 5], new bytes(5)));
         gas -= gasleft();
     }
 
     function perfLogGetSecond() public payable returns (uint gas) {
         EVMLogs.Logs memory logs;
-        logs.add(EVMLogs.LogEntry(1, [uint(2), 3, 4, 5], new bytes(5)));
+        logs.add(EVMLogs.LogEntry(address(1), [uint(2), 3, 4, 5], new bytes(5)));
         gas = gasleft();
-        logs.add(EVMLogs.LogEntry(1, [uint(2), 3, 4, 5], new bytes(5)));
+        logs.add(EVMLogs.LogEntry(address(1), [uint(2), 3, 4, 5], new bytes(5)));
         gas -= gasleft();
     }
 
     function perfLogGetTenth() public payable returns (uint gas) {
         EVMLogs.Logs memory logs;
         for (uint i = 1; i < 10; i++) {
-            logs.add(EVMLogs.LogEntry(1, [uint(2), 3, 4, 5], new bytes(5)));
+            logs.add(EVMLogs.LogEntry(address(1), [uint(2), 3, 4, 5], new bytes(5)));
         }
         gas = gasleft();
-        logs.add(EVMLogs.LogEntry(1, [uint(2), 3, 4, 5], new bytes(5)));
+        logs.add(EVMLogs.LogEntry(address(1), [uint(2), 3, 4, 5], new bytes(5)));
         gas -= gasleft();
     }
 
     function perfLogCopyOne() public payable returns (uint gas) {
         EVMLogs.Logs memory logs;
-        logs.add(EVMLogs.LogEntry(1, [uint(2), 3, 4, 5], new bytes(5)));
+        logs.add(EVMLogs.LogEntry(address(1), [uint(2), 3, 4, 5], new bytes(5)));
         gas = gasleft();
         logs.copy();
         gas -= gasleft();
@@ -45,8 +43,8 @@ contract EVMLogsPerf {
 
     function perfLogCopyTwo() public payable returns (uint gas) {
         EVMLogs.Logs memory logs;
-        logs.add(EVMLogs.LogEntry(1, [uint(2), 3, 4, 5], new bytes(5)));
-        logs.add(EVMLogs.LogEntry(1, [uint(2), 3, 4, 5], new bytes(5)));
+        logs.add(EVMLogs.LogEntry(address(1), [uint(2), 3, 4, 5], new bytes(5)));
+        logs.add(EVMLogs.LogEntry(address(1), [uint(2), 3, 4, 5], new bytes(5)));
         gas = gasleft();
         logs.copy();
         gas -= gasleft();
@@ -55,7 +53,7 @@ contract EVMLogsPerf {
     function perfLogCopyTen() public payable returns (uint gas) {
         EVMLogs.Logs memory logs;
         for (uint i = 1; i <= 10; i++) {
-            logs.add(EVMLogs.LogEntry(1, [uint(2), 3, 4, 5], new bytes(5)));
+            logs.add(EVMLogs.LogEntry(address(1), [uint(2), 3, 4, 5], new bytes(5)));
         }
         gas = gasleft();
         logs.copy();
@@ -64,7 +62,7 @@ contract EVMLogsPerf {
 
     function perfLogToArrayOne() public payable returns (uint gas) {
         EVMLogs.Logs memory logs;
-        logs.add(EVMLogs.LogEntry(1, [uint(2), 3, 4, 5], new bytes(5)));
+        logs.add(EVMLogs.LogEntry(address(1), [uint(2), 3, 4, 5], new bytes(5)));
         gas = gasleft();
         logs.toArray();
         gas -= gasleft();
@@ -72,8 +70,8 @@ contract EVMLogsPerf {
 
     function perfLogToArrayTwo() public payable returns (uint gas) {
         EVMLogs.Logs memory logs;
-        logs.add(EVMLogs.LogEntry(1, [uint(2), 3, 4, 5], new bytes(5)));
-        logs.add(EVMLogs.LogEntry(1, [uint(2), 3, 4, 5], new bytes(5)));
+        logs.add(EVMLogs.LogEntry(address(1), [uint(2), 3, 4, 5], new bytes(5)));
+        logs.add(EVMLogs.LogEntry(address(1), [uint(2), 3, 4, 5], new bytes(5)));
         gas = gasleft();
         logs.toArray();
         gas -= gasleft();
@@ -82,7 +80,7 @@ contract EVMLogsPerf {
     function perfLogToArrayTen() public payable returns (uint gas) {
         EVMLogs.Logs memory logs;
         for (uint i = 1; i <= 10; i++) {
-            logs.add(EVMLogs.LogEntry(1, [uint(2), 3, 4, 5], new bytes(5)));
+            logs.add(EVMLogs.LogEntry(address(1), [uint(2), 3, 4, 5], new bytes(5)));
         }
         gas = gasleft();
         logs.toArray();

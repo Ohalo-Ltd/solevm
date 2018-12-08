@@ -1,5 +1,4 @@
 import path = require('path');
-import BigNumber from "bignumber.js";
 
 // Paths.
 export const ROOT_PATH = path.join(__dirname, '..');

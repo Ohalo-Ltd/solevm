@@ -1,15 +1,15 @@
-pragma experimental "v0.5.0";
-pragma experimental ABIEncoderV2;
-pragma solidity ^0.4.22;
+pragma solidity ^0.5.0;
 
 import {EVMStack} from "./EVMStack.slb";
+
 
 contract TestContractEVMStack {
 
     using EVMStack for EVMStack.Stack;
 
+    uint public constant DATA = 1234;
+
     function test() public {
-        uint DATA = 1234;
         EVMStack.Stack memory stack = EVMStack.newStack();
         stack.push(DATA);
         uint val;

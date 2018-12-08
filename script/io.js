@@ -70,7 +70,6 @@ exports.filesInFolder = function (folderPath, extension) {
                 files.push(fPath);
             }
         }
-        //console.log(fPath);
     });
     return files;
 };

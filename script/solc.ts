@@ -15,7 +15,6 @@ export const compileContracts = async (contracts: [string], optimize: boolean) =
     }
 };
 
-
 export const compile = async (filePath: string, outDir: string, optimize: boolean): Promise<any> => {
     return new Promise((resolve, reject) => {
         const cmd = `solc .= --evm-version constantinople --bin --bin-runtime --abi --hashes --overwrite ${optimize ? "--optimize" : ""} -o ${outDir} ${filePath}`;

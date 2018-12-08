@@ -60,7 +60,7 @@ beforeAll(function () { return __awaiter(_this, void 0, void 0, function () {
                 return [2 /*return*/];
         }
     });
-}); }, 30000);
+}); }, 100000);
 var runTest = function (code, data, resExpected) { return __awaiter(_this, void 0, void 0, function () {
     var result, i;
     return __generator(this, function (_a) {
@@ -3040,7 +3040,7 @@ describe('single instructions', function () { return __awaiter(_this, void 0, vo
                                 memSize: 32,
                                 mem: "60016000f3000000000000000000000000000000000000000000000000000000",
                                 stack: [
-                                    new bignumber_js_1.BigNumber("c8a5de6331e2e7b12771c579467b1c7d1b506d71", 16)
+                                    new bignumber_js_1.BigNumber("5ecfbe86fcd903321c505cb5c8a5de6331e2e7b1", 16)
                                 ],
                             };
                             return [4 /*yield*/, runTest(code, data, resExpected)];
@@ -3066,7 +3066,7 @@ describe('single instructions', function () { return __awaiter(_this, void 0, vo
                                 mem: "60016000f3000000000000000000000000000000000000000000000000000000",
                                 stack: [
                                     new bignumber_js_1.BigNumber(0),
-                                    new bignumber_js_1.BigNumber("c8a5de6331e2e7b12771c579467b1c7d1b506d71", 16)
+                                    new bignumber_js_1.BigNumber("5ecfbe86fcd903321c505cb5c8a5de6331e2e7b1", 16)
                                 ],
                             };
                             return [4 /*yield*/, runTest(code, data, resExpected)];
@@ -3263,7 +3263,7 @@ describe('solidity contracts', function () {
                 case 1:
                     result = _a.sent();
                     expect(result.errno).toBe(constants_1.NO_ERROR);
-                    expect(result.returnData).toBe('000000000000000000000000c8a5de6331e2e7b12771c579467b1c7d1b506d71');
+                    expect(result.returnData).toBe('0000000000000000000000005ecfbe86fcd903321c505cb5c8a5de6331e2e7b1');
                     return [2 /*return*/];
             }
         });
@@ -3631,7 +3631,7 @@ describe('solidity contracts', function () {
                     expect(storage[0].address.eq(0)).toBeTruthy();
                     expect(storage[0].value.eq(5)).toBeTruthy();
                     expect(storage[1].address.eq(1)).toBeTruthy();
-                    expect(storage[1].value.eq("c8a5de6331e2e7b12771c579467b1c7d1b506d71", 16)).toBeTruthy();
+                    expect(storage[1].value.eq("5ecfbe86fcd903321c505cb5c8a5de6331e2e7b1", 16)).toBeTruthy();
                     return [2 /*return*/];
             }
         });

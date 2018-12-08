@@ -80,8 +80,6 @@ export const filesInFolder = (folderPath: string, extension: string): [string] =
                 files.push(fPath);
             }
         }
-        //console.log(fPath);
     });
     return files;
 };
-
