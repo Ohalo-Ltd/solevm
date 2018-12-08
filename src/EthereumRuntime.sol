@@ -893,13 +893,13 @@ contract EthereumRuntime is IEthereumRuntime {
     function handleTLOAD(EVM memory state) internal pure returns (uint errno) {
         uint cAddr = state.stack.pop();
         uint sAddr = state.stack.pop();
-        state.stack.push(state.tStorage.load(cAddr, sAddr));
+        state.stack.push(state.tStorage.load(address(uint160(cAddr)), sAddr));
     }
 
     function handleTSTORE(EVM memory state) internal pure returns (uint errno) {
         uint addr = state.stack.pop();
         uint val = state.stack.pop();
-        state.tStorage.store(uint160(state.target.addr), addr, val);
+        state.tStorage.store(state.target.addr, addr, val);
     }
 
     function handleTCOPY(EVM memory state) internal pure returns (uint errno) {
@@ -907,7 +907,7 @@ contract EthereumRuntime is IEthereumRuntime {
         uint sAddr = state.stack.pop();
         uint dAddr = state.stack.pop();
         uint len = state.stack.pop();
-        state.tStorage.copyToMem(state.mem, cAddr, sAddr, dAddr, len);
+        state.tStorage.copyToMem(state.mem, address(uint160(cAddr)), sAddr, dAddr, len);
     }
 
     // 0x6X, 0x7X

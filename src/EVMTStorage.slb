@@ -8,7 +8,7 @@ library EVMTStorage {
     using EVMMemory for EVMMemory.Memory;
 
     struct StorageSlot {
-        uint addr;
+        address addr;
         EVMMemory.Memory mem;
     }
 
@@ -22,7 +22,7 @@ library EVMTStorage {
         uint size;
     }
 
-    function _getOrCreateElem(Storage memory self, uint cAddr) internal pure returns (Element memory e){
+    function _getOrCreateElem(Storage memory self, address cAddr) internal pure returns (Element memory e){
         if (self.size == 0) {
             e.slot.addr = cAddr;
             EVMMemory.Memory memory mem = EVMMemory.newMemory();
@@ -56,24 +56,24 @@ library EVMTStorage {
         return e;
     }
 
-    function store(Storage memory self, uint cAddr, uint sAddr, uint val) internal pure {
+    function store(Storage memory self, address cAddr, uint sAddr, uint val) internal pure {
         _getOrCreateElem(self, cAddr).slot.mem.store(sAddr, val);
     }
 
-    function storeBytes(Storage memory self, bytes memory bts, uint cAddr, uint sAddr, uint srcAddr, uint len) internal pure {
+    function storeBytes(Storage memory self, bytes memory bts, address cAddr, uint sAddr, uint srcAddr, uint len) internal pure {
         _getOrCreateElem(self, cAddr).slot.mem.storeBytes(bts, srcAddr, sAddr, len);
     }
 
-    function load(Storage memory self, uint cAddr, uint sAddr) internal pure returns (uint val) {
+    function load(Storage memory self, address cAddr, uint sAddr) internal pure returns (uint val) {
         return _getOrCreateElem(self, cAddr).slot.mem.load(sAddr);
     }
 
-    function copyToMem(Storage memory self, EVMMemory.Memory memory mem, uint cAddr, uint sAddr, uint mAddr, uint len) internal pure {
+    function copyToMem(Storage memory self, EVMMemory.Memory memory mem, address cAddr, uint sAddr, uint mAddr, uint len) internal pure {
         Element memory elem = _getOrCreateElem(self, cAddr);
         mem.storeBytes(elem.slot.mem.toArray(sAddr, len), 0, mAddr, len);
     }
 
-    function copyFromMem(Storage memory self, EVMMemory.Memory memory mem, uint cAddr, uint sAddr, uint mAddr, uint len) internal pure {
+    function copyFromMem(Storage memory self, EVMMemory.Memory memory mem, address cAddr, uint sAddr, uint mAddr, uint len) internal pure {
         bytes memory bts = mem.toArray(mAddr, len);
         storeBytes(self, bts, cAddr, sAddr, 0, len);
     }
@@ -131,7 +131,7 @@ library EVMTStorage {
         uint dataOffset = 0;
         for (i = 0; i < self.size; i++) {
             StorageSlot memory slot = slots[i];
-            arr[offset++] = slot.addr;
+            arr[offset++] = uint160(slot.addr);
             arr[offset++] = dataOffset;
             bytes memory bts = slot.mem.toArray();
             EVMUtils.copy(bts, data, 0, dataOffset, bts.length);
